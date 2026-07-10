@@ -6,6 +6,11 @@
     "response_deadline": "목요일",
     "organizer": "jiwon"
   },
+  "schedule_display": {
+    "note": "표시 전용 필드 — 엔진은 요일×시각으로만 계산한다. window_end는 시작+4근무일로 파생하며 독립 필드로 두지 않는다.",
+    "window_start_date": "2026-07-13",
+    "response_deadline_date": "2026-07-09"
+  },
   "grid": {
     "days": ["월", "화", "수", "목", "금"],
     "hours": [9, 10, 11, 13, 14, 15, 16, 17],
@@ -97,7 +102,8 @@
     "required_preference": 2,
     "optional_attendance": 3,
     "inviolable": ["hard_constraint", "required_attendance"],
-    "tie_break": "earlier datetime"
+    "tie_break": "earlier datetime",
+    "invariant": "optional_attendance > optional_preference — 선호 회피 목적의 제외가 이득이 되지 않도록 보장"
   },
   "expected": {
     "total_slots": 40,
@@ -115,6 +121,26 @@
       "top": {"day": "금", "hour": 13, "sacrifice": "필수 참석자 서연의 선호 1건", "cost": 2},
       "alternative": {"day": "수", "hour": 14, "sacrifice": "선택 참석자 도윤 제외", "cost": 3, "human_pull": "선호 전부 충족 + 더 이른 날짜"}
     },
+    "candidate_groups_post": [
+      {
+        "rank": 1, "excluded": [], "pref_unmet": ["seoyeon"], "cost": 2,
+        "slots": [{"day": "금", "hour": 13}],
+        "default_slot": {"day": "금", "hour": 13},
+        "attend_count": "6/6"
+      },
+      {
+        "rank": 2, "excluded": ["doyun"], "pref_unmet": [], "cost": 3,
+        "slots": [{"day": "수", "hour": 14}, {"day": "수", "hour": 15}, {"day": "수", "hour": 16}, {"day": "수", "hour": 17}],
+        "default_slot": {"day": "수", "hour": 14},
+        "attend_count": "5/6"
+      },
+      {
+        "rank": 3, "excluded": ["doyun", "sua"], "pref_unmet": [], "cost": 6,
+        "slots": [{"day": "월", "hour": 17}],
+        "default_slot": {"day": "월", "hour": 17},
+        "attend_count": "4/6"
+      }
+    ],
     "escapes": [
       {"action": "하늘의 금 14시 마감 리뷰 조정", "result": {"day": "금", "hour": 14, "becomes": "perfect"}},
       {"action": "도윤의 수요일 오후 불가 제거", "result": {"day": "수", "hour": 14, "becomes": "perfect"}},
