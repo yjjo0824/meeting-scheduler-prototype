@@ -1,0 +1,124 @@
+{
+  "meeting": {
+    "title": "3분기 신규 기능 론칭 킥오프",
+    "duration_hours": 1,
+    "window": "다음 주",
+    "response_deadline": "목요일",
+    "organizer": "jiwon"
+  },
+  "grid": {
+    "days": ["월", "화", "수", "목", "금"],
+    "hours": [9, 10, 11, 13, 14, 15, 16, 17],
+    "note": "12시는 점심으로 제외. 슬롯은 시작 시각 기준 1시간."
+  },
+  "people": [
+    {
+      "id": "jiwon", "name": "지원", "job": "PM", "attendance": "required", "is_organizer": true,
+      "calendar": [
+        {"title": "전사 주간회의", "day": "월", "hours": [9, 10]},
+        {"title": "임원 보고", "day": "수", "hours": [11]},
+        {"title": "팀 워크샵", "day": "금", "hours": [15, 16, 17]}
+      ],
+      "response": {"raw": null, "chips": [], "note": "주최자. 회의 생성 시 참석자와 필수/선택 지정."}
+    },
+    {
+      "id": "minjun", "name": "민준", "job": "세일즈", "attendance": "required", "is_organizer": false,
+      "calendar": [
+        {"title": "고객사 방문", "day": "화", "hours": [9, 10, 11, 13, 14, 15, 16, 17]},
+        {"title": "현장 실사", "day": "목", "hours": [9, 10, 11, 13, 14, 15, 16, 17]}
+      ],
+      "response": {
+        "raw": "외근 다음 날 오전 첫 시간은 정리할 게 많아서 피하면 좋겠어요",
+        "chips": [{"type": "회피", "day": "수", "hours": [9], "cue": "외근 다음 날"}]
+      }
+    },
+    {
+      "id": "seoyeon", "name": "서연", "job": "디자이너", "attendance": "required", "is_organizer": false,
+      "calendar": [
+        {"title": "프로젝트 리뷰", "day": "월", "hours": [15, 16]},
+        {"title": "디자인 크리틱", "day": "수", "hours": [9, 10]},
+        {"title": "QA 세션", "day": "금", "hours": [10, 11]}
+      ],
+      "response": {
+        "raw": "점심 바로 다음 시간은 좀 피하고 싶어요",
+        "chips": [{"type": "회피", "day": "*", "hours": [13], "cue": "점심 바로 다음"}],
+        "note": "사유 없음 — 시스템도 묻지 않는다(R4의 대본화)."
+      }
+    },
+    {
+      "id": "haneul", "name": "하늘", "job": "개발 리드", "attendance": "required", "is_organizer": false,
+      "calendar": [
+        {"title": "채용 인터뷰", "day": "월", "hours": [11]},
+        {"title": "외부 미팅", "day": "월", "hours": [13, 14]},
+        {"title": "1:1", "day": "수", "hours": [13]},
+        {"title": "스탠드업", "day": "금", "hours": [9]},
+        {"title": "마감 리뷰", "day": "금", "hours": [14]}
+      ],
+      "response": {
+        "raw": "금요일 마감 리뷰는 필요하면 옮길 수 있어요",
+        "chips": [{"type": "조정가능", "day": "금", "hours": [14], "target": "마감 리뷰", "cue": "옮길 수 있어요"}],
+        "note": "조정가능은 하드 제약의 메타데이터(R3). 계산상 여전히 불가, 탈출구 시연용."
+      }
+    },
+    {
+      "id": "doyun", "name": "도윤", "job": "마케터", "attendance": "optional", "is_organizer": false,
+      "responded_at_demo_start": false,
+      "calendar": [
+        {"title": "개인 일정", "day": "월", "hours": [17]}
+      ],
+      "response": {
+        "raw": "수요일엔 외부 미팅이 있어서 오후 내내 밖이에요. 월요일 5시엔 애 픽업 가야 하고, 금요일 늦은 시간은 웬만하면 피하고 싶어요",
+        "chips": [
+          {"type": "불가", "day": "수", "hours": [14, 15, 16, 17], "cue": "외부 미팅"},
+          {"type": "병합", "day": "월", "hours": [17], "cue": "애 픽업", "note": "캘린더에 이미 있어요 — 중복 흡수 시연"},
+          {"type": "회피", "day": "금", "hours": [17], "cue": "웬만하면"}
+        ],
+        "note": "수요일 외부 미팅은 캘린더 미등록 = '기록되지 않은 정보'. 투어에서 평가자가 도윤 역할로 직접 입력."
+      }
+    },
+    {
+      "id": "sua", "name": "수아", "job": "데이터 분석가", "attendance": "optional", "is_organizer": false,
+      "calendar": [
+        {"title": "외부 교육", "day": "화", "hours": [9, 10, 11, 13, 14, 15, 16, 17]},
+        {"title": "대학원 수업", "day": "월", "hours": [17]}
+      ],
+      "response": {
+        "raw": "화요일은 종일 교육이고, 월요일 저녁엔 수업이 있어요",
+        "chips": [
+          {"type": "병합", "day": "화", "hours": [9, 10, 11, 13, 14, 15, 16, 17], "cue": "종일 교육"},
+          {"type": "병합", "day": "월", "hours": [17], "cue": "수업"}
+        ],
+        "note": "응답 전부가 병합 — 아무렇게나 말해도 시스템이 정리한다의 저비용 시연. 수아의 하드 제약은 전부 타인 제약과 겹침(단독 차단자 아님 — 의도적 배치)."
+      }
+    }
+  ],
+  "cost_weights": {
+    "optional_preference": 1,
+    "required_preference": 2,
+    "optional_attendance": 3,
+    "inviolable": ["hard_constraint", "required_attendance"],
+    "tie_break": "earlier datetime"
+  },
+  "expected": {
+    "total_slots": 40,
+    "perfect_slots_all_responded": [],
+    "all_attend_slots": [{"day": "금", "hour": 13, "soft_violations": ["seoyeon"]}],
+    "candidates_exclude_doyun": [
+      {"day": "수", "hour": 14}, {"day": "수", "hour": 15}, {"day": "수", "hour": 16}, {"day": "수", "hour": 17}
+    ],
+    "candidates_exclude_sua": [],
+    "pre_doyun_tentative_perfect": [
+      {"day": "수", "hour": 14}, {"day": "수", "hour": 15}, {"day": "수", "hour": 16}, {"day": "수", "hour": 17}
+    ],
+    "recommendation_pre_doyun": {"day": "수", "hour": 14, "status": "잠정 — 도윤 미응답, 확정 일정 기준"},
+    "recommendation_post": {
+      "top": {"day": "금", "hour": 13, "sacrifice": "필수 참석자 서연의 선호 1건", "cost": 2},
+      "alternative": {"day": "수", "hour": 14, "sacrifice": "선택 참석자 도윤 제외", "cost": 3, "human_pull": "선호 전부 충족 + 더 이른 날짜"}
+    },
+    "escapes": [
+      {"action": "하늘의 금 14시 마감 리뷰 조정", "result": {"day": "금", "hour": 14, "becomes": "perfect"}},
+      {"action": "도윤의 수요일 오후 불가 제거", "result": {"day": "수", "hour": 14, "becomes": "perfect"}},
+      {"action": "서연의 13시 회피 해제", "result": {"day": "금", "hour": 13, "becomes": "perfect"}}
+    ]
+  }
+}
