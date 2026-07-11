@@ -22,6 +22,8 @@ function chipTypeLabel(type: Chip['type']): string {
       return '조정가능'
     case '병합':
       return '병합'
+    case '미분류':
+      return '미분류'
   }
 }
 

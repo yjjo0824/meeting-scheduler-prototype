@@ -3,7 +3,7 @@ export type ChipDay = Day | '*'
 export type Hour = number
 
 export type Attendance = 'required' | 'optional'
-export type ChipType = '불가' | '회피' | '병합' | '조정가능'
+export type ChipType = '불가' | '회피' | '병합' | '조정가능' | '미분류'
 
 export interface CalendarEvent {
   title: string
