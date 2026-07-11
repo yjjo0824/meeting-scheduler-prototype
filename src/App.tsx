@@ -1,6 +1,7 @@
 import { AppProvider, useAppState } from './state/AppContext'
 import { HostDashboard } from './screens/HostDashboard/HostDashboard'
 import { ParticipantPhoneFrame } from './screens/ParticipantPhoneFrame/ParticipantPhoneFrame'
+import { TradeoffCandidates } from './screens/TradeoffCandidates/TradeoffCandidates'
 import { SlideOverDim } from './shared/SlideOverDim'
 
 function AppShell() {
@@ -9,7 +10,8 @@ function AppShell() {
   return (
     <>
       <SlideOverDim dimmed={state.phoneFrame.open}>
-        <HostDashboard />
+        {state.screen === 'host' && <HostDashboard />}
+        {state.screen === 'tradeoff' && <TradeoffCandidates />}
       </SlideOverDim>
       <ParticipantPhoneFrame />
     </>
