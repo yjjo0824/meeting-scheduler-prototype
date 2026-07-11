@@ -1,1 +1,37 @@
 @import "tailwindcss";
+
+/* 최소 디자인 토큰 — WIREFRAME_REFERENCE_ver2.html의 방향(파란 계열 대표색, 중립 회색조)을 기준으로
+   중앙 정의한다. Tailwind v4의 @theme는 여기 선언한 color, radius, shadow 변수로부터
+   bg, text, border, rounded, shadow 유틸리티를 자동 생성한다. 화면별 클래스를 일괄
+   치환하지 않고, 이 토큰을 소비하는 공용 컴포넌트(Button, Badge, Card)를 통해서만 적용한다. */
+@theme {
+  /* 대표색(브랜드) */
+  --color-brand-50: #e8f3ff;
+  --color-brand-100: #c9dfff;
+  --color-brand-500: #3182f6;
+  --color-brand-600: #1b64da;
+
+  /* 상태색 */
+  --color-warn-50: #fff4e6;
+  --color-warn-600: #b96900;
+  --color-success-50: #e6fcf5;
+  --color-success-600: #0ca678;
+  --color-danger-50: #fff0f1;
+  --color-danger-600: #c92a37;
+
+  /* 텍스트/배경/보더(중립) */
+  --color-ink-900: #191f28;
+  --color-ink-700: #4e5968;
+  --color-ink-500: #8b95a1;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f7f8fa;
+  --color-border: #e5e8eb;
+
+  /* 라운드 */
+  --radius-card: 18px;
+  --radius-pill: 9999px;
+
+  /* 그림자 */
+  --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.05);
+  --shadow-elevated: 0 16px 50px rgba(25, 31, 40, 0.14);
+}

@@ -14,7 +14,7 @@ function renderHostDashboard(): string {
   )
 }
 
-describe('HostDashboard — IMPLEMENTATION_SPEC §4 필수 표시', () => {
+describe('HostDashboard — IMPLEMENTATION_SPEC §4.2 필수 표시(조건 지도 구조)', () => {
   const html = renderHostDashboard()
 
   it('회의명이 표시된다', () => {
@@ -27,23 +27,26 @@ describe('HostDashboard — IMPLEMENTATION_SPEC §4 필수 표시', () => {
     expect(html).toContain(RAW_SEED.meeting.response_deadline)
   })
 
-  it('6명 중 5명 응답 완료가 표시된다(투어 시작 상태)', () => {
-    expect(html).toContain('6명 중 5명 응답 완료')
+  it('응답 현황(5명이 답변했어요)이 표시된다(투어 시작 상태)', () => {
+    expect(html).toContain('5명이 답변했어요')
   })
 
-  it('도윤/마케터/선택/미응답이 표시된다', () => {
+  it('도윤/마케터/선택/답변 전이 조건 지도에 표시된다', () => {
     expect(html).toContain('도윤')
     expect(html).toContain('마케터')
     expect(html).toContain('선택')
-    expect(html).toContain('미응답')
+    expect(html).toContain('답변 전')
   })
 
-  it('잠정 추천 배너 문구가 정확히 일치한다', () => {
-    expect(html).toContain('잠정 추천: 수요일 14시 · 확정 일정 기준 · 도윤 님 응답 전이에요')
+  it('미응답 상태(리마인드) 카드와 잠정 추천 카드가 분리되어 표시된다', () => {
+    expect(html).toContain('도윤 님의 답변을 기다리고 있어요')
+    expect(html).toContain('현재 가장 좋은 시간이에요')
+    expect(html).toContain('수요일 14시')
   })
 
   it('리마인드 보내기 버튼이 표시된다', () => {
     expect(html).toContain('리마인드 보내기')
+    expect(html).toContain('data-tour-id="remind-button"')
   })
 
   it('도윤의 응답 원문·사유(cue)는 어디에도 노출되지 않는다(R4)', () => {
@@ -54,12 +57,15 @@ describe('HostDashboard — IMPLEMENTATION_SPEC §4 필수 표시', () => {
     }
   })
 
-  it('응답 전인 도윤의 응답 칩(회피/불가) 조건은 아직 노출되지 않는다(R7)', () => {
-    // 도윤은 캘린더(월17)만 알려진 상태 — 응답 칩에서 나온 "회피"/"금 17시" 문구는 아직 없어야 한다.
-    expect(html).not.toContain('금 17시')
+  it('아무 참여자도 선택하지 않은 기본 상태에서는 상세 패널의 "참여자 화면 보기" 버튼이 보이지 않는다(행 클릭이 곧바로 화면 전환을 일으키지 않음)', () => {
+    expect(html).not.toContain('참여자 화면 보기')
+    expect(html).toContain('참여자를 선택하면 조건 상세가 여기 보여요')
   })
 
-  it('아무 참여자도 선택하지 않은 기본 상태에서는 "참여자 화면 보기" 버튼이 보이지 않는다(행 클릭이 곧바로 화면 전환을 일으키지 않음)', () => {
-    expect(html).not.toContain('참여자 화면 보기')
+  it('조건 지도의 범례가 표시된다', () => {
+    expect(html).toContain('모두의 시간 조건')
+    expect(html).toContain('참석 어려움')
+    expect(html).toContain('가급적 피함')
+    expect(html).toContain('옮길 수 있음')
   })
 })
