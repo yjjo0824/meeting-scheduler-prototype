@@ -41,6 +41,16 @@ export function ParticipantPhoneFrame() {
     setDraftChips(parseChips({ raw: text, calendarEvents: person.calendar, grid: RAW_SEED.grid }))
   }
 
+  // 이미 응답한 사람(자유 모드에서 다시 연 경우)의 칩 편집·삭제는 제출을 기다리지 않고 즉시
+  // 전역 상태에 반영한다("칩 탭 → 삭제 → 즉시 재계산", R8). 아직 응답 전인 사람은 초안에만
+  // 머무르다가 [응답 보내기]를 눌러야 반영된다 — 투어 대본("직접 입력→제출")과 충돌하지 않도록.
+  function handleChipsChange(next: Chip[]) {
+    setDraftChips(next)
+    if (person && state.hasResponded[person.id]) {
+      dispatch({ type: 'UPDATE_CHIPS', personId: person.id, chips: next })
+    }
+  }
+
   function handleSubmit() {
     if (!person) return
     dispatch({
@@ -76,7 +86,7 @@ export function ParticipantPhoneFrame() {
               }
             />
             <FreeTextInput value={draftRaw} onChange={handleDraftChange} />
-            <ChipReviewList chips={chipsToReview} onChangeChips={setDraftChips} />
+            <ChipReviewList chips={chipsToReview} onChangeChips={handleChipsChange} />
             <TrustNotice />
             <button
               type="button"

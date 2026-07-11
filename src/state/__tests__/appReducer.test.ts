@@ -108,6 +108,37 @@ describe('appReducer — 화면 전환·확정·자유모드·리셋', () => {
     const resetState = appReducer(state, { type: 'RESET_ALL' })
     expect(resetState).toEqual(buildInitialState())
   })
+
+  it('RESET_ALL은 탈출구·정정·신고·필수선택변경·슬롯선택까지 전부 초기화한다(투어 시작 상태로 완전 복귀)', () => {
+    let state = buildInitialState()
+    state = appReducer(state, { type: 'SUBMIT_RESPONSE', personId: 'doyun', chips: doyun().response.chips })
+    state = appReducer(state, {
+      type: 'APPLY_CALENDAR_CORRECTION',
+      personId: 'haneul',
+      day: '금',
+      hour: 14,
+      kind: 'movable',
+    })
+    state = appReducer(state, { type: 'UPDATE_CHIPS', personId: 'seoyeon', chips: [] })
+    state = appReducer(state, { type: 'SET_ATTENDANCE', personId: 'doyun', attendance: 'required' })
+    state = appReducer(state, { type: 'SELECT_SLOT', groupKey: 'k', slot: { day: '수', hour: 15 } })
+    state = appReducer(state, { type: 'REPORT_UNAVAILABLE', personId: 'sua' })
+    state = appReducer(state, { type: 'UNLOCK_FREE_MODE' })
+    state = appReducer(state, { type: 'CONFIRM_MEETING', groupKey: 'k', slot: { day: '금', hour: 13 }, excluded: [] })
+
+    const resetState = appReducer(state, { type: 'RESET_ALL' })
+    const fresh = buildInitialState()
+
+    expect(resetState).toEqual(fresh)
+    expect(resetState.calendarCorrections).toEqual({})
+    expect(resetState.reportedByPersonId).toEqual({})
+    expect(resetState.selectedSlotByGroup).toEqual({})
+    expect(resetState.people.find((p) => p.id === 'doyun')!.attendance).toBe('optional')
+    expect(resetState.people.find((p) => p.id === 'seoyeon')!.response.chips.length).toBeGreaterThan(0)
+    expect(resetState.tour).toEqual({ active: true, stepIndex: 0 })
+    expect(resetState.freeModeUnlocked).toBe(false)
+    expect(resetState.confirmedMeeting).toBeNull()
+  })
 })
 
 describe('appReducer — 탈출구 1: 캘린더 정정(옮길 수 있어요) → 금14 완벽 슬롯', () => {
