@@ -58,4 +58,8 @@ describe('HostDashboard — IMPLEMENTATION_SPEC §4 필수 표시', () => {
     // 도윤은 캘린더(월17)만 알려진 상태 — 응답 칩에서 나온 "회피"/"금 17시" 문구는 아직 없어야 한다.
     expect(html).not.toContain('금 17시')
   })
+
+  it('아무 참여자도 선택하지 않은 기본 상태에서는 "참여자 화면 보기" 버튼이 보이지 않는다(행 클릭이 곧바로 화면 전환을 일으키지 않음)', () => {
+    expect(html).not.toContain('참여자 화면 보기')
+  })
 })

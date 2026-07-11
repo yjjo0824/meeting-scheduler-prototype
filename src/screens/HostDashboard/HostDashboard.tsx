@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { RAW_SEED } from '../../data/loadSeed'
 import { useAppState } from '../../state/AppContext'
 import { MeetingHeader } from './MeetingHeader'
@@ -7,6 +8,7 @@ import { TentativeRecommendationBanner } from './TentativeRecommendationBanner'
 
 export function HostDashboard() {
   const { state, dispatch, schedule } = useAppState()
+  const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null)
   const pendingPerson = state.people.find((p) => !state.hasResponded[p.id]) ?? null
   const respondedCount = state.people.filter((p) => state.hasResponded[p.id]).length
 
@@ -19,7 +21,9 @@ export function HostDashboard() {
       <ResponseStatusList
         people={state.people}
         hasResponded={state.hasResponded}
-        onSelectPerson={(personId) => dispatch({ type: 'OPEN_PHONE_FRAME', personId })}
+        selectedPersonId={selectedPersonId}
+        onSelectPerson={(personId) => setSelectedPersonId((prev) => (prev === personId ? null : personId))}
+        onOpenPhoneFrame={(personId) => dispatch({ type: 'OPEN_PHONE_FRAME', personId })}
       />
       <TentativeRecommendationBanner schedule={schedule} people={state.people} hasResponded={state.hasResponded} />
       <RemindButton
