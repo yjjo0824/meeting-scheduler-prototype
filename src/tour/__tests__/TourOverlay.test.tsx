@@ -31,13 +31,26 @@ describe('TourOverlay — 렌더링(단계별 카드 스냅샷)', () => {
     expect(html).toContain('z-index: 900 !important')
   })
 
-  it('비트2 상태(stepIndex=1): 폰 프레임 대상 카드가 보인다', () => {
+  it('스타일 주입은 position을 강제하지 않는다(phone-frame의 fixed 배치를 깨뜨리지 않기 위함)', () => {
+    const html = render(buildInitialState())
+    expect(html).not.toContain('position: relative')
+  })
+
+  it('비트1 카드는 리마인드 버튼과 겹치지 않도록 오른쪽에 배치된다', () => {
+    const html = render(buildInitialState())
+    expect(html).toContain('right-8')
+  })
+
+  it('비트2 상태(stepIndex=1): 폰 프레임 대상 카드가 보이고, 우측 도킹 패널과 겹치지 않도록 왼쪽에 배치되며, 예시 문장 채우기 버튼이 있다', () => {
     let state = buildInitialState()
     state = appReducer(state, { type: 'OPEN_PHONE_FRAME', personId: 'doyun' })
     state = appReducer(state, { type: 'SET_TOUR_STEP', stepIndex: 1 })
     const html = render(state)
     expect(html).toContain('2/4')
     expect(html).toContain('[data-tour-id="phone-frame"]')
+    expect(html).toContain('left-8')
+    expect(html).toContain('예시 문장 채우기')
+    expect(html).toContain(doyun().response.raw!)
   })
 
   it('비트3 상태(stepIndex=2): 트레이드오프 화면을 대상으로 하고 붕괴 원인 문구가 보인다', () => {
@@ -66,6 +79,8 @@ describe('TourOverlay — 렌더링(단계별 카드 스냅샷)', () => {
     expect(html).toContain('4/4')
     expect(html).toContain('[data-tour-id="unlock-free-mode-button"]')
     expect(html).toContain('조건을 바꿔보세요 — 후보가 실시간으로 다시 계산됩니다')
+    // 확정 화면의 "직접 사용해보세요" 버튼은 justify-between 행의 오른쪽에 있으므로 카드는 왼쪽에 둔다.
+    expect(html).toContain('left-8')
   })
 
   it('UNLOCK_FREE_MODE 이후에는 오버레이가 완전히 사라진다(잠금 해제, 리로드 없음)', () => {

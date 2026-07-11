@@ -17,11 +17,28 @@ export function ParticipantPhoneFrame() {
 
   const [draftRaw, setDraftRaw] = useState('')
   const [draftChips, setDraftChips] = useState<Chip[] | null>(null)
+  // 패널을 항상 "닫힘" 위치(translate-x-full)로 먼저 그린 뒤, 마운트 직후 한 틱 later에
+  // "열림" 위치로 전환해 CSS transition이 실제로 슬라이드 인 애니메이션을 재생하게 한다.
+  const [entered, setEntered] = useState(false)
 
   useEffect(() => {
     setDraftRaw('')
     setDraftChips(null)
+    setEntered(false)
+    if (!state.phoneFrame.open) return
+    const frame = requestAnimationFrame(() => setEntered(true))
+    return () => cancelAnimationFrame(frame)
   }, [person?.id, state.phoneFrame.open])
+
+  useEffect(() => {
+    if (!state.exampleFillSignal) return
+    if (!person) return
+    setDraftRaw(person.response.raw ?? '')
+    if (person.response.raw) {
+      setDraftChips(parseChips({ raw: person.response.raw, calendarEvents: person.calendar, grid: RAW_SEED.grid }))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.exampleFillSignal])
 
   if (!state.phoneFrame.open || !person) return null
 
@@ -63,8 +80,14 @@ export function ParticipantPhoneFrame() {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6" data-tour-id="phone-frame">
-      <div className="flex max-h-[90vh] w-full max-w-sm flex-col overflow-y-auto rounded-3xl bg-white p-5 shadow-xl">
+    <div className="fixed inset-0 z-50">
+      <div className="absolute inset-0 bg-black/40" onClick={() => dispatch({ type: 'CLOSE_PHONE_FRAME' })} />
+      <div
+        data-tour-id="phone-frame"
+        className={`absolute inset-y-0 right-0 flex w-full max-w-sm flex-col overflow-y-auto bg-white p-5 shadow-xl transition-transform duration-300 ${
+          entered ? 'translate-x-0' : 'translate-x-full'
+        }`}
+      >
         <PhoneContextHeader person={person} meeting={RAW_SEED.meeting} organizerName={organizer?.name ?? ''} />
 
         {isLocked ? (

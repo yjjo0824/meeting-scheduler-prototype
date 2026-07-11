@@ -37,4 +37,7 @@ export interface AppState {
   confirmedMeeting: ConfirmedMeeting | null
   freeModeUnlocked: boolean
   reportedByPersonId: Record<string, boolean>
+  // 투어 비트2 카드의 "예시 문장 채우기" 클릭을 감지하기 위한 신호 카운터.
+  // ParticipantPhoneFrame이 이 값의 변화를 감지해 로컬 draft를 채운다(입력을 강제하지 않음 — 이후 자유 수정 가능).
+  exampleFillSignal: number
 }

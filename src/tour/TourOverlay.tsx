@@ -25,7 +25,10 @@ export function TourOverlay() {
 
   return (
     <>
-      <style>{`[data-tour-id="${step.targetId}"] { position: relative !important; z-index: 900 !important; }`}</style>
+      {/* 대상 요소는 각 컴포넌트에서 이미 relative/fixed로 포지셔닝돼 있다 — 여기서는 z-index만 올린다.
+          position까지 강제하면 phone-frame처럼 이미 fixed인 대상의 배치가 깨진다(문서 흐름에 끼어들어
+          스크롤해야 보이는 버그의 원인이었다). */}
+      <style>{`[data-tour-id="${step.targetId}"] { z-index: 900 !important; }`}</style>
       <TourClickBlocker />
       <TourHighlightRing targetId={step.targetId} />
       <TourStepCard
@@ -33,6 +36,9 @@ export function TourOverlay() {
         body={step.body}
         stepNumber={state.tour.stepIndex + 1}
         totalSteps={TOUR_STEPS.length}
+        placement={step.placement}
+        exampleText={step.exampleRaw}
+        onFillExample={step.exampleRaw ? () => dispatch({ type: 'REQUEST_EXAMPLE_FILL' }) : undefined}
       />
     </>
   )

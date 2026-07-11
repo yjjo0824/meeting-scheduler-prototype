@@ -21,6 +21,7 @@ export function buildInitialState(): AppState {
     confirmedMeeting: null,
     freeModeUnlocked: false,
     reportedByPersonId: {},
+    exampleFillSignal: 0,
   }
 }
 
@@ -85,6 +86,8 @@ export function appReducer(state: AppState, action: Action): AppState {
       return { ...state, freeModeUnlocked: true, tour: { ...state.tour, active: false } }
     case 'SET_TOUR_STEP':
       return { ...state, tour: { ...state.tour, stepIndex: action.stepIndex } }
+    case 'REQUEST_EXAMPLE_FILL':
+      return { ...state, exampleFillSignal: state.exampleFillSignal + 1 }
     case 'RESET_ALL':
       return buildInitialState()
     default:

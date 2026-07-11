@@ -17,4 +17,5 @@ export type Action =
   | { type: 'REOPEN_FOR_RESCHEDULE' }
   | { type: 'UNLOCK_FREE_MODE' }
   | { type: 'SET_TOUR_STEP'; stepIndex: number }
+  | { type: 'REQUEST_EXAMPLE_FILL' }
   | { type: 'RESET_ALL' }

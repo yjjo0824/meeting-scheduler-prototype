@@ -95,6 +95,15 @@ describe('appReducer — 화면 전환·확정·자유모드·리셋', () => {
     expect(after.tour.active).toBe(false)
   })
 
+  it('REQUEST_EXAMPLE_FILL은 신호 카운터만 올린다(입력을 강제하지 않음 — ParticipantPhoneFrame이 감지해 draft만 채움)', () => {
+    const state = buildInitialState()
+    expect(state.exampleFillSignal).toBe(0)
+    const after = appReducer(state, { type: 'REQUEST_EXAMPLE_FILL' })
+    expect(after.exampleFillSignal).toBe(1)
+    const again = appReducer(after, { type: 'REQUEST_EXAMPLE_FILL' })
+    expect(again.exampleFillSignal).toBe(2)
+  })
+
   it('RESET_ALL은 어떤 상태에서든 buildInitialState()와 동등한 상태로 되돌린다', () => {
     let state = buildInitialState()
     state = appReducer(state, {
@@ -123,6 +132,7 @@ describe('appReducer — 화면 전환·확정·자유모드·리셋', () => {
     state = appReducer(state, { type: 'SET_ATTENDANCE', personId: 'doyun', attendance: 'required' })
     state = appReducer(state, { type: 'SELECT_SLOT', groupKey: 'k', slot: { day: '수', hour: 15 } })
     state = appReducer(state, { type: 'REPORT_UNAVAILABLE', personId: 'sua' })
+    state = appReducer(state, { type: 'REQUEST_EXAMPLE_FILL' })
     state = appReducer(state, { type: 'UNLOCK_FREE_MODE' })
     state = appReducer(state, { type: 'CONFIRM_MEETING', groupKey: 'k', slot: { day: '금', hour: 13 }, excluded: [] })
 
@@ -133,6 +143,7 @@ describe('appReducer — 화면 전환·확정·자유모드·리셋', () => {
     expect(resetState.calendarCorrections).toEqual({})
     expect(resetState.reportedByPersonId).toEqual({})
     expect(resetState.selectedSlotByGroup).toEqual({})
+    expect(resetState.exampleFillSignal).toBe(0)
     expect(resetState.people.find((p) => p.id === 'doyun')!.attendance).toBe('optional')
     expect(resetState.people.find((p) => p.id === 'seoyeon')!.response.chips.length).toBeGreaterThan(0)
     expect(resetState.tour).toEqual({ active: true, stepIndex: 0 })

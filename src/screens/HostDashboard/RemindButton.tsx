@@ -11,7 +11,7 @@ export function RemindButton({ pendingPersonName, onClick }: Props) {
       type="button"
       onClick={onClick}
       data-tour-id="remind-button"
-      className="rounded bg-slate-900 px-4 py-2 text-sm text-white"
+      className="relative rounded bg-slate-900 px-4 py-2 text-sm text-white"
     >
       리마인드 보내기
     </button>
