@@ -56,30 +56,34 @@ describe('ConditionMap — 조건 지도(R4/R7 준수)', () => {
     expect(html).toContain('참석 가능')
   })
 
-  it('1100px 이상: 월~금 통합 지도(6명×40슬롯)가 hidden min-[1100px]:block으로 유지된다(항목 1)', () => {
+  it('768px 이상 모든 폭에서 요일별 미니 지도 없이 통합 지도(6명×40슬롯) 표가 하나만 렌더된다(12A.8)', () => {
     const html = render()
-    const fullMapStart = html.indexOf('hidden overflow-x-auto p-5 min-[1100px]:block')
-    expect(fullMapStart).toBeGreaterThan(-1)
-    const fullMapEnd = html.indexOf('divide-y divide-border px-4 py-1 min-[1100px]:hidden')
-    const fullMapSection = html.slice(fullMapStart, fullMapEnd)
-    // 통합 지도 구간에는 표가 정확히 1개, min-w-[760px]로 40슬롯 전체가 담겨 있다.
-    expect((fullMapSection.match(/<table/g) ?? []).length).toBe(1)
-    expect(fullMapSection).toContain('min-w-[760px]')
+    // 조건 지도 안에는 표가 정확히 1개만 존재한다 — 폭에 따라 갈라지는 두 번째(미니) 표가 없다.
+    expect((html.match(/<table/g) ?? []).length).toBe(1)
+    expect(html).toContain('min-w-[760px]')
+    expect(html).not.toContain('min-[1100px]')
+    expect(html).not.toContain('divide-y')
   })
 
-  it('768~1099px: 요일별 미니 지도(6명×8슬롯) 5개가 세로로 배치되고 1100px 이상에서는 숨겨진다(항목 1)', () => {
+  it('표를 감싸는 컨테이너에 overflow-x-auto가 있어 표 내부에서만 가로 스크롤된다', () => {
     const html = render()
-    const miniMapStart = html.indexOf('divide-y divide-border px-4 py-1 min-[1100px]:hidden')
-    expect(miniMapStart).toBeGreaterThan(-1)
-    const miniMapSection = html.slice(miniMapStart)
+    expect(html).toContain('overflow-x-auto p-5')
+  })
 
-    // 요일별로 독립된 표가 정확히 5개(월~금) 존재한다 — 40슬롯을 한 표에 우겨넣지 않는다.
-    expect((miniMapSection.match(/<table/g) ?? []).length).toBe(RAW_SEED.grid.days.length)
-    // 어떤 미니 지도 표에도 데스크톱 전용 min-width가 없다(가로 스크롤을 유도하지 않음).
-    expect(miniMapSection).not.toContain('min-w-[760px]')
-    for (const day of RAW_SEED.grid.days) {
-      expect(miniMapSection).toContain(`<p class="mb-1 text-xs font-bold text-ink-900">${day}요일</p>`)
-    }
+  it('참여자 이름 영역에 whitespace-nowrap이 적용되어 세로로 꺾이지 않는다', () => {
+    const html = render()
+    const nameStart = html.indexOf('도윤')
+    const nameCellStart = html.lastIndexOf('<div', nameStart)
+    const nameCellTag = html.slice(nameCellStart, html.indexOf('>', nameCellStart))
+    expect(nameCellTag).toContain('whitespace-nowrap')
+  })
+
+  it('모든 시간 셀이 aspect-square로 동일한 너비·높이를 유지한다', () => {
+    const html = render()
+    const cellMatches = html.match(/aspect-square [^"]*"/g) ?? []
+    // 6명 × 5일 × 8시간 = 240개 셀이 전부 같은 크기 규칙(aspect-square min-w-[12px])을 공유한다.
+    expect(cellMatches.length).toBe(RAW_SEED.people.length * RAW_SEED.grid.days.length * RAW_SEED.grid.hours.length)
+    for (const match of cellMatches) expect(match).toContain('min-w-[12px]')
   })
 
   it('선택된 참여자의 행에 강조 배경이 적용된다', () => {

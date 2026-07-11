@@ -43,20 +43,18 @@ function AppShell() {
 
   return (
     <>
+      {/* MobileGuardNotice는 768px 미만에서 상단에 뜨는 권장 안내 배너일 뿐, 아래 제품 콘텐츠를
+          가리거나 렌더링을 막지 않는다(12A.8: 전체 차단 방식을 되돌림 — 전용 모바일 레이아웃은
+          12A.9에서 별도로 다룬다). */}
       <MobileGuardNotice />
-      {/* 768px 미만에서는 안내 배너만 남기고 실제 제품 화면 전체를 렌더링 트리에서 숨긴다
-          (display:contents라 md 이상에서는 이 wrapper 자체가 박스 트리에서 사라져 이전과
-          동일하게 동작한다 — fixed 포지셔닝을 쓰는 자식들의 배치도 영향받지 않는다). */}
-      <div className="hidden md:contents">
-        <SlideOverDim dimmed={state.phoneFrame.open}>
-          {state.screen === 'host' && <HostDashboard />}
-          {state.screen === 'tradeoff' && <TradeoffCandidates />}
-          {state.screen === 'confirmation' && <Confirmation />}
-        </SlideOverDim>
-        <ParticipantPhoneFrame />
-        <TourOverlay />
-        <FreeModeControls />
-      </div>
+      <SlideOverDim dimmed={state.phoneFrame.open}>
+        {state.screen === 'host' && <HostDashboard />}
+        {state.screen === 'tradeoff' && <TradeoffCandidates />}
+        {state.screen === 'confirmation' && <Confirmation />}
+      </SlideOverDim>
+      <ParticipantPhoneFrame />
+      <TourOverlay />
+      <FreeModeControls />
     </>
   )
 }

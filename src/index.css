@@ -35,3 +35,9 @@
   --shadow-card: 0 2px 10px rgba(0, 0, 0, 0.05);
   --shadow-elevated: 0 16px 50px rgba(25, 31, 40, 0.14);
 }
+
+/* 12A.8: 조건 지도처럼 폭이 넓은 콘텐츠는 자신의 overflow-x-auto 안에서만 가로 스크롤되어야
+   한다 — body 레벨의 안전장치로 페이지 전체 가로 스크롤은 항상 막는다. */
+body {
+  overflow-x: hidden;
+}
