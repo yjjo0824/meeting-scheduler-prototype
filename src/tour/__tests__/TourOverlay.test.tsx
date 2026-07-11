@@ -41,14 +41,14 @@ describe('TourOverlay — 렌더링(단계별 카드 스냅샷)', () => {
     expect(html).toContain('right-8')
   })
 
-  it('비트2 상태(stepIndex=1): 폰 프레임 대상 카드가 보이고, 우측 도킹 패널과 겹치지 않도록 왼쪽에 배치되며, 예시 문장 채우기 버튼이 있다', () => {
+  it('비트2 상태(stepIndex=1): 폰 프레임 대상 카드가 보이고(폰 프레임이 중앙 배치라 카드는 오른쪽에 둬도 겹치지 않음), 예시 문장 채우기 버튼이 있다', () => {
     let state = buildInitialState()
     state = appReducer(state, { type: 'OPEN_PHONE_FRAME', personId: 'doyun' })
     state = appReducer(state, { type: 'SET_TOUR_STEP', stepIndex: 1 })
     const html = render(state)
     expect(html).toContain('2/4')
     expect(html).toContain('[data-tour-id="phone-frame"]')
-    expect(html).toContain('left-8')
+    expect(html).toContain('right-8')
     expect(html).toContain('예시 문장 채우기')
     expect(html).toContain(doyun().response.raw!)
   })

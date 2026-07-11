@@ -11,20 +11,35 @@ function getViewportWidth(): number {
   return typeof window !== 'undefined' ? window.innerWidth : MOBILE_BREAKPOINT_PX
 }
 
-// CSS 미디어쿼리(md:hidden)에만 의존하지 않고, 뷰포트 폭을 직접 읽어 실제로 표시 여부를 결정한다.
+// matchMedia는 브라우저 창 리사이즈·줌 등 뷰포트 폭이 바뀌는 모든 경우를 표준적으로 감지한다
+// (resize 이벤트 하나에만 기대는 것보다 신뢰도가 높다). resize 리스너는 폴백으로 함께 둔다.
 export function MobileGuardNotice() {
-  const [width, setWidth] = useState(getViewportWidth)
+  const [narrow, setNarrow] = useState(() => isNarrowViewport(getViewportWidth()))
 
   useEffect(() => {
-    function handleResize() {
-      setWidth(window.innerWidth)
+    if (typeof window === 'undefined') return
+
+    function syncFromWidth() {
+      setNarrow(isNarrowViewport(window.innerWidth))
     }
-    handleResize()
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
+
+    syncFromWidth()
+    window.addEventListener('resize', syncFromWidth)
+
+    if (typeof window.matchMedia === 'function') {
+      const query = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT_PX - 1}px)`)
+      const handleChange = () => setNarrow(query.matches)
+      query.addEventListener('change', handleChange)
+      return () => {
+        window.removeEventListener('resize', syncFromWidth)
+        query.removeEventListener('change', handleChange)
+      }
+    }
+
+    return () => window.removeEventListener('resize', syncFromWidth)
   }, [])
 
-  if (!isNarrowViewport(width)) return null
+  if (!narrow) return null
 
   return (
     <div className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-xs text-amber-700">

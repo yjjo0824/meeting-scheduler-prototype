@@ -18,8 +18,8 @@ export function ParticipantPhoneFrame() {
 
   const [draftRaw, setDraftRaw] = useState('')
   const [draftChips, setDraftChips] = useState<Chip[] | null>(null)
-  // 패널을 항상 "닫힘" 위치(translate-x-full)로 먼저 그린 뒤, 마운트 직후 한 틱 later에
-  // "열림" 위치로 전환해 CSS transition이 실제로 슬라이드 인 애니메이션을 재생하게 한다.
+  // 패널을 항상 "닫힘" 상태(scale-95/opacity-0)로 먼저 그린 뒤, 마운트 직후 한 틱 뒤에
+  // "열림" 상태로 전환해 CSS transition이 실제로 등장 애니메이션을 재생하게 한다.
   const [entered, setEntered] = useState(false)
   // IMPLEMENTATION_SPEC §5: 미응답자는 바로 입력 폼, 응답 완료자는 "제출 완료" 요약 먼저 — [수정하기]를
   // 눌러야 편집 폼이 열린다. 매번 여는 시점의 응답 상태로 다시 계산한다(사람이 바뀌거나 다시 열 때마다).
@@ -85,13 +85,16 @@ export function ParticipantPhoneFrame() {
     dispatch({ type: 'CLOSE_PHONE_FRAME' })
   }
 
+  // 배경과 패널은 반드시 최상위 형제여야 한다 — 감싸는 wrapper에 position+z-index를 주면 새
+  // 스태킹 컨텍스트가 생겨, TourOverlay가 패널에 주입하는 z-index:900이 그 안에 갇혀 버린다
+  // (TourClickBlocker의 z-800과 전혀 비교되지 않아 클릭이 전부 막히는 버그의 원인이었다).
   return (
-    <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-black/40" onClick={() => dispatch({ type: 'CLOSE_PHONE_FRAME' })} />
+    <>
+      <div className="fixed inset-0 z-40 bg-black/40" onClick={() => dispatch({ type: 'CLOSE_PHONE_FRAME' })} />
       <div
         data-tour-id="phone-frame"
-        className={`absolute inset-y-0 right-0 flex w-full max-w-sm flex-col overflow-y-auto bg-white p-5 shadow-xl transition-transform duration-300 ${
-          entered ? 'translate-x-0' : 'translate-x-full'
+        className={`fixed left-1/2 top-1/2 z-50 flex h-[85vh] max-h-[720px] w-[380px] max-w-[92vw] -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto rounded-[2.5rem] border-8 border-slate-900 bg-white p-5 shadow-2xl transition-all duration-300 ${
+          entered ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
         }`}
       >
         <PhoneContextHeader person={person} meeting={RAW_SEED.meeting} organizerName={organizer?.name ?? ''} />
@@ -138,6 +141,6 @@ export function ParticipantPhoneFrame() {
           닫기
         </button>
       </div>
-    </div>
+    </>
   )
 }

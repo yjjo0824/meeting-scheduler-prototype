@@ -6,8 +6,9 @@ export interface TourStep {
   targetId: string
   title: string
   body: string
-  // 카드가 하이라이트 대상의 실제 CTA를 가리지 않도록 단계별로 반대쪽 모서리에 둔다.
-  // (예: 폰 프레임은 화면 우측을 도킹 패널로 차지하므로 카드는 좌측에 둔다.)
+  // 기본은 오른쪽으로 통일한다(카드 배치 일관성). 대상의 실제 CTA가 화면 오른쪽에 있는
+  // 단계(confirmation의 "직접 사용해보세요" 버튼)만 예외적으로 왼쪽에 둔다 — 카드가 CTA를
+  // 가리지 않기 위한 기능적 이유이지 임의의 시각 변경이 아니다.
   placement: 'left' | 'right'
   // 비트2에서만 채워진다 — seed에서 파생(하드코딩 아님), "예시 문장 채우기" 버튼에 쓰인다.
   exampleRaw?: string
@@ -29,7 +30,7 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: 'phone',
     targetId: 'phone-frame',
-    placement: 'left',
+    placement: 'right',
     title: '도윤 님이 되어 입력해보세요',
     body: '여기 없는 일정이나 피하고 싶은 시간을 적어보세요. 시스템이 칩으로 정리해드려요. 다 됐으면 응답 보내기를 눌러주세요.',
     exampleRaw: doyunRaw,
