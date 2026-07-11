@@ -56,20 +56,20 @@ describe('ConditionMap — 조건 지도(R4/R7 준수)', () => {
     expect(html).toContain('참석 가능')
   })
 
-  it('1280px 이상: 월~금 통합 지도(6명×40슬롯)가 hidden xl:block으로 유지된다(항목 2)', () => {
+  it('1100px 이상: 월~금 통합 지도(6명×40슬롯)가 hidden min-[1100px]:block으로 유지된다(항목 1)', () => {
     const html = render()
-    const fullMapStart = html.indexOf('hidden overflow-x-auto p-5 xl:block')
+    const fullMapStart = html.indexOf('hidden overflow-x-auto p-5 min-[1100px]:block')
     expect(fullMapStart).toBeGreaterThan(-1)
-    const fullMapEnd = html.indexOf('space-y-4 p-5 xl:hidden')
+    const fullMapEnd = html.indexOf('divide-y divide-border px-4 py-1 min-[1100px]:hidden')
     const fullMapSection = html.slice(fullMapStart, fullMapEnd)
     // 통합 지도 구간에는 표가 정확히 1개, min-w-[760px]로 40슬롯 전체가 담겨 있다.
     expect((fullMapSection.match(/<table/g) ?? []).length).toBe(1)
     expect(fullMapSection).toContain('min-w-[760px]')
   })
 
-  it('768~1279px: 요일별 미니 지도(6명×8슬롯) 5개가 세로로 배치되고 xl에서는 숨겨진다(항목 2)', () => {
+  it('768~1099px: 요일별 미니 지도(6명×8슬롯) 5개가 세로로 배치되고 1100px 이상에서는 숨겨진다(항목 1)', () => {
     const html = render()
-    const miniMapStart = html.indexOf('space-y-4 p-5 xl:hidden')
+    const miniMapStart = html.indexOf('divide-y divide-border px-4 py-1 min-[1100px]:hidden')
     expect(miniMapStart).toBeGreaterThan(-1)
     const miniMapSection = html.slice(miniMapStart)
 
@@ -78,7 +78,7 @@ describe('ConditionMap — 조건 지도(R4/R7 준수)', () => {
     // 어떤 미니 지도 표에도 데스크톱 전용 min-width가 없다(가로 스크롤을 유도하지 않음).
     expect(miniMapSection).not.toContain('min-w-[760px]')
     for (const day of RAW_SEED.grid.days) {
-      expect(miniMapSection).toContain(`<p class="mb-2 text-sm font-bold text-ink-900">${day}요일</p>`)
+      expect(miniMapSection).toContain(`<p class="mb-1 text-xs font-bold text-ink-900">${day}요일</p>`)
     }
   })
 

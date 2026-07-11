@@ -44,14 +44,19 @@ function AppShell() {
   return (
     <>
       <MobileGuardNotice />
-      <SlideOverDim dimmed={state.phoneFrame.open}>
-        {state.screen === 'host' && <HostDashboard />}
-        {state.screen === 'tradeoff' && <TradeoffCandidates />}
-        {state.screen === 'confirmation' && <Confirmation />}
-      </SlideOverDim>
-      <ParticipantPhoneFrame />
-      <TourOverlay />
-      <FreeModeControls />
+      {/* 768px 미만에서는 안내 배너만 남기고 실제 제품 화면 전체를 렌더링 트리에서 숨긴다
+          (display:contents라 md 이상에서는 이 wrapper 자체가 박스 트리에서 사라져 이전과
+          동일하게 동작한다 — fixed 포지셔닝을 쓰는 자식들의 배치도 영향받지 않는다). */}
+      <div className="hidden md:contents">
+        <SlideOverDim dimmed={state.phoneFrame.open}>
+          {state.screen === 'host' && <HostDashboard />}
+          {state.screen === 'tradeoff' && <TradeoffCandidates />}
+          {state.screen === 'confirmation' && <Confirmation />}
+        </SlideOverDim>
+        <ParticipantPhoneFrame />
+        <TourOverlay />
+        <FreeModeControls />
+      </div>
     </>
   )
 }
