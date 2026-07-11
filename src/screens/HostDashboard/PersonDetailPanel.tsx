@@ -1,5 +1,5 @@
 import type { Attendance, Person } from '../../types/domain'
-import { attendanceLabel, buildConditionSummary } from '../../presentation/conditionCopy'
+import { attendanceLabel, buildConditionSummary, formatHourRange, groupConditionsByDay } from '../../presentation/conditionCopy'
 import { deriveEffectivePeople } from '../../state/useSchedule'
 import { Badge } from '../../shared/Badge'
 import { Button } from '../../shared/Button'
@@ -8,15 +8,16 @@ import { Card } from '../../shared/Card'
 interface Props {
   person: Person
   responded: boolean
-  onOpenPhoneFrame: () => void
   onChangeAttendance: (attendance: Attendance) => void
 }
 
-// 조건 지도에서 선택된 참여자의 상세 — 출처가 붙은 조건, 참여자 화면 진입 CTA, (주최자 제외)
-// 필수/선택 변경을 한 곳에 모은다. 필수/선택 변경은 이 화면(주최자 화면) 안에서만 제공한다.
-export function PersonDetailPanel({ person, responded, onOpenPhoneFrame, onChangeAttendance }: Props) {
+// 조건 지도에서 선택된 참여자의 상세 — 요일별로 묶은 출처 있는 조건과, (주최자 제외) 필수/선택
+// 변경을 한 곳에 모은다. 필수/선택 변경은 이 화면(주최자 화면) 안에서만 제공한다.
+// 참여자 화면 진입 CTA는 여기 없다 — 실제 제품 UI가 "주최자가 남의 응답을 대신 연다"는 기능처럼
+// 보이면 안 되므로, 그 진입점은 자유 모드 체험 레이어(FreeModeControls)에만 둔다.
+export function PersonDetailPanel({ person, responded, onChangeAttendance }: Props) {
   const [effective] = deriveEffectivePeople([person], { [person.id]: responded })
-  const items = buildConditionSummary([effective])
+  const groups = groupConditionsByDay(buildConditionSummary([effective]))
 
   return (
     <Card className="space-y-4">
@@ -30,14 +31,21 @@ export function PersonDetailPanel({ person, responded, onOpenPhoneFrame, onChang
         <Badge tone={responded ? 'neutral' : 'warn'}>{responded ? '응답 완료' : '미응답'}</Badge>
       </div>
 
-      <div className="space-y-2">
-        {items.length > 0 ? (
-          items.map((item) => (
-            <div key={item.key} className="rounded-card bg-surface-muted p-3">
-              <span className="mb-1 block text-[11px] font-bold text-ink-700">
-                {item.source === '캘린더' ? '캘린더에서 확인' : '답변으로 알려줌'}
-              </span>
-              <strong className="block text-sm font-semibold text-ink-900">{item.text}</strong>
+      <div className="space-y-3">
+        {groups.length > 0 ? (
+          groups.map((group) => (
+            <div key={group.day} className="rounded-card bg-surface-muted p-3">
+              <p className="mb-1.5 text-xs font-bold text-ink-700">{group.day === '매일' ? '매일' : `${group.day}요일`}</p>
+              <ul className="space-y-1">
+                {group.items.map((item) => (
+                  <li key={item.key} className="text-sm text-ink-900">
+                    <strong className="font-semibold">{formatHourRange(item.hours)} · {item.typeLabel}</strong>
+                    <span className="ml-1.5 text-xs text-ink-500">
+                      {item.source === '캘린더' ? '캘린더에서 확인' : '답변으로 알려줌'}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </div>
           ))
         ) : (
@@ -56,10 +64,6 @@ export function PersonDetailPanel({ person, responded, onOpenPhoneFrame, onChang
           </Button>
         </div>
       )}
-
-      <Button variant="primary" onClick={onOpenPhoneFrame} className="w-full">
-        참여자 화면 보기
-      </Button>
 
       <p className="border-t border-border pt-3 text-xs text-ink-700">
         주최자에게는 시간 조건만 보여요. 일정 이름, 이유, 작성한 원문은 보이지 않아요.

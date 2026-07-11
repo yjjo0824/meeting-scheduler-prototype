@@ -3,6 +3,7 @@ import { RAW_SEED } from '../../data/loadSeed'
 import { appReducer, buildInitialState } from '../appReducer'
 import { applyCalendarCorrections, deriveEffectivePeople } from '../useSchedule'
 import { computeSchedule } from '../../engine/computeSchedule'
+import { slotKey } from '../../engine/slotKey'
 
 function doyun() {
   return RAW_SEED.people.find((p) => p.id === 'doyun')!
@@ -10,6 +11,10 @@ function doyun() {
 
 function seoyeon() {
   return RAW_SEED.people.find((p) => p.id === 'seoyeon')!
+}
+
+function haneul() {
+  return RAW_SEED.people.find((p) => p.id === 'haneul')!
 }
 
 describe('buildInitialState — hasResponded 초기화 규칙', () => {
@@ -122,13 +127,12 @@ describe('appReducer — 화면 전환·확정·자유모드·리셋', () => {
     let state = buildInitialState()
     state = appReducer(state, { type: 'SUBMIT_RESPONSE', personId: 'doyun', chips: doyun().response.chips })
     state = appReducer(state, {
-      type: 'APPLY_CALENDAR_CORRECTION',
+      type: 'SUBMIT_RESPONSE',
       personId: 'haneul',
-      day: '금',
-      hour: 14,
-      kind: 'movable',
+      chips: haneul().response.chips,
+      corrections: { [slotKey('금', 14)]: { kind: 'movable' } },
     })
-    state = appReducer(state, { type: 'UPDATE_CHIPS', personId: 'seoyeon', chips: [] })
+    state = appReducer(state, { type: 'SUBMIT_RESPONSE', personId: 'seoyeon', chips: [] })
     state = appReducer(state, { type: 'SET_ATTENDANCE', personId: 'doyun', attendance: 'required' })
     state = appReducer(state, { type: 'SELECT_SLOT', groupKey: 'k', slot: { day: '수', hour: 15 } })
     state = appReducer(state, { type: 'REPORT_UNAVAILABLE', personId: 'sua' })
@@ -153,16 +157,16 @@ describe('appReducer — 화면 전환·확정·자유모드·리셋', () => {
 })
 
 describe('appReducer — 탈출구 1: 캘린더 정정(옮길 수 있어요) → 금14 완벽 슬롯', () => {
-  it('APPLY_CALENDAR_CORRECTION(하늘, 금14, movable) 이후 금14가 완벽 슬롯이 된다', () => {
+  it('SUBMIT_RESPONSE(하늘, corrections: 금14 movable) 제출 후 금14가 완벽 슬롯이 된다', () => {
     let state = buildInitialState()
     // 응답 후 상태를 만든다(도윤 응답 완료) — 탈출구는 응답 후 시나리오 기준
     state = appReducer(state, { type: 'SUBMIT_RESPONSE', personId: 'doyun', chips: doyun().response.chips })
+    // 정정은 ParticipantPhoneFrame에서 draft로만 머물다가 SUBMIT_RESPONSE 한 번에 커밋된다(항목 6).
     state = appReducer(state, {
-      type: 'APPLY_CALENDAR_CORRECTION',
+      type: 'SUBMIT_RESPONSE',
       personId: 'haneul',
-      day: '금',
-      hour: 14,
-      kind: 'movable',
+      chips: haneul().response.chips,
+      corrections: { [slotKey('금', 14)]: { kind: 'movable' } },
     })
 
     const corrected = applyCalendarCorrections(state.people, state.calendarCorrections, RAW_SEED.grid)
@@ -172,18 +176,16 @@ describe('appReducer — 탈출구 1: 캘린더 정정(옮길 수 있어요) →
     expect(result.perfectSlots).toContainEqual({ day: '금', hour: 14 })
   })
 
-  it('UNDO_CALENDAR_CORRECTION 이후에는 다시 하드 제약으로 복귀한다(원본 캘린더 불변 확인)', () => {
+  it('정정을 제출해도 원본 캘린더는 변하지 않는다(R5: 계산 레이어만 정정, 원본 불변)', () => {
     let state = buildInitialState()
     state = appReducer(state, {
-      type: 'APPLY_CALENDAR_CORRECTION',
+      type: 'SUBMIT_RESPONSE',
       personId: 'haneul',
-      day: '금',
-      hour: 14,
-      kind: 'movable',
+      chips: haneul().response.chips,
+      corrections: { [slotKey('금', 14)]: { kind: 'movable' } },
     })
-    state = appReducer(state, { type: 'UNDO_CALENDAR_CORRECTION', personId: 'haneul', day: '금', hour: 14 })
 
-    expect(state.calendarCorrections.haneul?.['금#14']).toBeUndefined()
+    expect(state.calendarCorrections.haneul?.[slotKey('금', 14)]).toEqual({ kind: 'movable' })
     const haneulOriginal = RAW_SEED.people.find((p) => p.id === 'haneul')!
     const haneulAfter = state.people.find((p) => p.id === 'haneul')!
     expect(haneulAfter.calendar).toEqual(haneulOriginal.calendar)
@@ -191,22 +193,22 @@ describe('appReducer — 탈출구 1: 캘린더 정정(옮길 수 있어요) →
 })
 
 describe('appReducer — 탈출구 2/3: 칩 삭제 → 완벽 슬롯 등장', () => {
-  it('UPDATE_CHIPS로 도윤의 수요일 오후 불가 칩을 지우면 수14가 완벽 슬롯이 된다', () => {
+  it('SUBMIT_RESPONSE로 도윤의 수요일 오후 불가 칩을 지우면 수14가 완벽 슬롯이 된다', () => {
     let state = buildInitialState()
     state = appReducer(state, { type: 'SUBMIT_RESPONSE', personId: 'doyun', chips: doyun().response.chips })
 
     const doyunChipsWithoutUnavailable = doyun().response.chips.filter((c) => c.type !== '불가')
-    state = appReducer(state, { type: 'UPDATE_CHIPS', personId: 'doyun', chips: doyunChipsWithoutUnavailable })
+    state = appReducer(state, { type: 'SUBMIT_RESPONSE', personId: 'doyun', chips: doyunChipsWithoutUnavailable })
 
     const effective = deriveEffectivePeople(state.people, state.hasResponded)
     const result = computeSchedule(RAW_SEED, effective)
     expect(result.perfectSlots).toContainEqual({ day: '수', hour: 14 })
   })
 
-  it('UPDATE_CHIPS로 서연의 13시 회피 칩을 지우면 금13이 유일한 완벽 슬롯이 된다', () => {
+  it('SUBMIT_RESPONSE로 서연의 13시 회피 칩을 지우면 금13이 유일한 완벽 슬롯이 된다', () => {
     let state = buildInitialState()
     state = appReducer(state, { type: 'SUBMIT_RESPONSE', personId: 'doyun', chips: doyun().response.chips })
-    state = appReducer(state, { type: 'UPDATE_CHIPS', personId: 'seoyeon', chips: [] })
+    state = appReducer(state, { type: 'SUBMIT_RESPONSE', personId: 'seoyeon', chips: [] })
 
     expect(state.people.find((p) => p.id === 'seoyeon')!.response.chips).toEqual([])
     // seoyeon()의 원본 seed 응답은 변하지 않는다(원본 불변)

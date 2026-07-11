@@ -16,7 +16,7 @@ export function HostDashboard() {
   const selectedPerson = state.people.find((p) => p.id === selectedPersonId) ?? null
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 p-8">
+    <div className="mx-auto max-w-[1400px] space-y-6 p-8">
       <MeetingHeader meeting={RAW_SEED.meeting} respondedCount={respondedCount} />
 
       {/* 미응답 상태(리마인드)와 잠정 추천을 분리된 카드로 나란히 둔다 — 요청 흐름과 추천 정보를
@@ -35,7 +35,10 @@ export function HostDashboard() {
         <RecommendationCard schedule={schedule} people={state.people} hasResponded={state.hasResponded} />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+      {/* 데스크톱 기본은 조건 지도 + 상세 패널 2열. 두 영역이 동시에 필요한 최소 폭(지도 760px +
+          패널 300px + 여백)을 만족하는 xl(1280px) 이상에서만 나란히 두고, 그보다 좁으면(중간 화면)
+          상세 패널이 지도 아래로 내려가 겹침·잘림 없이 세로로 쌓인다. */}
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
         <ConditionMap
           people={state.people}
           hasResponded={state.hasResponded}
@@ -46,7 +49,6 @@ export function HostDashboard() {
           <PersonDetailPanel
             person={selectedPerson}
             responded={state.hasResponded[selectedPerson.id]}
-            onOpenPhoneFrame={() => dispatch({ type: 'OPEN_PHONE_FRAME', personId: selectedPerson.id })}
             onChangeAttendance={(attendance) =>
               dispatch({ type: 'SET_ATTENDANCE', personId: selectedPerson.id, attendance })
             }

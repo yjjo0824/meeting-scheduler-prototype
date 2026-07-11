@@ -1,7 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { RAW_SEED } from '../../data/loadSeed'
+import { slotKey } from '../../engine/slotKey'
 import { parseChips } from '../../parser/ruleBasedParser'
 import { useAppState } from '../../state/AppContext'
+import { applyCalendarCorrections } from '../../state/useSchedule'
+import type { CalendarCorrection } from '../../state/appState.types'
 import type { Chip } from '../../types/domain'
 import { CalendarPrefillList } from './CalendarPrefillList'
 import { ChipReviewList } from './ChipReviewList'
@@ -18,6 +21,10 @@ export function ParticipantPhoneFrame() {
 
   const [draftRaw, setDraftRaw] = useState('')
   const [draftChips, setDraftChips] = useState<Chip[] | null>(null)
+  // 캘린더 정정([이 시간 비어 있어요]/[옮길 수 있어요])도 칩과 마찬가지로 제출 전까지는 이
+  // 화면 안의 draft에만 머문다 — [응답 보내기]를 눌러야 전역 상태(및 HostDashboard의 잠정 추천·
+  // 후보 결과)에 한 번에 반영된다. 여는 시점에는 이미 커밋된 정정으로 초기화한다.
+  const [draftCorrections, setDraftCorrections] = useState<Record<string, CalendarCorrection>>({})
   // 패널을 항상 "닫힘" 상태(scale-95/opacity-0)로 먼저 그린 뒤, 마운트 직후 한 틱 뒤에
   // "열림" 상태로 전환해 CSS transition이 실제로 등장 애니메이션을 재생하게 한다.
   const [entered, setEntered] = useState(false)
@@ -28,6 +35,7 @@ export function ParticipantPhoneFrame() {
   useEffect(() => {
     setDraftRaw('')
     setDraftChips(null)
+    setDraftCorrections(state.calendarCorrections[personId ?? ''] ?? {})
     setEntered(false)
     if (!state.phoneFrame.open) return
     setEditing(!state.hasResponded[personId ?? ''])
@@ -46,13 +54,28 @@ export function ParticipantPhoneFrame() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.exampleFillSignal])
 
+  // 아직 응답하지 않은 사람은 스스로 입력하기 전까지 빈 상태로 시작한다 — seed에 미리 채워둔
+  // "정답" chips는 투어 대본(평가자가 직접 타이핑)의 재료일 뿐, 응답 전 참여자 화면에 먼저 보이면 안 된다.
+  const baseChips = draftChips ?? (person && state.hasResponded[person.id] ? person.response.chips : [])
+
+  // 진행 중인 정정 draft가 기존 칩을 무효화했다면(예: 방금 비운 슬롯을 가리키던 조정가능 칩)
+  // 제출 전에도 검수 목록에서 활성 상태로 남지 않도록 같은 필터링을 미리 보여준다 — 실제 커밋은
+  // 제출 시점에 한 번 더 동일한 로직으로 처리된다(state/appReducer.ts).
+  const chipsToReview = useMemo(() => {
+    if (!person) return []
+    const [preview] = applyCalendarCorrections(
+      [{ ...person, response: { ...person.response, chips: baseChips } }],
+      { [person.id]: draftCorrections },
+      RAW_SEED.grid,
+    )
+    return preview.response.chips
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [person, baseChips, draftCorrections])
+
   if (!state.phoneFrame.open || !person) return null
 
   const organizer = RAW_SEED.people.find((p) => p.id === RAW_SEED.meeting.organizer)
   const isLocked = state.confirmedMeeting !== null
-  // 아직 응답하지 않은 사람은 스스로 입력하기 전까지 빈 상태로 시작한다 — seed에 미리 채워둔
-  // "정답" chips는 투어 대본(평가자가 직접 타이핑)의 재료일 뿐, 응답 전 참여자 화면에 먼저 보이면 안 된다.
-  const chipsToReview = draftChips ?? (state.hasResponded[person.id] ? person.response.chips : [])
 
   function handleDraftChange(text: string) {
     setDraftRaw(text)
@@ -64,16 +87,6 @@ export function ParticipantPhoneFrame() {
     setDraftChips(parseChips({ raw: text, calendarEvents: person.calendar, grid: RAW_SEED.grid }))
   }
 
-  // 이미 응답한 사람(자유 모드에서 다시 연 경우)의 칩 편집·삭제는 제출을 기다리지 않고 즉시
-  // 전역 상태에 반영한다("칩 탭 → 삭제 → 즉시 재계산", R8). 아직 응답 전인 사람은 초안에만
-  // 머무르다가 [응답 보내기]를 눌러야 반영된다 — 투어 대본("직접 입력→제출")과 충돌하지 않도록.
-  function handleChipsChange(next: Chip[]) {
-    setDraftChips(next)
-    if (person && state.hasResponded[person.id]) {
-      dispatch({ type: 'UPDATE_CHIPS', personId: person.id, chips: next })
-    }
-  }
-
   function handleSubmit() {
     if (!person) return
     dispatch({
@@ -81,6 +94,7 @@ export function ParticipantPhoneFrame() {
       personId: person.id,
       chips: chipsToReview,
       raw: draftRaw.trim().length > 0 ? draftRaw : person.response.raw,
+      corrections: draftCorrections,
     })
     dispatch({ type: 'CLOSE_PHONE_FRAME' })
   }
@@ -111,16 +125,20 @@ export function ParticipantPhoneFrame() {
           <>
             <CalendarPrefillList
               person={person}
-              corrections={state.calendarCorrections[person.id] ?? {}}
+              corrections={draftCorrections}
               onApplyCorrection={(day, hour, kind) =>
-                dispatch({ type: 'APPLY_CALENDAR_CORRECTION', personId: person.id, day, hour, kind })
+                setDraftCorrections((prev) => ({ ...prev, [slotKey(day, hour)]: { kind } }))
               }
               onUndoCorrection={(day, hour) =>
-                dispatch({ type: 'UNDO_CALENDAR_CORRECTION', personId: person.id, day, hour })
+                setDraftCorrections((prev) => {
+                  const next = { ...prev }
+                  delete next[slotKey(day, hour)]
+                  return next
+                })
               }
             />
             <FreeTextInput value={draftRaw} onChange={handleDraftChange} />
-            <ChipReviewList chips={chipsToReview} onChangeChips={handleChipsChange} />
+            <ChipReviewList chips={chipsToReview} onChangeChips={setDraftChips} />
             <TrustNotice />
             <button
               type="button"

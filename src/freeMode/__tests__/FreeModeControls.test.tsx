@@ -41,4 +41,13 @@ describe('FreeModeControls — 화면 이동 전용(필수/선택 변경은 Host
     const html = render(state)
     expect(html).not.toContain('확정 결과')
   })
+
+  it('참여자 화면 진입 CTA는 실제 제품이 아닌 여기(체험 레이어)에만 있다(항목 5)', () => {
+    let state = buildInitialState()
+    state = appReducer(state, { type: 'UNLOCK_FREE_MODE' })
+    const html = render(state)
+    expect(html).toContain('참여자로 체험하기')
+    expect(html).toContain('평가용 기능이에요')
+    for (const p of state.people) expect(html).toContain(p.name)
+  })
 })

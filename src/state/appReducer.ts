@@ -1,5 +1,5 @@
 import { RAW_SEED } from '../data/loadSeed'
-import { slotKey } from '../engine/slotKey'
+import { applyCalendarCorrections } from './useSchedule'
 import type { AppState } from './appState.types'
 import type { Action } from './actions'
 
@@ -28,35 +28,32 @@ export function buildInitialState(): AppState {
 export function appReducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'SUBMIT_RESPONSE': {
+      const targetPerson = state.people.find((p) => p.id === action.personId)
+      const corrections = action.corrections ?? state.calendarCorrections[action.personId] ?? {}
+
+      // 정정([이 시간 비어 있어요]/[옮길 수 있어요])으로 이미 풀린 슬롯을 가리키던 병합·조정가능
+      // 칩은 제출 시점에 함께 정리한다 — 원본 캘린더는 손대지 않고(R5), 모순된 두 조건이 동시에
+      // 활성 상태로 보이지 않게 한다. applyCalendarCorrections는 계산용으로 이미 검증된 로직을
+      // 그대로 재사용하되, 여기서는 결과의 chips만 취하고 calendar(원본)는 버린다.
+      const cleanedChips = targetPerson
+        ? applyCalendarCorrections(
+            [{ ...targetPerson, response: { ...targetPerson.response, chips: action.chips } }],
+            { [action.personId]: corrections },
+            RAW_SEED.grid,
+          )[0].response.chips
+        : action.chips
+
       const people = state.people.map((p) =>
         p.id === action.personId
-          ? { ...p, response: { ...p.response, chips: action.chips, raw: action.raw ?? p.response.raw } }
+          ? { ...p, response: { ...p.response, chips: cleanedChips, raw: action.raw ?? p.response.raw } }
           : p,
       )
-      return { ...state, people, hasResponded: { ...state.hasResponded, [action.personId]: true } }
-    }
-    case 'UPDATE_CHIPS': {
-      const people = state.people.map((p) =>
-        p.id === action.personId ? { ...p, response: { ...p.response, chips: action.chips } } : p,
-      )
-      return { ...state, people }
-    }
-    case 'APPLY_CALENDAR_CORRECTION': {
-      const key = slotKey(action.day, action.hour)
-      const personCorrections = { ...(state.calendarCorrections[action.personId] ?? {}) }
-      personCorrections[key] = { kind: action.kind }
+
       return {
         ...state,
-        calendarCorrections: { ...state.calendarCorrections, [action.personId]: personCorrections },
-      }
-    }
-    case 'UNDO_CALENDAR_CORRECTION': {
-      const key = slotKey(action.day, action.hour)
-      const personCorrections = { ...(state.calendarCorrections[action.personId] ?? {}) }
-      delete personCorrections[key]
-      return {
-        ...state,
-        calendarCorrections: { ...state.calendarCorrections, [action.personId]: personCorrections },
+        people,
+        hasResponded: { ...state.hasResponded, [action.personId]: true },
+        calendarCorrections: { ...state.calendarCorrections, [action.personId]: corrections },
       }
     }
     case 'SET_ATTENDANCE': {

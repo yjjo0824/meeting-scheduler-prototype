@@ -47,10 +47,10 @@ export function ConditionMap({ people, hasResponded, selectedPersonId, onSelectP
       </div>
 
       <div className="overflow-x-auto p-5">
-        <table className="w-full min-w-[860px] border-separate border-spacing-1">
+        <table className="w-full min-w-[760px] border-separate border-spacing-1">
           <thead>
             <tr>
-              <th className="w-40" />
+              <th className="w-32" />
               {grid.days.map((day) => (
                 <th
                   key={day}

@@ -1,12 +1,16 @@
-import type { Attendance, Chip, Day } from '../types/domain'
+import type { Attendance, Chip } from '../types/domain'
 import type { Slot } from '../types/engine'
-import type { CalendarCorrectionKind, ScreenId } from './appState.types'
+import type { CalendarCorrection, ScreenId } from './appState.types'
 
 export type Action =
-  | { type: 'SUBMIT_RESPONSE'; personId: string; chips: Chip[]; raw?: string | null }
-  | { type: 'UPDATE_CHIPS'; personId: string; chips: Chip[] }
-  | { type: 'APPLY_CALENDAR_CORRECTION'; personId: string; day: Day; hour: number; kind: CalendarCorrectionKind }
-  | { type: 'UNDO_CALENDAR_CORRECTION'; personId: string; day: Day; hour: number }
+  // corrections가 있으면 그 사람의 캘린더 정정도 이 시점에 함께 커밋한다(draft → 한 번에 commit).
+  | {
+      type: 'SUBMIT_RESPONSE'
+      personId: string
+      chips: Chip[]
+      raw?: string | null
+      corrections?: Record<string, CalendarCorrection>
+    }
   | { type: 'SET_ATTENDANCE'; personId: string; attendance: Attendance }
   | { type: 'REPORT_UNAVAILABLE'; personId: string }
   | { type: 'OPEN_PHONE_FRAME'; personId: string }
