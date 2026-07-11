@@ -3,10 +3,15 @@ import type { ParseChipsInput } from './chipParser.types'
 
 const DAY_GLYPH: Record<string, Day> = { 월: '월', 화: '화', 수: '수', 목: '목', 금: '금' }
 
+// 접속사는 이 목록만 지원한다(범용 자연어 처리로 확장하지 않음, §6). "이랑"을 "랑"보다 먼저 두어
+// 부분 매칭(예: "이랑"의 "랑"만 걸리는 경우)을 방지한다.
+const CLAUSE_CONNECTIVES = /이랑|랑|와|과|그리고/
+
 function splitClauses(raw: string): string[] {
   return raw
     .split(/[.]/)
     .flatMap((sentence) => sentence.split(/[,]/))
+    .flatMap((segment) => segment.split(CLAUSE_CONNECTIVES))
     .map((c) => c.trim())
     .filter((c) => c.length > 0)
 }

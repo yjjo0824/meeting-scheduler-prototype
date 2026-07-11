@@ -97,3 +97,53 @@ describe('parseChips — 미분류 처리', () => {
     expect(result[0].hours).toEqual([])
   })
 })
+
+describe('parseChips — 복수 조건 접속사 분할(§6, 이 목록만 지원: 쉼표·과/와/이랑/랑/그리고)', () => {
+  it('"목요일 오전이랑 수요일 오후는 안 돼요" → 불가 칩 2개', () => {
+    const result = parseChips({
+      raw: '목요일 오전이랑 수요일 오후는 안 돼요',
+      calendarEvents: [],
+      grid: RAW_SEED.grid,
+    })
+
+    expect(result).toHaveLength(2)
+    expect(result.every((c) => c.type === '불가')).toBe(true)
+    expect(result[0]).toMatchObject({ day: '목', hours: [9, 10, 11] })
+    expect(result[1]).toMatchObject({ day: '수', hours: [14, 15, 16, 17] })
+  })
+
+  it('"금요일 오후와 월요일 오전은 피하고 싶어요" → "와"로 절이 2개로 나뉜다(마커 전파는 지원하지 않음 — 최소 범위)', () => {
+    const result = parseChips({
+      raw: '금요일 오후와 월요일 오전은 피하고 싶어요',
+      calendarEvents: [],
+      grid: RAW_SEED.grid,
+    })
+
+    // 뒤 절만 명시적 마커("피하고 싶어요")를 담고 있어 회피로 판별된다.
+    // 마커 없는 앞 절은 절 분할 전 문장처럼 기본값 규칙(캘린더 미보유 → 불가)을 그대로 따른다 —
+    // 접속사 뒤의 마커를 앞 절까지 전파하는 것은 "이 접속사 목록만 지원"의 범위를 넘는 일반화라 하지 않는다.
+    expect(result).toHaveLength(2)
+    expect(result[1]).toMatchObject({ type: '회피', day: '월', hours: [9, 10, 11] })
+  })
+
+  it('"화요일 오전 그리고 목요일 오후는 안 돼요" → 불가 칩 2개("그리고" 분할)', () => {
+    const result = parseChips({
+      raw: '화요일 오전 그리고 목요일 오후는 안 돼요',
+      calendarEvents: [],
+      grid: RAW_SEED.grid,
+    })
+
+    expect(result).toHaveLength(2)
+    expect(result.every((c) => c.type === '불가')).toBe(true)
+  })
+
+  it('접속사 분할이 도윤·수아 원문 파싱 결과를 회귀시키지 않는다', () => {
+    const doyun = person('doyun')
+    const result = parseChips({ raw: doyun.response.raw!, calendarEvents: doyun.calendar, grid: RAW_SEED.grid })
+    const counts = result.reduce<Record<string, number>>((acc, c) => {
+      acc[c.type] = (acc[c.type] ?? 0) + 1
+      return acc
+    }, {})
+    expect(counts).toEqual({ 불가: 1, 병합: 1, 회피: 1 })
+  })
+})
