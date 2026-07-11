@@ -127,7 +127,14 @@ export function ParticipantPhoneFrame() {
               person={person}
               corrections={draftCorrections}
               onApplyCorrection={(day, hour, kind) =>
-                setDraftCorrections((prev) => ({ ...prev, [slotKey(day, hour)]: { kind } }))
+                setDraftCorrections((prev) => {
+                  const key = slotKey(day, hour)
+                  // 이미 정정이 적용된 슬롯은 실행 취소 후에만 다시 정정할 수 있다 —
+                  // 중복 추가나 다른 종류(empty/movable)로의 덮어쓰기를 막는다(CalendarPrefillList가
+                  // 이미 해당 슬롯의 탭을 비활성화하지만, 상태 레이어에서도 한 번 더 방어한다).
+                  if (prev[key]) return prev
+                  return { ...prev, [key]: { kind } }
+                })
               }
               onUndoCorrection={(day, hour) =>
                 setDraftCorrections((prev) => {
