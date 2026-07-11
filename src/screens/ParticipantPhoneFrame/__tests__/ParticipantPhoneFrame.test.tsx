@@ -59,7 +59,7 @@ describe('ParticipantPhoneFrame — 확정 후 잠금', () => {
   it('확정된 뒤에는 읽기 전용 안내와 신고 버튼만 보인다(상세 재조율 플로우 없음)', () => {
     let state = buildInitialState()
     state = appReducer(state, { type: 'OPEN_PHONE_FRAME', personId: 'seoyeon' })
-    state = appReducer(state, { type: 'CONFIRM_MEETING', groupKey: 'k', slot: { day: '금', hour: 13 } })
+    state = appReducer(state, { type: 'CONFIRM_MEETING', groupKey: 'k', slot: { day: '금', hour: 13 }, excluded: [] })
     const html = render(state)
 
     expect(html).toContain('회의가 확정됐어요')

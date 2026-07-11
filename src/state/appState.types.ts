@@ -16,6 +16,8 @@ export interface TourState {
 export interface ConfirmedMeeting {
   groupKey: string
   slot: Slot
+  // 확정 시점의 제외 인원 스냅샷 — 확정 후 자유 모드에서 조건이 바뀌어도 확정 화면 표시는 흔들리지 않는다(R8: 잠금+보존).
+  excluded: string[]
 }
 
 export type CalendarCorrectionKind = 'empty' | 'movable'

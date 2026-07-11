@@ -81,9 +81,9 @@ describe('appReducer — 화면 전환·확정·자유모드·리셋', () => {
   it('CONFIRM_MEETING은 confirmedMeeting을 채우고 confirmation 화면으로 전환한다', () => {
     const state = buildInitialState()
     const slot = { day: '금' as const, hour: 13 }
-    const after = appReducer(state, { type: 'CONFIRM_MEETING', groupKey: '|seoyeon', slot })
+    const after = appReducer(state, { type: 'CONFIRM_MEETING', groupKey: '|seoyeon', slot, excluded: ['seoyeon'] })
 
-    expect(after.confirmedMeeting).toEqual({ groupKey: '|seoyeon', slot })
+    expect(after.confirmedMeeting).toEqual({ groupKey: '|seoyeon', slot, excluded: ['seoyeon'] })
     expect(after.screen).toBe('confirmation')
   })
 
@@ -103,7 +103,7 @@ describe('appReducer — 화면 전환·확정·자유모드·리셋', () => {
       chips: doyun().response.chips,
     })
     state = appReducer(state, { type: 'UNLOCK_FREE_MODE' })
-    state = appReducer(state, { type: 'CONFIRM_MEETING', groupKey: 'x', slot: { day: '금', hour: 13 } })
+    state = appReducer(state, { type: 'CONFIRM_MEETING', groupKey: 'x', slot: { day: '금', hour: 13 }, excluded: [] })
 
     const resetState = appReducer(state, { type: 'RESET_ALL' })
     expect(resetState).toEqual(buildInitialState())

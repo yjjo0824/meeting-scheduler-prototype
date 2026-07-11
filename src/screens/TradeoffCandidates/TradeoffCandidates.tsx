@@ -19,7 +19,9 @@ export function TradeoffCandidates() {
       <OneLineRecommendation
         group={topGroup}
         tentative={anyPending}
-        onConfirm={(slot) => dispatch({ type: 'CONFIRM_MEETING', groupKey: topGroup.key, slot })}
+        onConfirm={(slot) =>
+          dispatch({ type: 'CONFIRM_MEETING', groupKey: topGroup.key, slot, excluded: topGroup.excluded })
+        }
       />
     )
   }
@@ -41,7 +43,9 @@ export function TradeoffCandidates() {
         showFreeModeExtras={state.freeModeUnlocked}
         selectedSlot={state.selectedSlotByGroup[topGroup.key] ?? topGroup.defaultSlot}
         onSelectSlot={(slot) => dispatch({ type: 'SELECT_SLOT', groupKey: topGroup.key, slot })}
-        onConfirm={(slot) => dispatch({ type: 'CONFIRM_MEETING', groupKey: topGroup.key, slot })}
+        onConfirm={(slot) =>
+          dispatch({ type: 'CONFIRM_MEETING', groupKey: topGroup.key, slot, excluded: topGroup.excluded })
+        }
       />
 
       {alternatives.map((group) => (
@@ -54,7 +58,9 @@ export function TradeoffCandidates() {
           showFreeModeExtras={state.freeModeUnlocked}
           selectedSlot={state.selectedSlotByGroup[group.key] ?? group.defaultSlot}
           onSelectSlot={(slot) => dispatch({ type: 'SELECT_SLOT', groupKey: group.key, slot })}
-          onConfirm={(slot) => dispatch({ type: 'CONFIRM_MEETING', groupKey: group.key, slot })}
+          onConfirm={(slot) =>
+            dispatch({ type: 'CONFIRM_MEETING', groupKey: group.key, slot, excluded: group.excluded })
+          }
         />
       ))}
     </div>

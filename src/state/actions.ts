@@ -13,7 +13,8 @@ export type Action =
   | { type: 'CLOSE_PHONE_FRAME' }
   | { type: 'NAVIGATE'; screen: ScreenId }
   | { type: 'SELECT_SLOT'; groupKey: string; slot: Slot }
-  | { type: 'CONFIRM_MEETING'; groupKey: string; slot: Slot }
+  | { type: 'CONFIRM_MEETING'; groupKey: string; slot: Slot; excluded: string[] }
+  | { type: 'REOPEN_FOR_RESCHEDULE' }
   | { type: 'UNLOCK_FREE_MODE' }
   | { type: 'SET_TOUR_STEP'; stepIndex: number }
   | { type: 'RESET_ALL' }
