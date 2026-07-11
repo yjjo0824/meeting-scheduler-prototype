@@ -8,6 +8,7 @@ import { ChipReviewList } from './ChipReviewList'
 import { FreeTextInput } from './FreeTextInput'
 import { LockedResponseView } from './LockedResponseView'
 import { PhoneContextHeader } from './PhoneContextHeader'
+import { SubmittedSummaryView } from './SubmittedSummaryView'
 import { TrustNotice } from './TrustNotice'
 
 export function ParticipantPhoneFrame() {
@@ -20,15 +21,20 @@ export function ParticipantPhoneFrame() {
   // 패널을 항상 "닫힘" 위치(translate-x-full)로 먼저 그린 뒤, 마운트 직후 한 틱 later에
   // "열림" 위치로 전환해 CSS transition이 실제로 슬라이드 인 애니메이션을 재생하게 한다.
   const [entered, setEntered] = useState(false)
+  // IMPLEMENTATION_SPEC §5: 미응답자는 바로 입력 폼, 응답 완료자는 "제출 완료" 요약 먼저 — [수정하기]를
+  // 눌러야 편집 폼이 열린다. 매번 여는 시점의 응답 상태로 다시 계산한다(사람이 바뀌거나 다시 열 때마다).
+  const [editing, setEditing] = useState(false)
 
   useEffect(() => {
     setDraftRaw('')
     setDraftChips(null)
     setEntered(false)
     if (!state.phoneFrame.open) return
+    setEditing(!state.hasResponded[personId ?? ''])
     const frame = requestAnimationFrame(() => setEntered(true))
     return () => cancelAnimationFrame(frame)
-  }, [person?.id, state.phoneFrame.open])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [personId, state.phoneFrame.open])
 
   useEffect(() => {
     if (!state.exampleFillSignal) return
@@ -96,6 +102,8 @@ export function ParticipantPhoneFrame() {
             reported={state.reportedByPersonId[person.id] ?? false}
             onReport={() => dispatch({ type: 'REPORT_UNAVAILABLE', personId: person.id })}
           />
+        ) : !editing && state.hasResponded[person.id] ? (
+          <SubmittedSummaryView person={person} onEdit={() => setEditing(true)} />
         ) : (
           <>
             <CalendarPrefillList
