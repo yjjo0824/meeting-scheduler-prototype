@@ -5,6 +5,7 @@ import { ParticipantPhoneFrame } from './screens/ParticipantPhoneFrame/Participa
 import { TradeoffCandidates } from './screens/TradeoffCandidates/TradeoffCandidates'
 import { Confirmation } from './screens/Confirmation/Confirmation'
 import { SlideOverDim } from './shared/SlideOverDim'
+import { TourOverlay } from './tour/TourOverlay'
 
 // 투어 진행 중(자유 모드 해제 전)에만 자동 전환한다: 도윤 응답이 도착해 phoneFrame이 닫히고
 // 전원이 응답을 마쳤으면 host → tradeoff로 넘어간다(SPEC §5 비트3의 "복귀 → 재계산 → 트레이드오프").
@@ -46,6 +47,7 @@ function AppShell() {
         {state.screen === 'confirmation' && <Confirmation />}
       </SlideOverDim>
       <ParticipantPhoneFrame />
+      <TourOverlay />
     </>
   )
 }
