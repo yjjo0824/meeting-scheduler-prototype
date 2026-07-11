@@ -13,8 +13,14 @@ interface AppContextValue {
 
 const AppContext = createContext<AppContextValue | null>(null)
 
-export function AppProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(appReducer, undefined, buildInitialState)
+interface AppProviderProps {
+  children: ReactNode
+  // 테스트에서 특정 상태 스냅샷을 그대로 렌더링하기 위한 주입 지점 — 기본 앱 동작에는 쓰이지 않는다.
+  initialState?: AppState
+}
+
+export function AppProvider({ children, initialState }: AppProviderProps) {
+  const [state, dispatch] = useReducer(appReducer, undefined, () => initialState ?? buildInitialState())
   const schedule = useSchedule(state)
   const value = useMemo(() => ({ state, dispatch, schedule }), [state, schedule])
 

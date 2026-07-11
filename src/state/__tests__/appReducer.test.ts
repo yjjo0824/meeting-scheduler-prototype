@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import { RAW_SEED } from '../../data/loadSeed'
 import { appReducer, buildInitialState } from '../appReducer'
-import { deriveEffectivePeople } from '../useSchedule'
+import { applyCalendarCorrections, deriveEffectivePeople } from '../useSchedule'
 import { computeSchedule } from '../../engine/computeSchedule'
 
 function doyun() {
   return RAW_SEED.people.find((p) => p.id === 'doyun')!
+}
+
+function seoyeon() {
+  return RAW_SEED.people.find((p) => p.id === 'seoyeon')!
 }
 
 describe('buildInitialState — hasResponded 초기화 규칙', () => {
@@ -103,5 +107,95 @@ describe('appReducer — 화면 전환·확정·자유모드·리셋', () => {
 
     const resetState = appReducer(state, { type: 'RESET_ALL' })
     expect(resetState).toEqual(buildInitialState())
+  })
+})
+
+describe('appReducer — 탈출구 1: 캘린더 정정(옮길 수 있어요) → 금14 완벽 슬롯', () => {
+  it('APPLY_CALENDAR_CORRECTION(하늘, 금14, movable) 이후 금14가 완벽 슬롯이 된다', () => {
+    let state = buildInitialState()
+    // 응답 후 상태를 만든다(도윤 응답 완료) — 탈출구는 응답 후 시나리오 기준
+    state = appReducer(state, { type: 'SUBMIT_RESPONSE', personId: 'doyun', chips: doyun().response.chips })
+    state = appReducer(state, {
+      type: 'APPLY_CALENDAR_CORRECTION',
+      personId: 'haneul',
+      day: '금',
+      hour: 14,
+      kind: 'movable',
+    })
+
+    const corrected = applyCalendarCorrections(state.people, state.calendarCorrections, RAW_SEED.grid)
+    const effective = deriveEffectivePeople(corrected, state.hasResponded)
+    const result = computeSchedule(RAW_SEED, effective)
+
+    expect(result.perfectSlots).toContainEqual({ day: '금', hour: 14 })
+  })
+
+  it('UNDO_CALENDAR_CORRECTION 이후에는 다시 하드 제약으로 복귀한다(원본 캘린더 불변 확인)', () => {
+    let state = buildInitialState()
+    state = appReducer(state, {
+      type: 'APPLY_CALENDAR_CORRECTION',
+      personId: 'haneul',
+      day: '금',
+      hour: 14,
+      kind: 'movable',
+    })
+    state = appReducer(state, { type: 'UNDO_CALENDAR_CORRECTION', personId: 'haneul', day: '금', hour: 14 })
+
+    expect(state.calendarCorrections.haneul?.['금#14']).toBeUndefined()
+    const haneulOriginal = RAW_SEED.people.find((p) => p.id === 'haneul')!
+    const haneulAfter = state.people.find((p) => p.id === 'haneul')!
+    expect(haneulAfter.calendar).toEqual(haneulOriginal.calendar)
+  })
+})
+
+describe('appReducer — 탈출구 2/3: 칩 삭제 → 완벽 슬롯 등장', () => {
+  it('UPDATE_CHIPS로 도윤의 수요일 오후 불가 칩을 지우면 수14가 완벽 슬롯이 된다', () => {
+    let state = buildInitialState()
+    state = appReducer(state, { type: 'SUBMIT_RESPONSE', personId: 'doyun', chips: doyun().response.chips })
+
+    const doyunChipsWithoutUnavailable = doyun().response.chips.filter((c) => c.type !== '불가')
+    state = appReducer(state, { type: 'UPDATE_CHIPS', personId: 'doyun', chips: doyunChipsWithoutUnavailable })
+
+    const effective = deriveEffectivePeople(state.people, state.hasResponded)
+    const result = computeSchedule(RAW_SEED, effective)
+    expect(result.perfectSlots).toContainEqual({ day: '수', hour: 14 })
+  })
+
+  it('UPDATE_CHIPS로 서연의 13시 회피 칩을 지우면 금13이 유일한 완벽 슬롯이 된다', () => {
+    let state = buildInitialState()
+    state = appReducer(state, { type: 'SUBMIT_RESPONSE', personId: 'doyun', chips: doyun().response.chips })
+    state = appReducer(state, { type: 'UPDATE_CHIPS', personId: 'seoyeon', chips: [] })
+
+    expect(state.people.find((p) => p.id === 'seoyeon')!.response.chips).toEqual([])
+    // seoyeon()의 원본 seed 응답은 변하지 않는다(원본 불변)
+    expect(seoyeon().response.chips.length).toBeGreaterThan(0)
+
+    const effective = deriveEffectivePeople(state.people, state.hasResponded)
+    const result = computeSchedule(RAW_SEED, effective)
+    expect(result.perfectSlots).toEqual([{ day: '금', hour: 13 }])
+  })
+})
+
+describe('appReducer — 참석자 필수/선택 변경', () => {
+  it('SET_ATTENDANCE는 즉시 재계산에 반영된다(도윤을 필수로 바꾸면 도윤 제외 후보군이 사라진다)', () => {
+    let state = buildInitialState()
+    state = appReducer(state, { type: 'SUBMIT_RESPONSE', personId: 'doyun', chips: doyun().response.chips })
+    state = appReducer(state, { type: 'SET_ATTENDANCE', personId: 'doyun', attendance: 'required' })
+
+    expect(state.people.find((p) => p.id === 'doyun')!.attendance).toBe('required')
+
+    const effective = deriveEffectivePeople(state.people, state.hasResponded)
+    const result = computeSchedule(RAW_SEED, effective)
+    // 도윤이 필수가 되면 도윤의 불가(수 14~17)가 required 그룹을 막아 그 슬롯들은 후보에서 사라진다
+    expect(result.groups.some((g) => g.excluded.includes('doyun'))).toBe(false)
+  })
+})
+
+describe('appReducer — 미응답 신고', () => {
+  it('REPORT_UNAVAILABLE은 해당 참여자의 신고 플래그만 세운다(상세 플로우 없음)', () => {
+    const state = buildInitialState()
+    const after = appReducer(state, { type: 'REPORT_UNAVAILABLE', personId: 'seoyeon' })
+    expect(after.reportedByPersonId.seoyeon).toBe(true)
+    expect(after.confirmedMeeting).toBe(state.confirmedMeeting)
   })
 })

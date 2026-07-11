@@ -1,4 +1,5 @@
 import { RAW_SEED } from '../data/loadSeed'
+import { slotKey } from '../engine/slotKey'
 import type { AppState } from './appState.types'
 import type { Action } from './actions'
 
@@ -12,12 +13,14 @@ export function buildInitialState(): AppState {
   return {
     people,
     hasResponded,
+    calendarCorrections: {},
     phoneFrame: { open: false, viewingPersonId: null },
     screen: 'host',
     tour: { active: true, stepIndex: 0 },
     selectedSlotByGroup: {},
     confirmedMeeting: null,
     freeModeUnlocked: false,
+    reportedByPersonId: {},
   }
 }
 
@@ -31,6 +34,36 @@ export function appReducer(state: AppState, action: Action): AppState {
       )
       return { ...state, people, hasResponded: { ...state.hasResponded, [action.personId]: true } }
     }
+    case 'UPDATE_CHIPS': {
+      const people = state.people.map((p) =>
+        p.id === action.personId ? { ...p, response: { ...p.response, chips: action.chips } } : p,
+      )
+      return { ...state, people }
+    }
+    case 'APPLY_CALENDAR_CORRECTION': {
+      const key = slotKey(action.day, action.hour)
+      const personCorrections = { ...(state.calendarCorrections[action.personId] ?? {}) }
+      personCorrections[key] = { kind: action.kind }
+      return {
+        ...state,
+        calendarCorrections: { ...state.calendarCorrections, [action.personId]: personCorrections },
+      }
+    }
+    case 'UNDO_CALENDAR_CORRECTION': {
+      const key = slotKey(action.day, action.hour)
+      const personCorrections = { ...(state.calendarCorrections[action.personId] ?? {}) }
+      delete personCorrections[key]
+      return {
+        ...state,
+        calendarCorrections: { ...state.calendarCorrections, [action.personId]: personCorrections },
+      }
+    }
+    case 'SET_ATTENDANCE': {
+      const people = state.people.map((p) => (p.id === action.personId ? { ...p, attendance: action.attendance } : p))
+      return { ...state, people }
+    }
+    case 'REPORT_UNAVAILABLE':
+      return { ...state, reportedByPersonId: { ...state.reportedByPersonId, [action.personId]: true } }
     case 'OPEN_PHONE_FRAME':
       return { ...state, phoneFrame: { open: true, viewingPersonId: action.personId } }
     case 'CLOSE_PHONE_FRAME':
