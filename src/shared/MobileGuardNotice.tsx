@@ -11,8 +11,9 @@ export function MobileGuardNotice() {
   if (!narrow) return null
 
   return (
-    <div className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-xs text-amber-700">
-      더 넓은 화면에서 보면 참여자들의 시간 조건을 한눈에 비교하기 쉬워요. 전체 투어는 PC에서 볼 수 있어요.
+    <div className="border-b border-warn-100 bg-warn-50 px-4 py-2 text-center">
+      <p className="text-xs font-bold text-warn-600">투어는 PC에서 볼 수 있어요</p>
+      <p className="mt-0.5 text-[11px] text-warn-600/80">예시 상황을 따라가며 화면 사용법을 안내해 드려요</p>
     </div>
   )
 }

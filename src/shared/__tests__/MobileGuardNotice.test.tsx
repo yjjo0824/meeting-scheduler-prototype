@@ -21,4 +21,25 @@ describe('MobileGuardNotice', () => {
     const html = renderToStaticMarkup(<MobileGuardNotice />)
     expect(html).toBe('')
   })
+
+  it('좁은 화면에서는 메인(강조) + 보조(작고 연하게) 2줄 위계로 안내한다', () => {
+    // App.test.tsx와 동일한 window 스텁 패턴 — 좁은 폭에서만 배너가 그려진다.
+    const original = (globalThis as { window?: unknown }).window
+    ;(globalThis as { window?: unknown }).window = { innerWidth: 500 }
+    try {
+      const html = renderToStaticMarkup(<MobileGuardNotice />)
+      const mainIndex = html.indexOf('투어는 PC에서 볼 수 있어요')
+      const subIndex = html.indexOf('예시 상황을 따라가며 화면 사용법을 안내해 드려요')
+      expect(mainIndex).toBeGreaterThan(-1)
+      expect(subIndex).toBeGreaterThan(mainIndex)
+      // 메인은 강조(font-bold), 보조는 더 작고 연하다.
+      expect(html).toContain('font-bold')
+      expect(html).toContain('text-[11px]')
+      // 이전 단일 문구는 더 이상 없다.
+      expect(html).not.toContain('더 넓은 화면에서 보면')
+    } finally {
+      if (original === undefined) delete (globalThis as { window?: unknown }).window
+      else (globalThis as { window?: unknown }).window = original
+    }
+  })
 })
