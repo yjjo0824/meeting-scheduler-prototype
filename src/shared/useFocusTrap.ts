@@ -39,11 +39,10 @@ export function useFocusTrap(
     // 안에 포커스가 남아 발생하는 aria-hidden 경고를 피할 수 있다 — 트랩 설치 시점에 바로 옮긴다.
     toFocus.focus()
 
-    // 방어적 보정: 이 다이얼로그가 투어의 현재 대상일 때, 같은 커밋 안에서 투어 쪽의 inert
-    // 재계산이 아직 낡은 대상 기준으로 돌 수 있어 방금 옮긴 포커스를 도로 빼앗아갈 수 있었다
-    // (12B-3 QA — useTourInert 쪽에서 근본 원인을 지연 적용으로 고쳤지만, 여기서도 한 프레임 뒤
-    // 실제로 포커스가 컨테이너 안에 안착했는지 한 번만 확인해 벗어나 있으면 동일 대상으로 한 번
-    // 더 보정한다 — 무한 루프가 아니라 딱 한 번의 rAF).
+    // 방어적 보정: 같은 커밋에서 다른 레이어의 포커스 조작(blur 등)이 방금 옮긴 포커스를
+    // 빼앗아갈 수 있다(12B-3 QA에서 실제 발생 — 당시 원인이던 투어 inert는 12C-5에서 제거됐지만,
+    // 보정 자체는 저비용 안전망이라 유지한다). 한 프레임 뒤 포커스가 컨테이너 안에 안착했는지
+    // 한 번만 확인해 벗어나 있으면 동일 대상으로 다시 옮긴다 — 무한 루프가 아니라 딱 한 번의 rAF.
     const correctionFrame = requestAnimationFrame(() => {
       if (!container.contains(document.activeElement)) {
         toFocus.focus()

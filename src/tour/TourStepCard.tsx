@@ -11,6 +11,8 @@ interface Props {
   onFillExample?: () => void
   ctaLabel?: string
   onCta?: () => void
+  // 투어 건너뛰기(오버레이 제거 + 체험 기능 잠금 해제) — 모든 단계 카드에 노출된다.
+  onSkip: () => void
 }
 
 const MARGIN = 32 // 뷰포트 가장자리 여백(px) — 기존 bottom-8/left-8/right-8 = 2rem과 동일
@@ -74,6 +76,7 @@ export function TourStepCard({
   onFillExample,
   ctaLabel,
   onCta,
+  onSkip,
 }: Props) {
   const cardRef = useRef<HTMLDivElement>(null)
   const titleRef = useRef<HTMLHeadingElement>(null)
@@ -123,9 +126,19 @@ export function TourStepCard({
       className="fixed z-[900] w-80 max-w-[calc(100vw-4rem)] rounded-2xl bg-white p-4 shadow-xl"
       style={position ? { top: position.top, left: position.left } : { top: MARGIN, left: MARGIN }}
     >
-      <p className="text-xs text-slate-400">
-        {stepNumber} / {totalSteps}단계
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-slate-400">
+          {stepNumber} / {totalSteps}단계
+        </p>
+        {/* 건너뛰기 — 누르면 오버레이가 제거되고 체험 기능이 바로 풀린다(Esc와 동일). */}
+        <button
+          type="button"
+          onClick={onSkip}
+          className="px-1 py-1 text-xs text-slate-400 underline hover:text-slate-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+        >
+          투어 건너뛰기
+        </button>
+      </div>
       <h3
         id={titleId}
         ref={titleRef}

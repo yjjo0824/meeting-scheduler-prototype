@@ -87,10 +87,10 @@ export function TradeoffCandidates() {
 
   return (
     <PageContainer width="content">
-      {/* 보조 뒤로가기 — 투어 중에도 항상 렌더되지만(단계 필수 행동을 가리지 않도록 낮은 위계),
-          tradeoff-screen 대상 바깥(형제)에 둬서 투어 중에는 다른 비대상 요소와 마찬가지로
-          useTourInert가 자동으로 inert 처리한다 — 클릭해도 투어 상태(tour.active/stepIndex)를
-          건드리지 않으므로 단계가 깨지지 않는다(12B-4 QA).
+      {/* 보조 뒤로가기 — 투어 중에도 항상 렌더되고 클릭도 막지 않는다(12C-5: 잠금 없는 투어).
+          NAVIGATE는 투어 상태(tour.active/stepIndex)를 건드리지 않으므로 단계가 깨지지 않고,
+          투어 중 host로 돌아가면 자동 전환 조건(shouldAutoNavigateToTradeoff)이 다시 이 화면으로
+          데려온다(투어 진행은 상태 조건으로만 전진 — IMPLEMENTATION_SPEC §3).
           history.back()이 아니라 기존 NAVIGATE 액션을 그대로 재사용한다. */}
       <button
         type="button"

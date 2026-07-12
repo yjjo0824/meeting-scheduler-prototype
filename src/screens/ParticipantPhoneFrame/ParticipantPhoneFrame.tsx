@@ -265,7 +265,7 @@ export function ParticipantPhoneFrame() {
 
   // 배경과 패널은 반드시 최상위 형제여야 한다 — 감싸는 wrapper에 position+z-index를 주면 새
   // 스태킹 컨텍스트가 생겨, TourOverlay가 패널에 주입하는 z-index:900이 그 안에 갇혀 버린다
-  // (TourClickBlocker의 z-800과 전혀 비교되지 않아 클릭이 전부 막히는 버그의 원인이었다).
+  // (투어 딤 레이어 z-850 위로 패널이 밝게 떠오르지 못하는 버그의 원인이었다).
   return (
     <>
       {/* 투어 중에는 배경 클릭으로 닫히지 않는다 — 가이드 흐름이 실수로 끊기지 않게 한다.

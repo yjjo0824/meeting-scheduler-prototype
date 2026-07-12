@@ -24,12 +24,30 @@ function doyun() {
 }
 
 describe('TourOverlay — 렌더링(단계별 카드 스냅샷, 12B-2 새 카피)', () => {
-  it('초기 상태: 1 / 4단계 카드, remind-button을 대상으로 하는 스타일 주입, 블로커 존재', () => {
+  it('초기 상태: 1 / 4단계 카드, remind-button을 대상으로 하는 스타일 주입', () => {
     const html = render(buildInitialState())
     expect(html).toContain('1 / 4단계')
     expect(html).toContain('아직 한 명이 답하지 않았어요')
     expect(html).toContain('[data-tour-id="remind-button"]')
     expect(html).toContain('z-index: 900 !important')
+  })
+
+  it('12C-5: 인터랙션을 잠그는 레이어가 전혀 없다(클릭 블로커·inert 제거 — 딤은 시각 안내 전용)', () => {
+    for (const stepIndex of [0, 1, 2, 3]) {
+      const state = appReducer(buildInitialState(), { type: 'SET_TOUR_STEP', stepIndex })
+      const html = render(state)
+      // 옛 클릭 블로커(z-[800] 풀스크린 레이어)가 어떤 단계에도 렌더되지 않는다.
+      expect(html).not.toContain('z-[800]')
+      // 어떤 요소에도 inert가 걸리지 않는다.
+      expect(html).not.toContain('inert')
+    }
+  })
+
+  it('12C-5: 모든 단계 카드에 [투어 건너뛰기] 진입점이 있다', () => {
+    for (const stepIndex of [0, 1, 2, 3]) {
+      const state = appReducer(buildInitialState(), { type: 'SET_TOUR_STEP', stepIndex })
+      expect(render(state)).toContain('투어 건너뛰기')
+    }
   })
 
   it('스타일 주입은 position을 강제하지 않는다(phone-frame의 fixed 배치를 깨뜨리지 않기 위함)', () => {

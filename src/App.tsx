@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { AppProvider, useAppState } from './state/AppContext'
+import type { AppState } from './state/appState.types'
 import { HostDashboard } from './screens/HostDashboard/HostDashboard'
 import { ParticipantPhoneFrame } from './screens/ParticipantPhoneFrame/ParticipantPhoneFrame'
 import { TradeoffCandidates } from './screens/TradeoffCandidates/TradeoffCandidates'
@@ -11,32 +12,34 @@ import { TourOverlay } from './tour/TourOverlay'
 import { FreeModeControls } from './freeMode/FreeModeControls'
 import { EvaluatorResetBar } from './freeMode/EvaluatorResetBar'
 
-// 투어 진행 중(자유 모드 해제 전)에만 자동 전환한다: 도윤 응답이 도착해 phoneFrame이 닫히고
-// 전원이 응답을 마쳤으면 host → tradeoff로 넘어간다(SPEC §5 비트3의 "복귀 → 재계산 → 트레이드오프").
-// 자유 모드에서는 사용자가 직접 화면을 선택하므로 이 효과는 개입하지 않는다.
+// 투어가 진행 중일 때만 자동 전환한다: 도윤 응답이 도착해 phoneFrame이 닫히고 전원이 응답을
+// 마쳤으면 host → tradeoff로 넘어간다(SPEC §5 비트3의 "복귀 → 재계산 → 트레이드오프").
+// 투어가 아닐 때는 사용자가 직접 화면을 선택하므로 이 효과는 개입하지 않는다.
+//
+// 판정 기준은 반드시 tour.active여야 한다 — 이전에는 freeModeUnlocked를 "투어 진행 중"의 대리
+// 조건으로 썼는데(12C-5에서 수정), 12B-3에서 모바일 진입이 keepTourActive:true로 잠금만 풀게
+// 되면서 두 상태가 분리됐다: 창이 한 번이라도 768px 아래로 내려갔다 돌아오면(반응형 확인 등)
+// freeModeUnlocked=true인 채 투어가 계속되고, 그 뒤 도윤 제출 시 이 효과가 조기 반환되어
+// 트레이드오프 자동 전환이 영구히 발화하지 않는 버그가 있었다.
+// export: 효과(useEffect)는 SSR 테스트로 실행할 수 없으므로, 전진 판정만 순수 함수로 분리해
+// 그 자체를 테스트한다.
+export function shouldAutoNavigateToTradeoff(state: AppState, groupCount: number): boolean {
+  if (!state.tour.active) return false
+  if (state.phoneFrame.open) return false
+  if (state.confirmedMeeting) return false
+  if (state.screen !== 'host') return false
+  const allResponded = state.people.every((p) => state.hasResponded[p.id])
+  return allResponded && groupCount > 0
+}
+
 function useTourAutoNavigate() {
   const { state, dispatch, schedule } = useAppState()
 
   useEffect(() => {
-    if (state.freeModeUnlocked) return
-    if (state.phoneFrame.open) return
-    if (state.confirmedMeeting) return
-    if (state.screen !== 'host') return
-
-    const allResponded = state.people.every((p) => state.hasResponded[p.id])
-    if (allResponded && schedule.groups.length > 0) {
+    if (shouldAutoNavigateToTradeoff(state, schedule.groups.length)) {
       dispatch({ type: 'NAVIGATE', screen: 'tradeoff' })
     }
-  }, [
-    state.freeModeUnlocked,
-    state.phoneFrame.open,
-    state.confirmedMeeting,
-    state.screen,
-    state.hasResponded,
-    state.people,
-    schedule.groups.length,
-    dispatch,
-  ])
+  }, [state, schedule.groups.length, dispatch])
 }
 
 // 모바일에서는 데스크톱 가이드 투어를 제공하지 않는다(좁은 화면에서는 TourOverlay 자체를

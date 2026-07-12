@@ -17,9 +17,8 @@ export function Confirmation() {
   return (
     <PageContainer width="narrow">
       {/* 주최자 화면으로 돌아가는 보조 동선 — 내비게이션 톤의 텍스트 버튼이라 "다시 조율하기"와
-          위계가 경쟁하지 않는다. 투어 중에도 항상 렌더한다(12B-4 QA: 뒤로가기 동선 자체는 보여야
-          함) — confirmation-summary 대상 바깥(형제)에 있어 다른 비대상 요소처럼 useTourInert가
-          자동으로 inert 처리하므로, 눌러도 투어 상태(tour.active/stepIndex)를 건드리지 않는다.
+          위계가 경쟁하지 않는다. 투어 중에도 항상 렌더되고 클릭도 막지 않는다(12C-5: 잠금 없는
+          투어) — NAVIGATE는 투어 상태(tour.active/stepIndex)를 건드리지 않는다.
           history.back()이 아니라 기존 NAVIGATE 액션을 그대로 재사용한다. */}
       <button
         type="button"
