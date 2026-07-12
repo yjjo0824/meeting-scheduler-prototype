@@ -1,8 +1,7 @@
-import { RAW_SEED } from '../../data/loadSeed'
 import type { Person } from '../../types/domain'
 import type { CandidateGroup, Slot } from '../../types/engine'
 import { formatAttendCount, formatConsiderations, formatPositiveLine } from '../../presentation/candidateCopy'
-import { formatSlotWithDate } from '../../presentation/dateDisplay'
+import { formatSlotLabel } from '../../presentation/dateDisplay'
 import { Badge } from '../../shared/Badge'
 import { SlotPicker } from './SlotPicker'
 import { TentativeBadge } from './TentativeBadge'
@@ -41,17 +40,17 @@ export function CandidateGroupCard({
   onSelectSlot,
 }: Props) {
   const contentId = `candidate-content-${group.key}`
-  const display = RAW_SEED.schedule_display
   // 시간 선택 블록은 선택된 카드 + 시간이 2개 이상일 때만 열린다(1개면 제목이 이미 그 시간이다).
   const hasTimeBlock = selected && group.slots.length > 1
 
-  // 제목: 선택된 카드는 지금 선택된 시간(날짜 포함), 비선택 카드는 대표 시간 + 나머지 개수로
-  // 축약한다("7월 15일 수요일 오후 2시 외 3개") — 비선택 상태에서도 어떤 안인지 비교할 수 있게.
+  // 제목: 선택된 카드는 지금 선택된 시간, 비선택 카드는 대표 시간 + 나머지 개수로 축약한다
+  // ("수요일 오후 2시 외 3개") — 비선택 상태에서도 어떤 안인지 비교할 수 있게. 날짜는 후보
+  // 비교 단계에서는 소음이라 뺐다(12C-12.1) — 확정 화면·확정 결과 카드에서만 날짜를 보여준다.
   const title = selected
-    ? formatSlotWithDate(selectedSlot, display)
+    ? formatSlotLabel(selectedSlot)
     : group.slots.length > 1
-      ? `${formatSlotWithDate(group.defaultSlot, display)} 외 ${group.slots.length - 1}개`
-      : formatSlotWithDate(group.defaultSlot, display)
+      ? `${formatSlotLabel(group.defaultSlot)} 외 ${group.slots.length - 1}개`
+      : formatSlotLabel(group.defaultSlot)
 
   const considerations = formatConsiderations(group, people)
 
