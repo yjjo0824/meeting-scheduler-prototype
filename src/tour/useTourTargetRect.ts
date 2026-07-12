@@ -6,6 +6,9 @@ export interface Rect {
   left: number
   width: number
   height: number
+  // 대상 요소의 computed border-radius(px) — 하이라이트 구멍이 대상의 곡률을 따라가게 한다
+  // (12C-11: 구멍 라운드가 대상보다 작으면 pill 형태 대상의 네 모서리에 흰 귀퉁이가 남는다).
+  radius: number
 }
 
 // getBoundingClientRect 기반 대상 측정 — 실제 브라우저 레이아웃에서만 정확히 확인 가능하다.
@@ -23,7 +26,12 @@ export function useTourTargetRect(targetId: string): Rect | null {
         return
       }
       const r = el.getBoundingClientRect()
-      setRect({ top: r.top, left: r.left, width: r.width, height: r.height })
+      // 대상의 실제 곡률을 읽는다(하드코딩 금지 — 다른 요소를 하이라이트해도 재발하지 않게).
+      // 네 모서리가 다른 경우는 이 제품에 없어 좌상단 값을 대표로 쓰고, px 아닌 단위(%)는
+      // parseFloat 근사로 충분하다. 9999px(pill)처럼 과대한 값은 브라우저가 박스 절반으로
+      // 자동 클램프하므로 그대로 통과시킨다.
+      const radius = Number.parseFloat(window.getComputedStyle(el).borderTopLeftRadius) || 0
+      setRect({ top: r.top, left: r.left, width: r.width, height: r.height, radius })
     }
 
     measure()

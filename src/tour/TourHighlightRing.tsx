@@ -9,6 +9,16 @@ interface Props {
   ring: boolean
 }
 
+// 구멍이 대상 rect보다 사방으로 확장되는 여백(px) — 위치·크기 오프셋(top/left -6, +12)과
+// 구멍 radius 가산에 같은 값을 쓴다: 대상 곡률 중심이 동일하게 유지되어야 안팎 곡선이
+// 평행하게 보인다(12C-11).
+const HOLE_EXPAND = 6
+
+// 구멍의 border-radius = 대상의 computed radius + 확장 여백. 순수 함수로 분리해 DOM 없이 검증한다.
+export function holeRadius(targetRadius: number): number {
+  return targetRadius + HOLE_EXPAND
+}
+
 // rect는 TourOverlay가 useTourTargetRect로 한 번만 측정해 내려준다 — 중복 관측자 방지.
 // pointer-events-none: 딤은 시각 안내 전용이며 어떤 클릭도 가로채지 않는다(IMPLEMENTATION_SPEC §3).
 export function TourHighlightRing({ rect, dim, ring }: Props) {
@@ -22,12 +32,13 @@ export function TourHighlightRing({ rect, dim, ring }: Props) {
 
   return (
     <div
-      className="pointer-events-none fixed z-[850] rounded-lg transition-all duration-200"
+      className="pointer-events-none fixed z-[850] transition-all duration-200"
       style={{
-        top: rect.top - 6,
-        left: rect.left - 6,
-        width: rect.width + 12,
-        height: rect.height + 12,
+        top: rect.top - HOLE_EXPAND,
+        left: rect.left - HOLE_EXPAND,
+        width: rect.width + HOLE_EXPAND * 2,
+        height: rect.height + HOLE_EXPAND * 2,
+        borderRadius: holeRadius(rect.radius),
         boxShadow: shadows.join(', '),
       }}
     />
