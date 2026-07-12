@@ -1,7 +1,8 @@
+import { RAW_SEED } from '../../data/loadSeed'
 import type { Person } from '../../types/domain'
 import type { CandidateGroup, Slot } from '../../types/engine'
-import { formatAttendSummary, formatUnmetConditions } from '../../presentation/candidateCopy'
-import { formatSlotLabel, formatSlotsRangeLabel } from '../../presentation/dateDisplay'
+import { formatAttendCount, formatConsiderations, formatPositiveLine } from '../../presentation/candidateCopy'
+import { formatSlotWithDate } from '../../presentation/dateDisplay'
 import { Badge } from '../../shared/Badge'
 import { AskSpecificallyEntry } from './AskSpecificallyEntry'
 import { SlotPicker } from './SlotPicker'
@@ -24,14 +25,11 @@ interface Props {
 }
 
 // 카드 = 비교 + 선택 전용(확정 CTA는 화면 하단에 하나만 있다 — TradeoffCandidates).
-// 읽기 순서(위→아래): ① 추천/다른 안 ② 대표 시간 ③ 참석 인원 ④ 반영하지 못한 조건
-// ⑤ 같은 조건의 다른 시간 선택. 선택되지 않은 카드도 ①~④는 항상 보여 비교가 가능하다.
-// 선택 상태는 role="radio" + aria-checked로 시각 표시(테두리·라디오 점)와 항상 일치시킨다.
-// cost 숫자는 어디에도 읽지 않는다(SPEC §4.3).
-//
-// 점진적 노출(12C-8): 시간 선택 칩(인터랙티브 UI)은 "선택된 카드"에만 렌더한다 — 비선택
-// 카드에도 시간 버튼이 활성으로 보이면 카드(선택 타깃) 안에 또 버튼이 있는 중첩이 생긴다.
-// 비선택 카드는 같은 자리에 일반 텍스트로 선택지를 예고만 한다(시간 1개면 제목에 이미 있어 생략).
+// 내부 구조(12C-12, 위→아래): ① 배지 + 날짜 포함 제목 ② 플랫 정보 줄(긍정 정보 + 참석 n/m,
+// 시각 강조 없이 나란히) ③ 시간 선택(선택된 카드 + 시간 2개 이상일 때만 — 12C-8 점진 노출)
+// ④ 구분선 아래 "고려할 점" 강조 블록(surface-muted, 포기 내용·주체 명시 — R2).
+// 모든 뷰포트에서 세로 카드 스택이다(12C-9 가로 행은 12C-12에서 되돌림 — 스크롤 문제는 하단
+// 플로팅 CTA가 대신 해결한다). cost 숫자는 어디에도 읽지 않는다(SPEC §4.3).
 export function CandidateGroupCard({
   group,
   people,
@@ -45,25 +43,26 @@ export function CandidateGroupCard({
   onSelect,
   onSelectSlot,
 }: Props) {
-  // 칩 노출은 선택에서만 파생한다(별도 로컬 상태 없음) — 클릭이든 방향키든 부모가 selected만
-  // 갱신하면 칩 표시가 자동으로 따라온다. 추천 카드도 선택을 뺏기면 칩을 접는다.
-  const open = selected
   const contentId = `candidate-content-${group.key}`
+  const display = RAW_SEED.schedule_display
+  // 시간 선택 블록은 선택된 카드 + 시간이 2개 이상일 때만 열린다(1개면 제목이 이미 그 시간이다).
+  const hasTimeBlock = selected && group.slots.length > 1
 
-  // 대표 시간: 선택된 카드는 지금 선택된 슬롯, 비선택 카드는 그룹 전체 범위("수요일 오후
-  // 2–5시")로 접어 보여준다 — 비선택 상태에서도 어떤 시간대의 안인지 비교할 수 있어야 한다.
-  const headline = open ? formatSlotLabel(selectedSlot) : formatSlotsRangeLabel(group.slots)
+  // 제목: 선택된 카드는 지금 선택된 시간(날짜 포함), 비선택 카드는 대표 시간 + 나머지 개수로
+  // 축약한다("7월 15일 수요일 오후 2시 외 3개") — 비선택 상태에서도 어떤 안인지 비교할 수 있게.
+  const title = selected
+    ? formatSlotWithDate(selectedSlot, display)
+    : group.slots.length > 1
+      ? `${formatSlotWithDate(group.defaultSlot, display)} 외 ${group.slots.length - 1}개`
+      : formatSlotWithDate(group.defaultSlot, display)
+
+  const considerations = formatConsiderations(group, people)
 
   return (
-    // 선택 표현은 이 컨테이너 한 겹으로만 그린다. 라디오 버튼 자체의 focus-visible outline은
-    // 없앴다(아래) — 방향키 이동 시 버튼 자체 테두리(헤더 영역)와 카드 외곽 테두리가 이중으로
-    // 겹쳐 보이는 문제가 있었다(12B-3 QA). focus-within으로 "지금 실제로 키보드 포커스가 이
-    // 카드 안에 있다"는 상태만 살짝 더 강조해, selected와 focus가 항상 함께 성립하는 roving
-    // tabindex 특성상 하나의 링만 항상 보이면서도 순수 마우스 선택과 키보드 포커스를 구분한다.
-    // 카드 언어(rounded-card·bg-surface-card·shadow-card·p-card-pad)와 선택 색(state-selected)은
-    // 전부 공통 토큰 — HostDashboard 카드와 같은 체계다.
-    // 카드 전체가 하나의 선택 타깃이다(12C-8) — 헤더의 role="radio" 버튼이 키보드·보조기기
-    // 의미를 담당하고, 이 컨테이너 클릭은 마우스 사용자를 위한 같은 행동의 넓은 히트 영역이다.
+    // 선택 표현은 이 컨테이너 한 겹(테두리+링+틴트)으로만 그린다 — 라디오 버튼 자체의
+    // focus-visible outline은 없애고(12B-3 QA) focus-within으로 대신한다. 카드 전체가 하나의
+    // 선택 타깃이다(12C-8) — 헤더의 role="radio" 버튼이 키보드·보조기기 의미를 담당하고,
+    // 컨테이너 클릭은 마우스용 넓은 히트 영역이다.
     <div
       onClick={onSelect}
       className={`cursor-pointer rounded-card border p-card-pad transition-shadow focus-within:ring-2 focus-within:ring-state-selected ${
@@ -72,61 +71,61 @@ export function CandidateGroupCard({
           : 'border-border bg-surface-card shadow-card'
       }`}
     >
-      {/* 12C-9: 데스크톱(md 이상)에서는 이 버튼이 가로 1줄 행이 된다 — 라디오 → 배지 →
-          시간 제목 → 참석 인원 → 포기 설명 순. 열 폭 템플릿(ROW_GRID 클래스)이 세 카드에서
-          동일하므로 같은 정보가 같은 가로 위치에 정렬되어 세로로 훑으며 비교할 수 있다.
-          좁은 화면은 현행 세로 쌓기(라디오 왼쪽 + 나머지 col-start-2 스택) 그대로다. */}
       <button
         ref={radioRef}
         type="button"
         role="radio"
         aria-checked={selected}
-        aria-expanded={open}
-        aria-controls={contentId}
+        aria-expanded={hasTimeBlock}
+        aria-controls={group.slots.length > 1 ? contentId : undefined}
         tabIndex={radioTabIndex}
         onClick={onSelect}
-        className="grid w-full grid-cols-[auto_minmax(0,1fr)] items-start gap-x-3 gap-y-1 text-left outline-none md:grid-cols-[1rem_5.5rem_10.5rem_7rem_minmax(0,1fr)] md:items-center md:gap-x-4 md:gap-y-0"
+        className="flex w-full items-start gap-3 text-left outline-none"
       >
         {/* 시각적 라디오 표시 — aria-checked와 항상 같은 값을 그린다. */}
         <span
           aria-hidden="true"
-          className={`mt-1 inline-block h-4 w-4 shrink-0 rounded-full border-2 md:mt-0 ${
+          className={`mt-1 inline-block h-4 w-4 shrink-0 rounded-full border-2 ${
             selected
               ? 'border-state-selected bg-state-selected shadow-[inset_0_0_0_3px_white]'
               : 'border-border bg-surface'
           }`}
         />
-        <span className="flex items-center gap-2">
-          <Badge tone={recommended ? 'brand' : 'neutral'}>{recommended ? '추천' : '다른 안'}</Badge>
-          {tentative && <TentativeBadge />}
-        </span>
-        <span className="col-start-2 block text-lg font-bold text-ink-900 md:col-auto">{headline}</span>
-        <span className="col-start-2 block text-sm font-medium text-ink-700 md:col-auto">
-          {formatAttendSummary(group)}
-        </span>
-        <span className="col-start-2 block text-xs text-ink-500 md:col-auto">
-          {formatUnmetConditions(group, people)}
+        <span className="min-w-0 flex-1 space-y-1.5">
+          <span className="flex items-center gap-2">
+            <Badge tone={recommended ? 'brand' : 'neutral'}>{recommended ? '추천' : '다른 안'}</Badge>
+            {tentative && <TentativeBadge />}
+          </span>
+          <span className="block text-lg font-bold text-ink-900">{title}</span>
+          {/* 플랫 정보 줄 — 긍정 정보와 참석 집계를 시각적 강조 없이 나란히 둔다. */}
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-ink-700">
+            <span>{formatPositiveLine(group)}</span>
+            <span aria-hidden="true" className="text-ink-500">
+              ·
+            </span>
+            <span className="text-ink-500">{formatAttendCount(group)}</span>
+          </span>
         </span>
       </button>
 
-      {open ? (
-        <div id={contentId} className="mt-3 space-y-3 border-t border-border pt-3">
+      {hasTimeBlock && (
+        <div id={contentId} className="mt-3 space-y-2 border-t border-border pt-3">
+          <p className="text-xs font-bold text-ink-900">시간을 골라주세요</p>
           {/* 시간 버튼은 라디오그룹의 roving tabindex와 별개로 일반 Tab 순서를 그대로 따른다.
-              칩에서 시간을 바꾸면 부모의 selectedSlot이 바뀌어 위 headline에 즉시 반영된다.
-              12C-9: 선택된 행만 이 두 번째 줄이 열린다 — 데스크톱에서도 동일. */}
+              칩에서 시간을 바꾸면 부모의 selectedSlot이 바뀌어 위 제목에 즉시 반영된다. */}
           <SlotPicker slots={group.slots} selectedSlot={selectedSlot} onSelectSlot={onSelectSlot} />
           {showFreeModeExtras && <AskSpecificallyEntry />}
         </div>
-      ) : (
-        // 비선택 카드: 인터랙티브 시간 UI를 아예 렌더하지 않는다(키보드 탐색 순서에도 없음) —
-        // 좁은 화면에서 시간이 2개 이상일 때만 일반 텍스트로 선택지를 예고한다(1개면 제목에 이미
-        // 있어 생략). 데스크톱(md 이상)에서는 행 1줄 유지를 우선해 생략한다(12C-9 — 시간 범위는
-        // 제목이 이미 말해준다).
-        group.slots.length > 1 && (
-          <p className="ml-7 mt-3 border-t border-border pt-3 text-xs text-ink-500 md:hidden">
-            {group.slots.map((slot) => `${slot.hour}시`).join(' · ')} 중 선택할 수 있어요
-          </p>
-        )
+      )}
+
+      {considerations.length > 0 && (
+        // 고려할 점 — 포기 내용을 은은하게 구분해 강조한다(surface-muted 기존 토큰, 색 신설 없음).
+        <div className="mt-3 border-t border-border pt-3">
+          <div className="rounded-chip bg-surface-muted px-3 py-2.5">
+            <p className="text-xs font-bold text-ink-700">고려할 점</p>
+            <p className="mt-0.5 text-xs text-ink-700">{considerations.join(' ')}</p>
+          </div>
+        </div>
       )}
     </div>
   )

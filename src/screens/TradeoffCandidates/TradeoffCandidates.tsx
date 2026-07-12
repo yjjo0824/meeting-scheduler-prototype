@@ -103,8 +103,8 @@ export function TradeoffCandidates() {
       <div className="relative space-y-section outline-none" data-tour-id="tradeoff-screen" tabIndex={-1}>
         <div className="space-y-1">
           <p className="text-sm font-bold text-brand-600">{statusLine}</p>
-          <h1 className="text-2xl font-bold text-ink-900">비교할 수 있는 후보가 {visibleCount}개 있어요</h1>
-          <p className="text-sm text-ink-700">모두 참석하는 시간과 원하는 시간을 더 지키는 안을 비교해보세요.</p>
+          <h1 className="text-2xl font-bold text-ink-900">조건이 다른 안 {visibleCount}개를 찾았어요</h1>
+          <p className="text-sm text-ink-700">참석 인원과 반영하지 못한 조건을 비교해보세요.</p>
         </div>
 
         {/* 카드 = 비교·선택 전용(카드 내부에 확정 CTA 없음). 확정은 아래 단일 CTA 하나로만 한다.
