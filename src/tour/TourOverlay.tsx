@@ -68,7 +68,6 @@ export function TourOverlay() {
         body={step.body}
         stepNumber={state.tour.stepIndex + 1}
         totalSteps={TOUR_STEPS.length}
-        targetRect={rect}
         exampleText={step.exampleRaw}
         onFillExample={step.exampleRaw ? () => dispatch({ type: 'REQUEST_EXAMPLE_FILL' }) : undefined}
         ctaLabel={step.ctaLabel}
