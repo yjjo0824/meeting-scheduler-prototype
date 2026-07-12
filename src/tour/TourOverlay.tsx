@@ -65,15 +65,29 @@ export function TourOverlay() {
           위한 것이다 — 클릭은 어디서든 항상 가능하다(IMPLEMENTATION_SPEC §3). */}
       <style>{`[data-tour-id="${step.targetId}"] { z-index: 900 !important; }`}</style>
       {(dim || ring) && <TourHighlightRing rect={rect} dim={dim} ring={ring} />}
+      {/* 카드 골격은 TourStepCard 하나가 담당하고, 여기서는 단계별로 달라지는 것만 채운다:
+          문구(title/body), 보조 콘텐츠(2단계 예시 문장 박스), 핵심 행동(2단계 예시 채우기 /
+          4단계 체험 시작 — 라벨·동작만 다르고 버튼 스타일은 공용 Button으로 동일). */}
       <TourStepCard
-        title={step.title}
-        body={step.body}
         stepNumber={state.tour.stepIndex + 1}
         totalSteps={TOUR_STEPS.length}
-        exampleText={step.exampleRaw}
-        onFillExample={step.exampleRaw ? () => dispatch({ type: 'REQUEST_EXAMPLE_FILL' }) : undefined}
-        ctaLabel={step.ctaLabel}
-        onCta={step.ctaLabel ? () => dispatch({ type: 'UNLOCK_FREE_MODE' }) : undefined}
+        title={step.title}
+        body={step.body}
+        auxiliaryContent={
+          step.exampleRaw ? (
+            <div className="rounded-chip bg-surface-muted p-3">
+              <p className="text-xs text-ink-500">예시 문장</p>
+              <p className="mt-heading-gap text-sm text-ink-700">“{step.exampleRaw}”</p>
+            </div>
+          ) : undefined
+        }
+        primaryAction={
+          step.exampleRaw
+            ? { label: '예시 문장 채우기', onClick: () => dispatch({ type: 'REQUEST_EXAMPLE_FILL' }) }
+            : step.ctaLabel
+              ? { label: step.ctaLabel, onClick: () => dispatch({ type: 'UNLOCK_FREE_MODE' }) }
+              : undefined
+        }
         onSkip={() => dispatch({ type: 'UNLOCK_FREE_MODE' })}
       />
     </>

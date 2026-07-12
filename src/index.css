@@ -82,6 +82,7 @@
   --container-page: 1400px; /* 대시보드형 넓은 화면 */
   --container-content: 880px; /* 읽기 중심 화면(트레이드오프·확정) 공통 콘텐츠 영역 */
   --container-content-narrow: 36rem; /* 확정 결과 등 단일 컬럼 화면 */
+  --container-tour-card: 20rem; /* 투어 가이드 카드 폭 — 1/4~4/4단계 공통 */
 }
 
 /* 페이지 배경은 semantic 토큰 한 곳에서 제어한다.

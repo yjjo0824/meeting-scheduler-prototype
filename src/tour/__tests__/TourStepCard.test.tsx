@@ -43,11 +43,45 @@ describe('TourStepCard — 우측 하단 스택 고정 + 접기(12C-10)', () => 
     expect(html).toContain('테스트 본문')
   })
 
-  it('CTA(ctaLabel)는 본문 영역 안에 있다 — 접으면 함께 숨는 구조', () => {
-    const html = render({ ctaLabel: '체험 시작하기', onCta: () => {} })
+  it('CTA(primaryAction)는 본문 영역 안에 있다 — 접으면 함께 숨는 구조', () => {
+    const html = render({ primaryAction: { label: '체험 시작하기', onClick: () => {} } })
     const bodyStart = html.indexOf('id="tour-step-body"')
     const ctaIndex = html.indexOf('체험 시작하기')
     expect(bodyStart).toBeGreaterThan(-1)
     expect(ctaIndex).toBeGreaterThan(bodyStart)
+  })
+})
+
+describe('TourStepCard — 4단계 공통 가이드 시스템(카드 골격·CTA 통일)', () => {
+  it('카드 골격은 토큰 참조다: 폭(--container-tour-card)·패딩(card-pad-sm)·라운드(card)·그림자(elevated)', () => {
+    const html = render()
+    expect(html).toContain('w-[var(--container-tour-card)]')
+    expect(html).toContain('p-card-pad-sm')
+    expect(html).toContain('rounded-card')
+    expect(html).toContain('shadow-elevated')
+    // 이전 하드코딩 값이 남아 있지 않다.
+    expect(html).not.toContain('w-80')
+  })
+
+  it('CTA는 어떤 단계든 공용 Button(primary·sm) 스타일 하나다 — 높이·라운드·색·폰트 통일', () => {
+    const experience = render({ primaryAction: { label: '체험 시작하기', onClick: () => {} } })
+    const fill = render({ primaryAction: { label: '예시 문장 채우기', onClick: () => {} } })
+    for (const html of [experience, fill]) {
+      expect(html).toContain('h-control-sm')
+      expect(html).toContain('rounded-button')
+      expect(html).toContain('bg-action-primary')
+      expect(html).toContain('font-semibold')
+    }
+  })
+
+  it('보조 콘텐츠(auxiliaryContent)는 본문 영역 슬롯으로 렌더된다', () => {
+    const html = render({ auxiliaryContent: <p>예시 문장 박스</p> })
+    const bodyStart = html.indexOf('id="tour-step-body"')
+    expect(html.indexOf('예시 문장 박스')).toBeGreaterThan(bodyStart)
+  })
+
+  it('primaryAction이 없는 단계는 행동 영역을 렌더하지 않는다 — 버튼은 헤더의 2개(건너뛰기·접기)뿐', () => {
+    const html = render()
+    expect((html.match(/<button/g) ?? []).length).toBe(2)
   })
 })
