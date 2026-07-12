@@ -13,8 +13,8 @@ interface Props {
 export function ChipReviewList({ chips, onToggleType, onDelete }: Props) {
   return (
     <div className="space-y-2 py-3">
-      <p className="text-sm font-medium text-slate-700">이렇게 이해했어요</p>
-      <p className="text-xs text-slate-400">다른 내용은 눌러서 고칠 수 있어요.</p>
+      <p className="text-sm font-bold text-ink-900">이렇게 이해했어요</p>
+      <p className="text-xs text-ink-500">다른 내용은 눌러서 고칠 수 있어요.</p>
       <div className="flex flex-wrap gap-2">
         {chips.map((chip, index) => (
           <ChipItem
@@ -24,7 +24,7 @@ export function ChipReviewList({ chips, onToggleType, onDelete }: Props) {
             onDelete={() => onDelete(index)}
           />
         ))}
-        {chips.length === 0 && <p className="text-xs text-slate-400">아직 추가한 조건이 없어요</p>}
+        {chips.length === 0 && <p className="text-xs text-ink-500">아직 추가한 조건이 없어요</p>}
       </div>
     </div>
   )

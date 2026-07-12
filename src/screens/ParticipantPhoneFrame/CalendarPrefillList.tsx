@@ -82,7 +82,7 @@ export function CalendarPrefillList({ person, corrections, onApplyCorrection, on
         const movableDisabled = isEventPreMarkedMovable(event, person)
 
         return (
-          <div key={key} className="rounded-lg border border-slate-200 p-2.5 text-sm">
+          <div key={key} className="rounded-chip border border-border p-3 text-sm">
             {corrected ? (
               // 이미 정정이 적용된 일정 — 같은 정정 액션을 다시 실행할 수 없도록 헤더를 완전히
               // 비활성화한다(탭 불가). '실행 취소'만이 상태를 바꿀 수 있는 유일한 경로다.
@@ -90,7 +90,7 @@ export function CalendarPrefillList({ person, corrections, onApplyCorrection, on
                 type="button"
                 disabled
                 aria-disabled="true"
-                className="w-full cursor-not-allowed text-left text-slate-400 line-through"
+                className="w-full cursor-not-allowed text-left text-ink-500 line-through"
               >
                 {event.day} {event.hours.map((h) => `${h}시`).join(', ')}
               </button>
@@ -98,19 +98,19 @@ export function CalendarPrefillList({ person, corrections, onApplyCorrection, on
               <button
                 type="button"
                 onClick={() => setOpenEventKey(openEventKey === key ? null : key)}
-                className="w-full text-left text-slate-700"
+                className="w-full rounded-chip py-0.5 text-left text-ink-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
               >
                 {event.day} {event.hours.map((h) => `${h}시`).join(', ')}
-                <span className="ml-2 text-xs text-slate-400 no-underline">캘린더 · 탭해서 정정</span>
+                <span className="ml-2 text-xs text-ink-500 no-underline">캘린더 · 탭해서 정정</span>
               </button>
             )}
 
             {corrected ? (
               <div className="mt-2 flex items-center justify-between gap-2">
-                <p className="text-xs font-medium text-indigo-600">정정됨 · {CORRECTION_KIND_LABEL[appliedKind!]}</p>
+                <p className="text-xs font-bold text-brand-600">정정됨 · {CORRECTION_KIND_LABEL[appliedKind!]}</p>
                 <button
                   type="button"
-                  className="shrink-0 text-xs text-indigo-600 underline"
+                  className="shrink-0 px-1 py-1.5 text-xs text-brand-600 underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
                   onClick={() => event.hours.forEach((h) => onUndoCorrection(event.day, h))}
                 >
                   실행 취소
@@ -121,7 +121,7 @@ export function CalendarPrefillList({ person, corrections, onApplyCorrection, on
                 <div className="mt-2 flex gap-2">
                   <button
                     type="button"
-                    className="rounded border border-slate-300 px-2 py-1 text-xs"
+                    className="h-control-sm rounded-chip border border-border px-3 text-xs text-ink-700 hover:bg-surface-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
                     onClick={() => {
                       event.hours.forEach((h) => onApplyCorrection(event.day, h, 'empty'))
                       setOpenEventKey(null)
@@ -134,8 +134,10 @@ export function CalendarPrefillList({ person, corrections, onApplyCorrection, on
                     disabled={movableDisabled}
                     aria-disabled={movableDisabled}
                     title={movableDisabled ? '이미 옮길 수 있는 일정으로 알려져 있어요' : undefined}
-                    className={`rounded border px-2 py-1 text-xs ${
-                      movableDisabled ? 'cursor-not-allowed border-slate-200 text-slate-300' : 'border-slate-300'
+                    className={`h-control-sm rounded-chip border px-3 text-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 ${
+                      movableDisabled
+                        ? 'cursor-not-allowed border-border text-ink-500 opacity-50'
+                        : 'border-border text-ink-700 hover:bg-surface-muted'
                     }`}
                     onClick={() => {
                       // disabled 속성 외에도 핸들러 자체에서 한 번 더 막는다(방어적 이중 체크).
@@ -150,14 +152,14 @@ export function CalendarPrefillList({ person, corrections, onApplyCorrection, on
               )
             )}
             {corrected && appliedKind === 'empty' && (
-              <p className="mt-1 text-xs text-indigo-500">사내 캘린더에서 열기</p>
+              <p className="mt-1 text-xs text-brand-600">사내 캘린더에서 열기</p>
             )}
           </div>
         )
       })}
 
       {emptyRanges.map((label) => (
-        <p key={label} className="text-xs text-slate-400">
+        <p key={label} className="text-xs text-ink-500">
           {label}
         </p>
       ))}

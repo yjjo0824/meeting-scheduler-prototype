@@ -4,6 +4,8 @@ import { slotKey } from '../../engine/slotKey'
 import { parseChips } from '../../parser/ruleBasedParser'
 import { useAppState } from '../../state/AppContext'
 import { applyCalendarCorrections } from '../../state/useSchedule'
+import { Badge } from '../../shared/Badge'
+import { Button } from '../../shared/Button'
 import { useBodyScrollLock } from '../../shared/useBodyScrollLock'
 import { useFocusTrap } from '../../shared/useFocusTrap'
 import { useRestoreFocus } from '../../shared/useRestoreFocus'
@@ -281,7 +283,7 @@ export function ParticipantPhoneFrame() {
         aria-modal="true"
         aria-labelledby="phone-frame-title"
         tabIndex={-1}
-        className={`fixed left-1/2 top-1/2 z-50 flex h-[85vh] max-h-[720px] w-[380px] max-w-[92vw] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-[2.5rem] border-8 border-slate-900 bg-white p-5 shadow-2xl outline-none transition-all duration-300 ${
+        className={`fixed left-1/2 top-1/2 z-50 flex h-[85vh] max-h-[720px] w-[380px] max-w-[92vw] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-[2.5rem] border-8 border-ink-900 bg-surface-card p-5 shadow-elevated outline-none transition-all duration-300 ${
           entered ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
         }`}
       >
@@ -315,9 +317,9 @@ export function ParticipantPhoneFrame() {
             {/* 입력 콘텐츠만 스크롤되고, 신뢰 문구와 제출 CTA는 항상 하단에 보인다(콘텐츠를 가리지 않음). */}
             <div className="min-h-0 flex-1 overflow-y-auto">
               {isRescheduling && !justSubmitted && (
-                <span className="mt-2 inline-block rounded bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700">
-                  다시 조율 중
-                </span>
+                <div className="mt-2">
+                  <Badge tone="warn">다시 조율 중</Badge>
+                </div>
               )}
               <CalendarPrefillList
                 person={person}
@@ -343,16 +345,12 @@ export function ParticipantPhoneFrame() {
               <FreeTextInput value={draftRaw} onChange={handleDraftChange} />
               <ChipReviewList chips={chipsToReview} onToggleType={handleToggleChip} onDelete={handleDeleteChip} />
             </div>
-            <div className="space-y-2 border-t border-slate-100 pt-3">
+            <div className="space-y-2 border-t border-border pt-3">
               <TrustNotice organizerName={organizerName} />
-              <button
-                type="button"
-                onClick={handleSubmit}
-                className="w-full rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
-              >
+              <Button onClick={handleSubmit} className="w-full">
                 {submitLabel}
-              </button>
-              <p className="text-xs text-slate-400">확정 전까지 언제든 수정할 수 있어요</p>
+              </Button>
+              <p className="text-xs text-ink-500">확정 전까지 언제든 수정할 수 있어요</p>
             </div>
           </div>
         )}
@@ -362,7 +360,7 @@ export function ParticipantPhoneFrame() {
           ref={closeButtonRef}
           type="button"
           onClick={() => dispatch({ type: 'CLOSE_PHONE_FRAME' })}
-          className="mt-3 self-start text-xs text-slate-400"
+          className="mt-2 self-start rounded-button px-1 py-2 text-sm text-ink-500 hover:text-ink-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
         >
           닫기
         </button>

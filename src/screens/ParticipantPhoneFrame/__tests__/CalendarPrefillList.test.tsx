@@ -16,7 +16,7 @@ function render(corrections: Record<string, CalendarCorrection>) {
 
 // haneul().calendar 순서: 월11(채용 인터뷰) · 월13-14(외부 미팅) · 수13(1:1) · 금9(스탠드업) · 금14(마감 리뷰)
 function eventBlocks(html: string): string[] {
-  return html.split('rounded-lg border border-slate-200 p-2.5 text-sm').slice(1)
+  return html.split('rounded-chip border border-border p-3 text-sm').slice(1)
 }
 
 describe('CalendarPrefillList — 항목 1: 이미 적용된 정정의 중복 실행 방지', () => {
