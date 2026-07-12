@@ -3,6 +3,7 @@ import { RAW_SEED } from '../../data/loadSeed'
 import { useAppState } from '../../state/AppContext'
 import { useIsNarrowViewport } from '../../shared/useIsNarrowViewport'
 import { Card } from '../../shared/Card'
+import { PageContainer } from '../../shared/PageContainer'
 import { ConditionMap } from './ConditionMap'
 import { MeetingHeader } from './MeetingHeader'
 import { MobileHostDashboard } from './MobileHostDashboard'
@@ -31,7 +32,7 @@ export function HostDashboard() {
   const reporters = state.confirmedMeeting ? state.people.filter((p) => state.reportedByPersonId[p.id]) : []
 
   return (
-    <div className="mx-auto max-w-[1400px] space-y-6 p-8">
+    <PageContainer width="page">
       <MeetingHeader meeting={RAW_SEED.meeting} respondedCount={respondedCount} />
 
       <ReportNoticeCard
@@ -41,7 +42,7 @@ export function HostDashboard() {
 
       {/* 미응답 상태(리마인드)와 잠정 추천을 분리된 카드로 나란히 둔다 — 요청 흐름과 추천 정보를
           한 문구에 섞지 않는다. */}
-      <div className={`grid gap-4 ${pendingPerson ? 'md:grid-cols-2' : ''}`}>
+      <div className={`grid gap-card-gap ${pendingPerson ? 'md:grid-cols-2' : ''}`}>
         {pendingPerson && (
           <RemindActionCard
             pendingPersonName={pendingPerson.name}
@@ -64,7 +65,7 @@ export function HostDashboard() {
       {/* 데스크톱 기본은 조건 지도 + 상세 패널 2열. 두 영역이 동시에 필요한 최소 폭(지도 760px +
           패널 300px + 여백)을 만족하는 xl(1280px) 이상에서만 나란히 두고, 그보다 좁으면(중간 화면)
           상세 패널이 지도 아래로 내려가 겹침·잘림 없이 세로로 쌓인다. */}
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
+      <div className="grid gap-card-gap xl:grid-cols-[minmax(0,1fr)_300px]">
         <ConditionMap
           people={state.people}
           hasResponded={state.hasResponded}
@@ -87,6 +88,6 @@ export function HostDashboard() {
           </Card>
         )}
       </div>
-    </div>
+    </PageContainer>
   )
 }

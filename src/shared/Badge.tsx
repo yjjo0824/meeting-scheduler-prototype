@@ -15,10 +15,11 @@ const TONE_CLASS: Record<Tone, string> = {
   danger: 'bg-danger-50 text-danger-600',
 }
 
+/* 배지 높이는 component 토큰(h-badge)에서 온다 — 네 화면의 상태 배지가 같은 크기를 공유한다. */
 export function Badge({ tone = 'neutral', children }: Props) {
   return (
     <span
-      className={`inline-flex items-center whitespace-nowrap rounded-pill px-2.5 py-1 text-xs font-bold ${TONE_CLASS[tone]}`}
+      className={`inline-flex h-badge items-center whitespace-nowrap rounded-pill px-2.5 text-xs font-bold ${TONE_CLASS[tone]}`}
     >
       {children}
     </span>

@@ -5,18 +5,26 @@ import { Button } from '../Button'
 import { Card } from '../Card'
 
 describe('Button', () => {
-  it('기본은 primary 변형으로 렌더된다', () => {
+  it('기본은 primary 변형으로 렌더된다(semantic 토큰 action-primary 소비)', () => {
     const html = renderToStaticMarkup(<Button>확인</Button>)
     expect(html).toContain('확인')
-    expect(html).toContain('bg-brand-500')
+    expect(html).toContain('bg-action-primary')
   })
 
   it('variant="secondary"/"text"는 서로 다른 클래스를 적용한다', () => {
     const secondary = renderToStaticMarkup(<Button variant="secondary">보조</Button>)
     const text = renderToStaticMarkup(<Button variant="text">텍스트</Button>)
-    expect(secondary).toContain('bg-surface-muted')
-    expect(text).not.toContain('bg-surface-muted')
-    expect(text).not.toContain('bg-brand-500')
+    expect(secondary).toContain('bg-action-secondary')
+    expect(text).not.toContain('bg-action-secondary')
+    expect(text).not.toContain('bg-action-primary')
+  })
+
+  it('높이·라운드는 component 토큰 유틸리티(h-control/rounded-button)에서 온다', () => {
+    const md = renderToStaticMarkup(<Button>확인</Button>)
+    const sm = renderToStaticMarkup(<Button size="sm">확인</Button>)
+    expect(md).toContain('h-control')
+    expect(md).toContain('rounded-button')
+    expect(sm).toContain('h-control-sm')
   })
 
   it('임의의 속성(data-tour-id 등)이 그대로 전달된다', () => {
