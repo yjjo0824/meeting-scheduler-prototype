@@ -4,7 +4,6 @@ import type { CandidateGroup, Slot } from '../../types/engine'
 import { formatAttendCount, formatConsiderations, formatPositiveLine } from '../../presentation/candidateCopy'
 import { formatSlotWithDate } from '../../presentation/dateDisplay'
 import { Badge } from '../../shared/Badge'
-import { AskSpecificallyEntry } from './AskSpecificallyEntry'
 import { SlotPicker } from './SlotPicker'
 import { TentativeBadge } from './TentativeBadge'
 
@@ -15,7 +14,6 @@ interface Props {
   tentative: boolean
   selected: boolean
   selectedSlot: Slot
-  showFreeModeExtras: boolean
   // roving tabindex(라디오그룹 표준 패턴): 선택된 카드만 0, 나머지는 -1 — Tab은 그룹 전체에서
   // 선택된 항목 하나만 진입점으로 삼는다. 방향키 이동은 부모(TradeoffCandidates)가 처리한다.
   radioTabIndex: number
@@ -37,7 +35,6 @@ export function CandidateGroupCard({
   tentative,
   selected,
   selectedSlot,
-  showFreeModeExtras,
   radioTabIndex,
   radioRef,
   onSelect,
@@ -112,9 +109,9 @@ export function CandidateGroupCard({
         <div id={contentId} className="mt-3 space-y-2 border-t border-border pt-3">
           <p className="text-xs font-bold text-ink-900">시간을 골라주세요</p>
           {/* 시간 버튼은 라디오그룹의 roving tabindex와 별개로 일반 Tab 순서를 그대로 따른다.
-              칩에서 시간을 바꾸면 부모의 selectedSlot이 바뀌어 위 제목에 즉시 반영된다. */}
+              칩에서 시간을 바꾸면 부모의 selectedSlot이 바뀌어 위 제목에 즉시 반영된다.
+              "다시 물어보기" 진입점은 화면 레벨 보조 액션으로 승격됐다(12C-12 — 카드에는 없음). */}
           <SlotPicker slots={group.slots} selectedSlot={selectedSlot} onSelectSlot={onSelectSlot} />
-          {showFreeModeExtras && <AskSpecificallyEntry />}
         </div>
       )}
 

@@ -3,6 +3,7 @@ import { useAppState } from '../../state/AppContext'
 import { formatSlotLabel } from '../../presentation/dateDisplay'
 import { Button } from '../../shared/Button'
 import { PageContainer } from '../../shared/PageContainer'
+import { AskSpecificallyEntry } from './AskSpecificallyEntry'
 import { CandidateGroupCard } from './CandidateGroupCard'
 import { EmptyState } from './EmptyState'
 import { OneLineRecommendation } from './OneLineRecommendation'
@@ -86,20 +87,8 @@ export function TradeoffCandidates() {
   }
 
   return (
-    <PageContainer width="content">
-      {/* 보조 뒤로가기 — 투어 중에도 항상 렌더되고 클릭도 막지 않는다(12C-5: 잠금 없는 투어).
-          NAVIGATE는 투어 상태(tour.active/stepIndex)를 건드리지 않으므로 단계가 깨지지 않고,
-          투어 중 host로 돌아가면 자동 전환 조건(shouldAutoNavigateToTradeoff)이 다시 이 화면으로
-          데려온다(투어 진행은 상태 조건으로만 전진 — IMPLEMENTATION_SPEC §3).
-          history.back()이 아니라 기존 NAVIGATE 액션을 그대로 재사용한다. */}
-      <button
-        type="button"
-        onClick={() => dispatch({ type: 'NAVIGATE', screen: 'host' })}
-        className="text-sm font-medium text-ink-700 hover:text-ink-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-      >
-        ← 응답 현황으로
-      </button>
-
+    // pb-28: 하단 고정 플로팅 확정 CTA가 마지막 카드의 "고려할 점"을 가리지 않도록 여백을 확보한다.
+    <PageContainer width="content" className="pb-28">
       <div className="relative space-y-section outline-none" data-tour-id="tradeoff-screen" tabIndex={-1}>
         {showRecalcBanner && (
           <p className="rounded-chip bg-brand-50 px-3 py-2.5 text-sm font-medium text-brand-600">
@@ -109,6 +98,23 @@ export function TradeoffCandidates() {
         <div className="space-y-1">
           <h1 className="text-2xl font-bold text-ink-900">조건이 다른 안 {visibleCount}개를 찾았어요</h1>
           <p className="text-sm text-ink-700">참석 인원과 반영하지 못한 조건을 비교해보세요.</p>
+        </div>
+
+        {/* 헤더 아래 보조 액션(낮은 위계, 12C-12) — 확정 대신 택할 수 있는 두 갈래.
+            "조건을 바꿔 다시 계산하기"는 응답 현황으로 이동(기존 NAVIGATE 재사용 — 필수/선택
+            변경은 참여자 상세의 기존 기능, history.back() 미사용). 투어 중에도 클릭을 막지
+            않으며, NAVIGATE는 투어 상태를 건드리지 않는다(12C-5 — 투어 중 host로 가면 자동
+            전환 조건이 다시 이 화면으로 데려온다). "누군가에게 다시 물어보기"는 카드 안에 있던
+            진입점의 화면 레벨 승격이라 노출 조건(자유 모드)도 그대로 가져온다. */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+          <button
+            type="button"
+            onClick={() => dispatch({ type: 'NAVIGATE', screen: 'host' })}
+            className="px-1 py-1.5 text-xs text-ink-500 underline hover:text-ink-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+          >
+            조건을 바꿔 다시 계산하기
+          </button>
+          {state.freeModeUnlocked && <AskSpecificallyEntry />}
         </div>
 
         {/* 카드 = 비교·선택 전용(카드 내부에 확정 CTA 없음). 확정은 아래 단일 CTA 하나로만 한다.
@@ -123,7 +129,6 @@ export function TradeoffCandidates() {
               recommended={index === 0}
               tentative={anyPending}
               selected={group.key === selectedGroup.key}
-              showFreeModeExtras={state.freeModeUnlocked}
               selectedSlot={state.selectedSlotByGroup[group.key] ?? group.defaultSlot}
               radioTabIndex={group.key === selectedGroup.key ? 0 : -1}
               radioRef={(el) => {
@@ -140,22 +145,25 @@ export function TradeoffCandidates() {
           ))}
         </div>
 
-        {/* 화면 하단 단일 확정 CTA — 선택한 후보·시간이 바뀌면 문구가 즉시 갱신된다.
-            본문 흐름 안에 두어 콘텐츠를 가리지 않는다(고정 오버레이 아님). 이 화면의 유일한
-            primary — HostDashboard의 primary CTA와 같은 공용 Button 규칙(h-control 등)을 쓴다. */}
-        <Button
-          className="w-full"
-          onClick={() =>
-            dispatch({
-              type: 'CONFIRM_MEETING',
-              groupKey: selectedGroup.key,
-              slot: selectedSlot,
-              excluded: selectedGroup.excluded,
-            })
-          }
-        >
-          {formatSlotLabel(selectedSlot)}로 확정하기
-        </Button>
+        {/* 하단 고정 플로팅 확정 CTA(12C-12) — 선택한 후보·시간이 바뀌면 라벨이 즉시 갱신된다.
+            중앙 정렬 + 최대 폭 제한으로 우측 하단 pill 스택(right-4, z-700)과 데스크톱에서
+            겹치지 않고, 640px 미만에서는 우측 여백을 예약해 다시 보기 pill을 피한다.
+            이 화면의 유일한 primary — 공용 Button 규칙(h-control 등)을 그대로 쓴다. */}
+        <div className="pointer-events-none fixed inset-x-0 bottom-4 z-[600] flex justify-center pl-4 pr-[9.75rem] sm:px-4">
+          <Button
+            className="pointer-events-auto w-full max-w-sm shadow-elevated"
+            onClick={() =>
+              dispatch({
+                type: 'CONFIRM_MEETING',
+                groupKey: selectedGroup.key,
+                slot: selectedSlot,
+                excluded: selectedGroup.excluded,
+              })
+            }
+          >
+            {formatSlotLabel(selectedSlot)}로 확정하기
+          </Button>
+        </div>
       </div>
     </PageContainer>
   )
