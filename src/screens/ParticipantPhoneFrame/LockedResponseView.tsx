@@ -52,10 +52,13 @@ export function LockedResponseView({ person, slot, organizerName, reported, onRe
       </section>
 
       <div className="space-y-2 pt-4">
+        {/* 잠금 상태 다이얼로그의 최초 포커스 대상(12C-12.6 — 닫기 버튼 제거 후 이 화면의 유일한
+            행동). 신고를 이미 보내 disabled면 getInitialFocus가 건너뛰고 패널로 폴백한다. */}
         <Button
           variant="secondary"
           size="sm"
           disabled={reported}
+          data-phone-focus-target="true"
           onClick={() => {
             onReport()
             setJustReported(true)

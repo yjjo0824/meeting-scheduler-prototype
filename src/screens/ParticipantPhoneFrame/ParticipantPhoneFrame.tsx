@@ -148,12 +148,13 @@ export function ParticipantPhoneFrame() {
 
   // dialog 접근성 배선. 최초 포커스 대상은 상태(제출 전/제출 완료/잠금)마다 다르지만, 각 상태의
   // 실제 진입 버튼/입력에 data-phone-focus-target을 붙여두고 여기서는 쿼리만 한다 — 그래서 이
-  // 함수 자체는 어떤 분기가 렌더됐는지 몰라도 항상 옳은 대상을 찾는다(잠금 상태처럼 그 표식이
-  // 없으면 항상 존재하는 닫기 버튼으로 폴백).
+  // 함수 자체는 어떤 분기가 렌더됐는지 몰라도 항상 옳은 대상을 찾는다. 표식이 없거나 비활성이면
+  // (예: 잠금 + 신고 완료로 신고 버튼이 disabled) 패널 자체(tabIndex=-1)로 폴백한다 —
+  // 닫기 버튼은 12C-12.6에서 제거됐다(닫기 = 배경 탭 또는 Esc).
   const panelRef = useRef<HTMLDivElement>(null)
-  const closeButtonRef = useRef<HTMLButtonElement>(null)
   function getInitialFocus(): HTMLElement | null {
-    return panelRef.current?.querySelector<HTMLElement>('[data-phone-focus-target]') ?? closeButtonRef.current
+    const target = panelRef.current?.querySelector<HTMLElement>('[data-phone-focus-target]:not([disabled])')
+    return target ?? panelRef.current
   }
 
   // useRestoreFocus가 먼저 실행돼야 한다: 두 훅 모두 "open이 true로 바뀐 커밋"에서 자기 effect를
@@ -268,13 +269,13 @@ export function ParticipantPhoneFrame() {
   // (투어 딤 레이어 z-850 위로 패널이 밝게 떠오르지 못하는 버그의 원인이었다).
   return (
     <>
-      {/* 투어 중에는 배경 클릭으로 닫히지 않는다 — 가이드 흐름이 실수로 끊기지 않게 한다.
-          Esc는 투어 중에도 동작한다(위 handleKeyDown, TourOverlay의 Esc와 별개로 이 다이얼로그만 닫음). */}
+      {/* 닫기 = 폰 프레임 바깥(배경 딤) 탭 또는 Esc(12C-12.6 — 별도 닫기 버튼 없음). 닫기의
+          의미는 기존과 동일: 제출 없이 닫힘, 작성 중 draft는 세션 리셋 로직이 처리(재오픈 시 초기화).
+          투어 중에도 닫힌다 — 실수로 닫아도 리마인드 버튼으로 재진입해 이어갈 수 있다(단계 전진
+          조건은 상태 기반이라 깨지지 않음). */}
       <div
         className="fixed inset-0 z-40 bg-black/40"
-        onClick={() => {
-          if (!state.tour.active) dispatch({ type: 'CLOSE_PHONE_FRAME' })
-        }}
+        onClick={() => dispatch({ type: 'CLOSE_PHONE_FRAME' })}
       />
       <div
         ref={panelRef}
@@ -359,20 +360,10 @@ export function ParticipantPhoneFrame() {
               <Button onClick={handleSubmit} className="w-full">
                 {submitLabel}
               </Button>
-              <p className="text-xs text-ink-500">확정 전까지 언제든 수정할 수 있어요</p>
             </div>
           </div>
         )}
 
-        {/* 잠금 상태의 최초 포커스 대상(닫기 또는 신고 버튼 중 닫기를 택함 — 항상 존재해 안정적). */}
-        <button
-          ref={closeButtonRef}
-          type="button"
-          onClick={() => dispatch({ type: 'CLOSE_PHONE_FRAME' })}
-          className="mt-2 self-start rounded-button px-1 py-2 text-sm text-ink-500 hover:text-ink-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-        >
-          닫기
-        </button>
       </div>
     </>
   )
