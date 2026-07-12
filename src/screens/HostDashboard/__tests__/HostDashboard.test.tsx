@@ -128,23 +128,41 @@ describe('HostDashboard — 12C-12: 확정 상태의 확정 결과 카드(재조
     return state
   }
 
-  it('확정되면 잠정 추천 카드 대신 확정 결과 카드(강조 시간·캘린더 등록 라벨·다시 조율하기)가 보인다', () => {
+  it('확정되면 잠정 추천 카드 대신 확정 결과 카드(강조 시간·캘린더 등록 라벨·다시 조율하기 링크)가 보인다', () => {
     const html = renderWith(confirmedState())
     expect(html).toContain('확정 완료')
     expect(html).toContain('7월 17일(금) 오후 1:00–2:00')
     expect(html).toContain('참석자 캘린더에 등록됐어요')
     expect(html).toContain('다시 조율하기')
-    expect(html).toContain('확정을 해제하고 후보를 다시 계산해요')
+    // 12C-12.1: 보조 설명은 카드가 아니라 확인 대화상자 본문으로 옮겨졌고, 대화상자는 기본 닫힘.
+    expect(html).not.toContain('확정을 해제하고 후보를 다시 계산해요')
+    expect(html).not.toContain('다시 조율할까요?')
     // 잠정 추천 카드(비교/확인 CTA)는 사라진다 — 확정 상태에서 트레이드오프로 가는 제품 경로 없음.
     expect(html).not.toContain('후보 시간 비교하기')
     expect(html).not.toContain('이 시간 확인하기')
     expect(html).not.toContain('모두 괜찮은 시간이 있어요')
   })
 
-  it('다시 조율하기(REOPEN_FOR_RESCHEDULE)는 확정을 해제하고 host에 머문다 — 기존 재조율 흐름 그대로', () => {
-    const after = appReducer(confirmedState(), { type: 'REOPEN_FOR_RESCHEDULE' })
+  it('12C-12.1: 다시 조율하기는 secondary 버튼이 아니라 구분선 아래 낮은 위계 텍스트 링크다', () => {
+    const html = renderWith(confirmedState())
+    const linkIndex = html.indexOf('다시 조율하기')
+    const tagStart = html.lastIndexOf('<button', linkIndex)
+    const tag = html.slice(tagStart, linkIndex)
+    expect(tag).toContain('underline')
+    expect(tag).not.toContain('bg-action-secondary')
+  })
+
+  it('확인 대화상자에서 확정(REOPEN_FOR_RESCHEDULE)해야만 확정이 해제되고 host에 머문다 — 취소는 아무 것도 바꾸지 않는다', () => {
+    // 취소 = 디스패치 없음 — 확정 상태 그대로.
+    const before = confirmedState()
+    expect(before.confirmedMeeting).not.toBeNull()
+    // 확인 = REOPEN_FOR_RESCHEDULE 한 번 — 기존 재조율 흐름 그대로.
+    const after = appReducer(before, { type: 'REOPEN_FOR_RESCHEDULE' })
     expect(after.confirmedMeeting).toBeNull()
     expect(after.screen).toBe('host')
+    // 응답·조건은 그대로 유지된다(R8 — 대화상자 본문이 약속하는 내용).
+    expect(after.people).toEqual(before.people)
+    expect(after.hasResponded).toEqual(before.hasResponded)
     // 확정이 풀리면 확정 카드 대신 잠정 추천 카드가 되살아난다.
     const html = renderWith(after)
     expect(html).not.toContain('확정 완료')
