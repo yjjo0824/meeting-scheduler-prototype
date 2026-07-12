@@ -297,7 +297,7 @@ export function ParticipantPhoneFrame() {
             {organizerName} 님이 회의 시간을 다시 조율하고 있어요
           </p>
         )}
-        <PhoneContextHeader person={person} meeting={RAW_SEED.meeting} organizerName={organizerName} />
+        <PhoneContextHeader meeting={RAW_SEED.meeting} organizerName={organizerName} />
 
         {isLocked ? (
           <div className="min-h-0 flex-1 overflow-y-auto">
