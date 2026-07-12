@@ -32,19 +32,37 @@ describe('자유 모드 탈출구 3종 — 클릭 경로와 동일한 액션 시
     return state
   }
 
-  it('탈출구1: 하늘의 응답 현황 행 클릭 → 마감 리뷰(금14) 카드에서 [옮길 수 있어요] → 응답 보내기 → 금14 완벽', () => {
+  it('탈출구1: 하늘의 응답 현황 행 클릭 → 마감 리뷰(금14) 카드에서 [이 시간 비어 있어요] → 응답 보내기 → 금14 완벽', () => {
     let state = postResponseState()
     expect(schedule(state).perfectSlots).toEqual([])
 
     // HostDashboard 행 클릭
     state = appReducer(state, { type: 'OPEN_PHONE_FRAME', personId: 'haneul' })
 
-    // CalendarPrefillList의 [옮길 수 있어요] 클릭은 ParticipantPhoneFrame의 draftCorrections에만 반영된다 —
-    // 아직 제출 전이므로 전역 계산은 바뀌지 않는다.
+    // CalendarPrefillList의 [이 시간 비어 있어요] 클릭은 ParticipantPhoneFrame의 draftCorrections에만
+    // 반영된다 — 아직 제출 전이므로 전역 계산은 바뀌지 않는다.
     const beforeSubmit = schedule(state)
     expect(beforeSubmit.perfectSlots).toEqual([])
 
-    // [응답 보내기] = SUBMIT_RESPONSE로 draft가 한 번에 커밋된다.
+    // [응답 보내기] = SUBMIT_RESPONSE로 draft가 한 번에 커밋된다. '옮길 수 있어요'(movable)는 하드
+    // 제약을 유지하므로 실제로 슬롯을 여는 정정은 'empty'뿐이다(12B-1 QA 수정).
+    state = appReducer(state, {
+      type: 'SUBMIT_RESPONSE',
+      personId: 'haneul',
+      chips: haneul().response.chips,
+      corrections: { [slotKey('금', 14)]: { kind: 'empty' } },
+    })
+    state = appReducer(state, { type: 'CLOSE_PHONE_FRAME' })
+
+    const result = schedule(state)
+    expect(result.perfectSlots).toContainEqual({ day: '금', hour: 14 })
+    expect(RAW_SEED.expected.escapes[0].result).toEqual({ day: '금', hour: 14, becomes: 'perfect' })
+  })
+
+  it('탈출구1 변형: [옮길 수 있어요]만 제출하면 금14는 완벽 슬롯이 되지 않는다(두 정정은 서로 다르다)', () => {
+    let state = postResponseState()
+
+    state = appReducer(state, { type: 'OPEN_PHONE_FRAME', personId: 'haneul' })
     state = appReducer(state, {
       type: 'SUBMIT_RESPONSE',
       personId: 'haneul',
@@ -53,9 +71,7 @@ describe('자유 모드 탈출구 3종 — 클릭 경로와 동일한 액션 시
     })
     state = appReducer(state, { type: 'CLOSE_PHONE_FRAME' })
 
-    const result = schedule(state)
-    expect(result.perfectSlots).toContainEqual({ day: '금', hour: 14 })
-    expect(RAW_SEED.expected.escapes[0].result).toEqual({ day: '금', hour: 14, becomes: 'perfect' })
+    expect(schedule(state).perfectSlots).not.toContainEqual({ day: '금', hour: 14 })
   })
 
   it('탈출구2: 도윤의 응답 현황 행 클릭 → [불가] 수요일 오후 칩 삭제 → 응답 보내기 → 수14 완벽', () => {
@@ -93,7 +109,7 @@ describe('자유 모드 탈출구 3종 — 클릭 경로와 동일한 액션 시
       type: 'SUBMIT_RESPONSE',
       personId: 'haneul',
       chips: haneul().response.chips,
-      corrections: { [slotKey('금', 14)]: { kind: 'movable' } },
+      corrections: { [slotKey('금', 14)]: { kind: 'empty' } },
     })
     state = appReducer(state, { type: 'SUBMIT_RESPONSE', personId: 'seoyeon', chips: [] })
 

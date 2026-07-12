@@ -19,8 +19,11 @@ function isChipStillOnCalendar(chip: Person['response']['chips'][number], calend
 
 // R5/R6: 정정 칩([이 시간 비어 있어요]/[옮길 수 있어요])은 원본 캘린더를 바꾸지 않고
 // "이 회의의 계산 레이어"에만 반영한다 — 여기서 person.calendar를 복제해 보정된 슬롯만 제거한다.
-// 캘린더가 줄어들면 그 슬롯을 가리키던 병합·조정가능 칩도 더 이상 하드 제약의 부분집합이 아니게
-// 되므로(엔진의 subset invariant), 함께 걸러낸다 — 정정으로 이미 풀린 제약을 다시 메타로 들고 있을 이유가 없다.
+// 두 정정은 의미가 다르다: '이 시간 비어 있어요'(empty)는 그 시간이 실제로 비어 있다는 뜻이라
+// 하드 제약에서 완전히 제거한다. '옮길 수 있어요'(movable)는 일정이 여전히 그 시간에 있지만
+// 옮길 수 있다고 표시한 것뿐이라, 재계산에는 영향을 주지 않는다(하드 제약 유지) — UI에 "정정됨"
+// 상태로만 기록된다. 캘린더가 줄어들면(=empty로 정정된 슬롯만) 그 슬롯을 가리키던 병합·조정가능
+// 칩도 더 이상 하드 제약의 부분집합이 아니게 되므로(엔진의 subset invariant), 함께 걸러낸다.
 export function applyCalendarCorrections(
   people: Person[],
   corrections: AppState['calendarCorrections'],
@@ -33,7 +36,7 @@ export function applyCalendarCorrections(
     const calendar = p.calendar
       .map((event) => ({
         ...event,
-        hours: event.hours.filter((h) => !personCorrections[slotKey(event.day, h)]),
+        hours: event.hours.filter((h) => personCorrections[slotKey(event.day, h)]?.kind !== 'empty'),
       }))
       .filter((event) => event.hours.length > 0)
 

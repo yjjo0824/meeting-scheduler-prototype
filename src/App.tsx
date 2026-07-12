@@ -6,6 +6,7 @@ import { TradeoffCandidates } from './screens/TradeoffCandidates/TradeoffCandida
 import { Confirmation } from './screens/Confirmation/Confirmation'
 import { SlideOverDim } from './shared/SlideOverDim'
 import { MobileGuardNotice } from './shared/MobileGuardNotice'
+import { useIsNarrowViewport } from './shared/useIsNarrowViewport'
 import { TourOverlay } from './tour/TourOverlay'
 import { FreeModeControls } from './freeMode/FreeModeControls'
 
@@ -37,15 +38,18 @@ function useTourAutoNavigate() {
   ])
 }
 
-function AppShell() {
+// export: 테스트가 임의의 state(예: 투어 진행 중)를 AppProvider에 직접 주입해 좁은 화면에서
+// TourOverlay가 숨는지 확인할 수 있게 한다(App은 buildInitialState()로 고정돼 주입 지점이 없다).
+export function AppShell() {
   const { state } = useAppState()
   useTourAutoNavigate()
+  const isNarrow = useIsNarrowViewport()
 
   return (
     <>
       {/* MobileGuardNotice는 768px 미만에서 상단에 뜨는 권장 안내 배너일 뿐, 아래 제품 콘텐츠를
           가리거나 렌더링을 막지 않는다(12A.8: 전체 차단 방식을 되돌림 — 전용 모바일 레이아웃은
-          12A.9에서 별도로 다룬다). */}
+          12B-1에서 추가됨). */}
       <MobileGuardNotice />
       <SlideOverDim dimmed={state.phoneFrame.open}>
         {state.screen === 'host' && <HostDashboard />}
@@ -53,7 +57,10 @@ function AppShell() {
         {state.screen === 'confirmation' && <Confirmation />}
       </SlideOverDim>
       <ParticipantPhoneFrame />
-      <TourOverlay />
+      {/* 좁은 화면에서는 TourOverlay를 아예 렌더링하지 않는다 — 데스크톱 전용 타깃(data-tour-id)에
+          맞춰 만들어진 하이라이트·클릭 블로커를 모바일 뷰 위에 잘못 씌우지 않기 위함이다. state.tour는
+          건드리지 않으므로, 다시 768px 이상으로 넓히면 하던 자리(active/stepIndex) 그대로 복귀한다. */}
+      {!isNarrow && <TourOverlay />}
       <FreeModeControls />
     </>
   )

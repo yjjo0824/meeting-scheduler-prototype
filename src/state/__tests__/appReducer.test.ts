@@ -192,17 +192,35 @@ describe('appReducer — 화면 전환·확정·자유모드·리셋', () => {
   })
 })
 
-describe('appReducer — 탈출구 1: 캘린더 정정(옮길 수 있어요) → 금14 완벽 슬롯', () => {
-  it('SUBMIT_RESPONSE(하늘, corrections: 금14 movable) 제출 후 금14가 완벽 슬롯이 된다', () => {
+describe('appReducer — 탈출구 1: 캘린더 정정("이 시간 비어 있어요") → 금14 완벽 슬롯', () => {
+  it('SUBMIT_RESPONSE(하늘, corrections: 금14 movable)만 제출하면 금14는 아직 완벽 슬롯이 아니다(옮길 수 있어요는 하드 제약을 유지한다, 12B-1 QA 수정)', () => {
     let state = buildInitialState()
-    // 응답 후 상태를 만든다(도윤 응답 완료) — 탈출구는 응답 후 시나리오 기준
     state = appReducer(state, { type: 'SUBMIT_RESPONSE', personId: 'doyun', chips: doyun().response.chips })
-    // 정정은 ParticipantPhoneFrame에서 draft로만 머물다가 SUBMIT_RESPONSE 한 번에 커밋된다(항목 6).
     state = appReducer(state, {
       type: 'SUBMIT_RESPONSE',
       personId: 'haneul',
       chips: haneul().response.chips,
       corrections: { [slotKey('금', 14)]: { kind: 'movable' } },
+    })
+
+    const corrected = applyCalendarCorrections(state.people, state.calendarCorrections, RAW_SEED.grid)
+    const effective = deriveEffectivePeople(corrected, state.hasResponded)
+    const result = computeSchedule(RAW_SEED, effective)
+
+    expect(result.perfectSlots).not.toContainEqual({ day: '금', hour: 14 })
+  })
+
+  it('금14를 movable에서 empty로 다시 정정해 제출해야만 금14가 완벽 슬롯이 된다', () => {
+    let state = buildInitialState()
+    // 응답 후 상태를 만든다(도윤 응답 완료) — 탈출구는 응답 후 시나리오 기준
+    state = appReducer(state, { type: 'SUBMIT_RESPONSE', personId: 'doyun', chips: doyun().response.chips })
+    // 정정은 ParticipantPhoneFrame에서 draft로만 머물다가 SUBMIT_RESPONSE 한 번에 커밋된다(항목 6).
+    // '옮길 수 있어요'(movable)로는 아직 부족하다 — '이 시간 비어 있어요'(empty)로 정정해야 한다.
+    state = appReducer(state, {
+      type: 'SUBMIT_RESPONSE',
+      personId: 'haneul',
+      chips: haneul().response.chips,
+      corrections: { [slotKey('금', 14)]: { kind: 'empty' } },
     })
 
     const corrected = applyCalendarCorrections(state.people, state.calendarCorrections, RAW_SEED.grid)
