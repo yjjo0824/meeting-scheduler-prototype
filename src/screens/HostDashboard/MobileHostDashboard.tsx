@@ -89,7 +89,7 @@ export function MobileHostDashboard({
         <button type="button" onClick={backToList} className="text-sm font-medium text-ink-700">
           ← 목록으로
         </button>
-        <h2 className="text-lg font-bold text-ink-900">요일별 시간 보기</h2>
+        <h2 className="text-xl font-bold tracking-tight text-ink-900">요일별 시간 보기</h2>
         <MobileDayTabs days={RAW_SEED.grid.days} selectedDay={selectedDay} onSelectDay={onSelectDay} />
         <MobileDayCompareGrid
           day={selectedDay}

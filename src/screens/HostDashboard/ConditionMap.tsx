@@ -161,8 +161,8 @@ export function ConditionMap({ people, hasResponded, selectedPersonId, onSelectP
     <div className="overflow-hidden rounded-card bg-surface shadow-card">
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border p-5">
         <div>
-          <h3 className="text-lg font-bold text-ink-900">모두의 시간 조건</h3>
-          <p className="text-sm text-ink-700">참여자를 누르면 조건의 출처를 확인할 수 있어요.</p>
+          <h3 className="text-xl font-bold tracking-tight text-ink-900">모두의 시간 조건</h3>
+          <p className="text-sm text-ink-500">참여자를 누르면 조건의 출처를 확인할 수 있어요.</p>
         </div>
         <MapLegend />
       </div>

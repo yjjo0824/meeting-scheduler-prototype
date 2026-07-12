@@ -11,8 +11,8 @@ export function MeetingHeader({ meeting, respondedCount }: Props) {
     <header className="flex items-start justify-between gap-4">
       <div className="space-y-1">
         <p className="text-sm font-bold text-brand-600">회의 시간 조율 중</p>
-        <h1 className="text-2xl font-bold text-ink-900">{meeting.title}</h1>
-        <p className="text-sm text-ink-700">
+        <h1 className="text-3xl font-extrabold tracking-tight text-ink-900">{meeting.title}</h1>
+        <p className="text-sm text-ink-500">
           {meeting.window} 중 · {meeting.duration_hours}시간 · {meeting.response_deadline}까지 응답
         </p>
       </div>
