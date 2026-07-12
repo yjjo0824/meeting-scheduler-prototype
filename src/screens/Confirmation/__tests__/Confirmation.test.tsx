@@ -23,10 +23,10 @@ describe('Confirmation — IMPLEMENTATION_SPEC §7 필수 표시', () => {
   })
   const html = render(state)
 
-  it('확정 결과 요약: 시간·회의명이 표시된다', () => {
+  it('확정 결과 요약: 날짜·시간·회의명이 표시된다(schedule_display에서 파생)', () => {
     expect(html).toContain('회의 시간이 확정됐어요')
     expect(html).toContain(RAW_SEED.meeting.title)
-    expect(html).toContain('금요일 13시')
+    expect(html).toContain('7월 17일(금) 오후 1:00–2:00')
   })
 
   it('참석자 명단이 표시된다(제외자 없음)', () => {
@@ -35,7 +35,7 @@ describe('Confirmation — IMPLEMENTATION_SPEC §7 필수 표시', () => {
   })
 
   it('캘린더 등록 라벨이 표시된다', () => {
-    expect(html).toContain('참석자 캘린더에 등록됐어요')
+    expect(html).toContain('참석자 캘린더에 등록했어요')
   })
 
   it('절차 투명성 수준의 문구만 표시되고, 누구의 무엇을 포기했는지는 재노출되지 않는다', () => {
@@ -46,11 +46,26 @@ describe('Confirmation — IMPLEMENTATION_SPEC §7 필수 표시', () => {
 
   it('다시 조율하기 진입점과 재계산 안내 문구가 표시된다', () => {
     expect(html).toContain('다시 조율하기')
-    expect(html).toContain('변수가 생기면 이 조건들로 다시 계산해드려요')
+    expect(html).toContain('일정이 바뀌면 지금까지 모은 조건으로 다시 계산할 수 있어요')
   })
 
-  it('자유 모드 해제 전에는 "직접 사용해보세요" 버튼이 보인다', () => {
+  it('가이드 투어 진행 중에는 "직접 사용해보세요" 버튼이 보인다(투어 마지막 단계의 대상)', () => {
+    // buildInitialState는 데스크톱(window 없음)에서 tour.active=true — 투어 중 확정에 도달한 상태.
     expect(html).toContain('직접 사용해보세요')
+  })
+})
+
+describe('Confirmation — 체험 잠금 해제 CTA는 제품 완료 경험의 일부가 아니다', () => {
+  it('투어가 비활성이면(모바일 시작 등) 자유 모드 해제 전이어도 "직접 사용해보세요" 버튼이 없다', () => {
+    let state = buildInitialState()
+    state = appReducer(state, {
+      type: 'CONFIRM_MEETING',
+      groupKey: 'k',
+      slot: { day: '금', hour: 13 },
+      excluded: [],
+    })
+    const html = render({ ...state, tour: { ...state.tour, active: false } })
+    expect(html).not.toContain('직접 사용해보세요')
   })
 })
 

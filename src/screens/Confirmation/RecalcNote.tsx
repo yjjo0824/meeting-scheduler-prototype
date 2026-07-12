@@ -1,3 +1,3 @@
 export function RecalcNote() {
-  return <p className="text-xs text-slate-400">변수가 생기면 이 조건들로 다시 계산해드려요</p>
+  return <p className="text-xs text-slate-400">일정이 바뀌면 지금까지 모은 조건으로 다시 계산할 수 있어요</p>
 }

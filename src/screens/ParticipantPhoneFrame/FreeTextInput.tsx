@@ -6,9 +6,10 @@ interface Props {
 export function FreeTextInput({ value, onChange }: Props) {
   return (
     <div className="space-y-1 py-3">
-      <label className="text-sm font-medium text-slate-700" htmlFor="free-text-input">
-        여기 없는 일정이나 피하고 싶은 시간이 있나요?
+      <label className="block text-sm font-medium text-slate-700" htmlFor="free-text-input">
+        캘린더에 없는 일정이 있나요?
       </label>
+      <p className="text-xs text-slate-400">피하고 싶은 시간도 편하게 적어주세요.</p>
       <textarea
         id="free-text-input"
         value={value}

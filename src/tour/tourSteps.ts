@@ -32,7 +32,7 @@ export const TOUR_STEPS: TourStep[] = [
     targetId: 'phone-frame',
     placement: 'right',
     title: '도윤 님이 되어 입력해보세요',
-    body: '여기 없는 일정이나 피하고 싶은 시간을 적어보세요. 시스템이 칩으로 정리해드려요. 다 됐으면 응답 보내기를 눌러주세요.',
+    body: '캘린더에 없는 일정이나 피하고 싶은 시간을 적어보세요. 시스템이 칩으로 정리해드려요. 다 됐으면 [이대로 응답하기]를 눌러주세요.',
     exampleRaw: doyunRaw,
     isComplete: (state) => !state.phoneFrame.open && state.hasResponded.doyun,
   },

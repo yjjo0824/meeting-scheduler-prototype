@@ -1,19 +1,51 @@
 import { useState } from 'react'
-import type { Person } from '../../types/domain'
+import { buildConditionSummary, formatHourRange, groupConditionsByDay } from '../../presentation/conditionCopy'
+import { formatDisplayDate } from '../../presentation/dateDisplay'
+import type { Person, ScheduleDisplay } from '../../types/domain'
+import type { Slot } from '../../types/engine'
 
 interface Props {
   person: Person
+  slot: Slot
+  display: ScheduleDisplay
+  organizerName: string
   reported: boolean
   onReport: () => void
 }
 
-export function LockedResponseView({ person, reported, onReport }: Props) {
+// R8 잠금 상태: 확정 결과(사람이 궁금한 것)를 시스템 상태 설명보다 먼저 보여준다.
+// 날짜는 seed.schedule_display + 확정 슬롯에서 파생한다(표시 전용 — 엔진은 날짜를 모른다).
+export function LockedResponseView({ person, slot, display, organizerName, reported, onReport }: Props) {
   const [justReported, setJustReported] = useState(false)
+  const groups = groupConditionsByDay(buildConditionSummary([person]))
 
   return (
     <div className="space-y-3 py-4 text-sm text-slate-600">
-      <p>회의가 확정됐어요. 응답은 읽기 전용이에요.</p>
-      <p className="text-xs text-slate-400">{person.name} 님의 응답은 더 이상 수정할 수 없어요.</p>
+      <p className="text-base font-semibold text-slate-900">회의 시간이 정해졌어요</p>
+      <p className="text-sm font-medium text-indigo-600">{formatDisplayDate(slot.day, slot.hour, display)}</p>
+      <p className="text-xs text-slate-500">이제 응답은 수정할 수 없어요.</p>
+
+      <p className="pt-1 text-xs font-semibold text-slate-700">전달한 시간 조건</p>
+      {groups.length > 0 ? (
+        <ul className="space-y-2 text-xs text-slate-500">
+          {groups.map((group) => (
+            <li key={group.day}>
+              <p className="font-semibold text-slate-700">{group.day === '매일' ? '매일' : `${group.day}요일`}</p>
+              <ul className="mt-0.5 space-y-0.5 pl-2">
+                {group.items.map((item) => (
+                  <li key={item.key}>
+                    {formatHourRange(item.hours)} · {item.typeLabel}
+                    {item.cue && <span className="text-slate-400"> · {item.cue}</span>}
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-xs text-slate-400">추가 조건 없이 캘린더 일정만 반영했어요</p>
+      )}
+
       <button
         type="button"
         disabled={reported}
@@ -23,10 +55,12 @@ export function LockedResponseView({ person, reported, onReport }: Props) {
         }}
         className="rounded border border-slate-300 px-3 py-1.5 text-xs disabled:opacity-40"
       >
-        확정된 시간에 참석이 어려워졌어요
+        이 시간에 참석하기 어려워졌어요
       </button>
       {(reported || justReported) && (
-        <p className="text-xs text-indigo-500">주최자에게 알렸어요. 다시 조율할지는 주최자가 정해요.</p>
+        <p className="text-xs text-indigo-500">
+          {organizerName} 님에게 알렸어요. 다시 조율할지는 주최자가 결정해요.
+        </p>
       )}
     </div>
   )

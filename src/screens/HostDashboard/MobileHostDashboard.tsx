@@ -73,7 +73,7 @@ export function MobileHostDashboard({ selectedPersonId, onSelectPerson }: Props)
         <button type="button" onClick={backToList} className="text-sm font-medium text-ink-700">
           ← 목록으로
         </button>
-        <h2 className="text-lg font-bold text-ink-900">요일별 시간 비교</h2>
+        <h2 className="text-lg font-bold text-ink-900">요일별 시간 보기</h2>
         <MobileDayTabs days={RAW_SEED.grid.days} selectedDay={selectedDay} onSelectDay={setSelectedDay} />
         <MobileDayCompareGrid
           day={selectedDay}
@@ -105,8 +105,9 @@ export function MobileHostDashboard({ selectedPersonId, onSelectPerson }: Props)
 
       <MobileParticipantList people={state.people} hasResponded={state.hasResponded} onSelectPerson={openDetail} />
 
+      {/* 후보 비교가 주 행동(primary), 요일별 시간은 보조 탐색(secondary). */}
       <Button variant="secondary" onClick={() => setView('days')} className="w-full">
-        요일별 시간 비교 보기
+        요일별 시간 보기
       </Button>
 
       {state.confirmedMeeting ? (
@@ -115,7 +116,7 @@ export function MobileHostDashboard({ selectedPersonId, onSelectPerson }: Props)
         </Button>
       ) : (
         <Button onClick={() => dispatch({ type: 'NAVIGATE', screen: 'tradeoff' })} className="w-full">
-          후보 보기
+          후보 시간 비교하기
         </Button>
       )}
     </div>

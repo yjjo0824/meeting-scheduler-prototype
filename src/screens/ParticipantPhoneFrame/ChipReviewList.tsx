@@ -15,7 +15,8 @@ function toggleType(type: Chip['type']): Chip['type'] {
 export function ChipReviewList({ chips, onChangeChips }: Props) {
   return (
     <div className="space-y-2 py-3">
-      <p className="text-sm font-medium text-slate-700">이렇게 이해했어요 — 탭해서 고칠 수 있어요</p>
+      <p className="text-sm font-medium text-slate-700">이렇게 이해했어요</p>
+      <p className="text-xs text-slate-400">다른 내용은 눌러서 고칠 수 있어요.</p>
       <div className="flex flex-wrap gap-2">
         {chips.map((chip, index) => (
           <ChipItem

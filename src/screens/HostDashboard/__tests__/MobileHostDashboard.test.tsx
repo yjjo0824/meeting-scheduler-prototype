@@ -26,7 +26,7 @@ describe('MobileHostDashboard — 좁은 화면 첫 화면(list)', () => {
     expect(html).toContain('data-tour-id="remind-button"')
     expect(html).toContain('현재 가장 좋은 시간이에요')
     expect(html).toContain('참여자 (6)')
-    expect(html).toContain('요일별 시간 비교 보기')
+    expect(html).toContain('요일별 시간 보기')
   })
 
   it('실제 제품 화면에는 참여자 응답 화면(폰 프레임) 진입 CTA가 없다(항목 4)', () => {
@@ -47,18 +47,18 @@ describe('MobileHostDashboard — 좁은 화면 첫 화면(list)', () => {
 })
 
 describe('MobileHostDashboard — 상태 기반 결과 CTA(기존 NAVIGATE 액션 재사용)', () => {
-  it('확정 전에는 "후보 보기"만 보이고 "확정 결과 보기"는 없다', () => {
+  it('확정 전에는 "후보 시간 비교하기"만 보이고 "확정 결과 보기"는 없다', () => {
     const html = render()
-    expect(html).toContain('후보 보기')
+    expect(html).toContain('후보 시간 비교하기')
     expect(html).not.toContain('확정 결과 보기')
   })
 
-  it('확정 후에는 "확정 결과 보기"만 보이고 "후보 보기"는 없다', () => {
+  it('확정 후에는 "확정 결과 보기"만 보이고 "후보 시간 비교하기"는 없다', () => {
     const html = render({
       confirmedMeeting: { groupKey: 'k', slot: { day: '금', hour: 13 }, excluded: [] },
     })
     expect(html).toContain('확정 결과 보기')
-    expect(html).not.toContain('후보 보기')
+    expect(html).not.toContain('후보 시간 비교하기')
   })
 })
 

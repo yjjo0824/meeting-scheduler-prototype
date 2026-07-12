@@ -11,7 +11,7 @@ export function AskSpecificallyEntry() {
       onClick={() => setSent(true)}
       className="text-xs text-slate-400 underline disabled:text-indigo-500 disabled:no-underline"
     >
-      {sent ? '요청을 보냈어요' : '콕 집어 다시 묻기'}
+      {sent ? '요청을 보냈어요' : '참여자에게 다시 확인하기'}
     </button>
   )
 }

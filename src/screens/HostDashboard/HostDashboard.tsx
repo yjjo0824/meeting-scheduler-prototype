@@ -42,8 +42,14 @@ export function HostDashboard() {
           />
         )}
         {/* 조건이 바뀌면(정정·칩 편집·필수/선택 변경) schedule은 매 렌더마다 다시 계산되므로
-            이 카드의 내용이 곧 재계산 피드백이다 — 별도 토스트 없이 항상 최신 상태를 보여준다. */}
-        <RecommendationCard schedule={schedule} people={state.people} hasResponded={state.hasResponded} />
+            이 카드의 내용이 곧 재계산 피드백이다 — 별도 토스트 없이 항상 최신 상태를 보여준다.
+            onOpenCandidates: 전원 응답 후 체험 도구 없이도 실제 제품 흐름으로 후보 화면에 진입하는 경로. */}
+        <RecommendationCard
+          schedule={schedule}
+          people={state.people}
+          hasResponded={state.hasResponded}
+          onOpenCandidates={() => dispatch({ type: 'NAVIGATE', screen: 'tradeoff' })}
+        />
       </div>
 
       {/* 데스크톱 기본은 조건 지도 + 상세 패널 2열. 두 영역이 동시에 필요한 최소 폭(지도 760px +

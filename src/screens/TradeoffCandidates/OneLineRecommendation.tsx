@@ -1,4 +1,5 @@
 import type { CandidateGroup, Slot } from '../../types/engine'
+import { formatSlotLabel } from '../../presentation/dateDisplay'
 import { TentativeBadge } from './TentativeBadge'
 
 interface Props {
@@ -17,7 +18,7 @@ export function OneLineRecommendation({ group, tentative, onConfirm }: Props) {
     <div className="relative mx-auto max-w-xl space-y-3 p-4 sm:p-8" data-tour-id="tradeoff-screen">
       {tentative && <TentativeBadge />}
       <p className="text-base text-slate-900">
-        모두 괜찮은 시간이 있어요. {slot.day}요일 {slot.hour}시, 확정할까요?
+        모두 괜찮은 시간이 있어요. {formatSlotLabel(slot)}, 확정할까요?
         {otherSlotsCount > 0 && <span className="text-slate-400"> (다른 시간 {otherSlotsCount}개)</span>}
       </p>
       <button
@@ -25,7 +26,7 @@ export function OneLineRecommendation({ group, tentative, onConfirm }: Props) {
         onClick={() => onConfirm(slot)}
         className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white"
       >
-        확정할까요?
+        {formatSlotLabel(slot)}로 확정하기
       </button>
     </div>
   )
