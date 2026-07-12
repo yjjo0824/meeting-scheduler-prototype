@@ -20,7 +20,7 @@ export function ConfirmedResultCard({ slot, onReschedule }: Props) {
 
   return (
     <Card className="border border-brand-100">
-      <Badge tone="success">확정 완료</Badge>
+      <Badge tone="brand">확정 완료</Badge>
       <p className="mt-2 text-3xl font-extrabold tracking-tight text-ink-900">
         {formatSlotTimeRange(slot)}
       </p>
