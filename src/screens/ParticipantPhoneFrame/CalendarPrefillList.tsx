@@ -4,6 +4,7 @@ import { slotKey } from '../../engine/slotKey'
 import { formatHourLabel } from '../../presentation/dateDisplay'
 import type { CalendarEvent, Day, Person } from '../../types/domain'
 import type { CalendarCorrection, CalendarCorrectionKind } from '../../state/appState.types'
+import { PhoneEmptyNotice } from './PhoneEmptyNotice'
 
 interface Props {
   person: Person
@@ -181,9 +182,7 @@ export function CalendarPrefillList({ person, corrections, onApplyCorrection, on
         })}
 
         {emptyRanges.map((label) => (
-          <p key={label} className="rounded-chip bg-surface-muted px-3 py-2.5 text-xs text-ink-700">
-            {label}에는 등록된 일정이 없어요
-          </p>
+          <PhoneEmptyNotice key={label}>{label}에는 등록된 일정이 없어요</PhoneEmptyNotice>
         ))}
       </div>
     </section>
