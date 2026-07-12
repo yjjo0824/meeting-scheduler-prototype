@@ -30,6 +30,9 @@ export function FreeModeControls() {
 
   if (!state.freeModeUnlocked) return null
 
+  // 우측 하단 스택: "처음부터 다시 보기"(EvaluatorResetBar, bottom-4)가 항상 맨 아래 고정
+  // 기준점이고, 이 컴포넌트(접힌 pill·펼친 패널 모두)는 그 위(bottom-16)에 얹힌다(12C-7) —
+  // 체험하기가 나타나거나 패널을 펼쳐도 다시 보기의 위치는 변하지 않는다.
   if (collapsed) {
     return (
       <button
@@ -37,7 +40,7 @@ export function FreeModeControls() {
         onClick={() => setCollapsed(false)}
         aria-expanded={false}
         aria-controls={PANEL_ID}
-        className="fixed bottom-4 right-4 z-[700] rounded-pill border border-border bg-surface px-3 py-2 text-xs font-medium text-ink-700 shadow-card focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+        className="fixed bottom-16 right-4 z-[700] rounded-pill border border-border bg-surface px-3 py-2 text-xs font-medium text-ink-700 shadow-card focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
       >
         다른 역할 체험하기
       </button>
@@ -48,7 +51,7 @@ export function FreeModeControls() {
     <div
       id={PANEL_ID}
       // 모바일: 좌우 여백을 둔 하단 시트(화면 너비에서 넘치지 않음). md 이상: 기존 288px 고정 패널.
-      className="fixed inset-x-4 bottom-4 z-[700] space-y-3 rounded-card border border-border bg-surface p-4 shadow-card md:inset-x-auto md:right-4 md:w-72"
+      className="fixed inset-x-4 bottom-16 z-[700] space-y-3 rounded-card border border-border bg-surface p-4 shadow-card md:inset-x-auto md:right-4 md:w-72"
     >
       <div>
         <p className="text-sm font-semibold text-ink-900">역할을 바꿔 체험해보세요</p>

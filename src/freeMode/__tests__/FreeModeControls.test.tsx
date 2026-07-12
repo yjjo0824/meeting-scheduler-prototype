@@ -41,6 +41,15 @@ describe('FreeModeControls — 역할 중심 체험 도구, 접기/펼치기(12B
     expect(html).toContain('aria-controls="role-experience-panel"')
   })
 
+  it('12C-7: 접힌 pill은 "처음부터 다시 보기"(bottom-4) 위인 bottom-16에 있다 — 다시 보기 위치를 침범하지 않음', () => {
+    let state = buildInitialState()
+    state = appReducer(state, { type: 'UNLOCK_FREE_MODE' })
+    const html = render(state)
+
+    expect(html).toContain('bottom-16')
+    expect(html).not.toContain('bottom-4 ')
+  })
+
   it('접힌 상태에서는 펼친 콘텐츠(리셋·역할 이동·참여자 체험 진입)와 내부 용어가 보이지 않는다', () => {
     let state = buildInitialState()
     state = appReducer(state, { type: 'UNLOCK_FREE_MODE' })

@@ -44,4 +44,10 @@ describe('EvaluatorResetBar — 역할 체험 패널과 분리된 독립 리셋 
     const html = withStubbedWindow(1280, render)
     expect(html).toContain('<button')
   })
+
+  it('12C-7: 우측 하단 스택의 맨 아래(bottom-4) 고정 기준점이다 — 체험하기(bottom-16)보다 아래', () => {
+    const html = withStubbedWindow(1280, render)
+    expect(html).toContain('bottom-4')
+    expect(html).not.toContain('bottom-16')
+  })
 })
