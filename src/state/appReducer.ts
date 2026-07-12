@@ -87,7 +87,11 @@ export function appReducer(state: AppState, action: Action): AppState {
       // R8: 재조율은 전체 재수집이 아니라 재계산 한 번 — people/응답 데이터는 그대로 보존한다.
       return { ...state, confirmedMeeting: null, screen: 'host' }
     case 'UNLOCK_FREE_MODE':
-      return { ...state, freeModeUnlocked: true, tour: { ...state.tour, active: false } }
+      return {
+        ...state,
+        freeModeUnlocked: true,
+        tour: action.keepTourActive ? state.tour : { ...state.tour, active: false },
+      }
     case 'SET_TOUR_STEP':
       return { ...state, tour: { ...state.tour, stepIndex: action.stepIndex } }
     case 'REQUEST_EXAMPLE_FILL':

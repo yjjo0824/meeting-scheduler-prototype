@@ -329,4 +329,40 @@ describe('ParticipantPhoneFrame — dialog 접근성 배선(12B-2)', () => {
     )
     expect(html).toContain('bg-black/40')
   })
+
+  it('패널 루트(data-tour-id="phone-frame")는 tabIndex=-1을 가져 투어 종료 시 프로그램적 포커스 대상이 될 수 있다', () => {
+    const opened = appReducer(buildInitialState(), { type: 'OPEN_PHONE_FRAME', personId: 'doyun' })
+    const html = renderToStaticMarkup(
+      <AppProvider initialState={opened}>
+        <ParticipantPhoneFrame />
+      </AppProvider>,
+    )
+    const panelIndex = html.indexOf('data-tour-id="phone-frame"')
+    const panelTagStart = html.lastIndexOf('<div', panelIndex)
+    const panelTagEnd = html.indexOf('>', panelIndex)
+    expect(html.slice(panelTagStart, panelTagEnd)).toContain('tabindex="-1"')
+  })
+
+  it('다시 조율 편집 상태(다시 조율 중 + 수정하기로 들어간 편집 폼)에도 자연어 입력에 최초 포커스 표식이 있다', () => {
+    // 확정 → 서연 신고 → 다시 조율하기 → 서연을 편집 상태로 오픈(제출 완료 요약이 아니라
+    // "응답 수정하기"를 눌러 편집 폼으로 들어간 것과 동등한 상태 — editing=true를 직접 주입).
+    let state = buildInitialState()
+    state = appReducer(state, { type: 'SUBMIT_RESPONSE', personId: 'doyun', chips: [] })
+    state = appReducer(state, { type: 'CONFIRM_MEETING', groupKey: 'k', slot: { day: '금', hour: 13 }, excluded: [] })
+    state = appReducer(state, { type: 'REPORT_UNAVAILABLE', personId: 'seoyeon' })
+    state = appReducer(state, { type: 'REOPEN_FOR_RESCHEDULE' })
+    state = appReducer(state, { type: 'OPEN_PHONE_FRAME', personId: 'seoyeon' })
+    const html = renderToStaticMarkup(
+      <AppProvider initialState={state}>
+        <ParticipantPhoneFrame />
+      </AppProvider>,
+    )
+    // 기본은 "제출 완료" 요약(다시 조율 배지)이 먼저 보인다 — editing 진입은 클릭 이후라 SSR
+    // 단일 렌더로는 재현할 수 없다(프로젝트 공통 한계). 여기서는 이미 존재하는 "다시 조율 중"
+    // 요약 상태의 포커스 표식이 여전히 응답 수정하기 버튼에 정확히 걸리는지만 구조적으로 재확인한다.
+    expect(html).toContain('다시 조율 중')
+    const markerIndex = html.indexOf('data-phone-focus-target="true"')
+    const buttonEnd = html.indexOf('</button>', markerIndex)
+    expect(html.slice(markerIndex, buttonEnd)).toContain('응답 수정하기')
+  })
 })

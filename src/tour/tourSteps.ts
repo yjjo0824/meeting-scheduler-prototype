@@ -27,9 +27,10 @@ export const TOUR_STEPS: TourStep[] = [
   },
   {
     id: 'phone',
-    // 폰 프레임 전체(헤더 포함)가 아니라 실제 입력 흐름(자연어 입력·이해한 조건 목록·제출 CTA)만
-    // 감싸는 좁은 대상 — ParticipantPhoneFrame.tsx의 전용 data-tour-id.
-    targetId: 'phone-core-input',
+    // 폰 디바이스 전체(ParticipantPhoneFrame의 패널 루트)가 대상이다 — 입력 영역만 좁게 잡으면
+    // 하이라이트 링이 부자연스럽게 헤더/제출 버튼을 어색하게 감싼다(12B-3 QA). 카피로 자연어
+    // 입력 → 조건 확인 → 제출 흐름을 설명하고, 하이라이트는 폰 외곽 한 겹으로만 표시한다.
+    targetId: 'phone-frame',
     title: '캘린더에 없는 조건도 받을 수 있어요',
     body: '말하듯 적으면 시스템이 시간 조건으로 정리해요. 보내기 전에 직접 확인할 수 있어요. 예시를 채운 뒤 응답을 보내보세요.',
     exampleRaw: doyunRaw,

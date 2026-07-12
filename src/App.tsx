@@ -9,6 +9,7 @@ import { MobileGuardNotice } from './shared/MobileGuardNotice'
 import { useIsNarrowViewport } from './shared/useIsNarrowViewport'
 import { TourOverlay } from './tour/TourOverlay'
 import { FreeModeControls } from './freeMode/FreeModeControls'
+import { EvaluatorResetBar } from './freeMode/EvaluatorResetBar'
 
 // 투어 진행 중(자유 모드 해제 전)에만 자동 전환한다: 도윤 응답이 도착해 phoneFrame이 닫히고
 // 전원이 응답을 마쳤으면 host → tradeoff로 넘어간다(SPEC §5 비트3의 "복귀 → 재계산 → 트레이드오프").
@@ -38,19 +39,20 @@ function useTourAutoNavigate() {
   ])
 }
 
-// 모바일에서는 데스크톱 가이드 투어를 제공하지 않는다(buildInitialState가 좁은 화면에서 이미
-// tour.active=false로 시작한다) — 그런데 체험 도구(FreeModeControls)의 잠금 해제는 지금까지
-// UNLOCK_FREE_MODE(투어 마지막 단계) 경로로만 일어났으므로, 모바일에는 잠금을 풀 방법이 아예
-// 없었다. 데스크톱 투어 상태를 억지로 "완료 처리"하지 않고, 모바일 진입 자체를 잠금 해제 조건으로
-// 삼는 최소 분기만 추가한다 — 기존 UNLOCK_FREE_MODE를 그대로 재사용하고(새 액션 없음), 이미
-// 풀려 있으면 아무 것도 하지 않는다.
+// 모바일에서는 데스크톱 가이드 투어를 제공하지 않는다(좁은 화면에서는 TourOverlay 자체를
+// 렌더링하지 않는다 — 아래 AppShell 참고) — 그런데 체험 도구(FreeModeControls)의 잠금 해제는
+// 지금까지 UNLOCK_FREE_MODE(투어 마지막 단계) 경로로만 일어났으므로, 모바일에는 잠금을 풀 방법이
+// 아예 없었다. 모바일 진입 자체를 잠금 해제 조건으로 삼는 최소 분기를 추가하되(기존
+// UNLOCK_FREE_MODE 재사용, 새 액션 없음), keepTourActive:true를 넘겨 tour.active는 건드리지
+// 않는다 — 그래야 데스크톱에서 투어가 진행되던 도중 창을 좁혔다 되돌려도(예: 반응형 확인) 투어가
+// 완료 처리되지 않고 하던 단계 그대로 이어간다(12B-3 QA: 모바일 진입이 투어를 영구 종료시키던 버그).
 function useMobileExperienceUnlock(isNarrow: boolean) {
   const { state, dispatch } = useAppState()
 
   useEffect(() => {
     if (!isNarrow) return
     if (state.freeModeUnlocked) return
-    dispatch({ type: 'UNLOCK_FREE_MODE' })
+    dispatch({ type: 'UNLOCK_FREE_MODE', keepTourActive: true })
   }, [isNarrow, state.freeModeUnlocked, dispatch])
 }
 
@@ -68,6 +70,7 @@ export function AppShell() {
           가리거나 렌더링을 막지 않는다(12A.8: 전체 차단 방식을 되돌림 — 전용 모바일 레이아웃은
           12B-1에서 추가됨). */}
       <MobileGuardNotice />
+      <EvaluatorResetBar />
       <SlideOverDim dimmed={state.phoneFrame.open}>
         {state.screen === 'host' && <HostDashboard />}
         {state.screen === 'tradeoff' && <TradeoffCandidates />}

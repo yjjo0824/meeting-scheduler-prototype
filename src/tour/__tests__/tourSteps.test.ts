@@ -86,8 +86,15 @@ describe('TOUR_STEPS — 3비트 진행 조건이 실제 액션 시퀀스와 정
     expect(TOUR_STEPS[2].ctaLabel).toBeUndefined()
   })
 
-  it('2단계 대상은 폰 프레임 전체가 아니라 핵심 입력 영역이다', () => {
-    expect(TOUR_STEPS[1].targetId).toBe('phone-core-input')
+  it('2단계 대상은 폰 프레임 전체(디바이스)다(12B-3: 입력 영역만 좁게 잡으면 하이라이트가 부자연스러움)', () => {
+    expect(TOUR_STEPS[1].targetId).toBe('phone-frame')
+  })
+
+  it('2단계 카피는 자연어 입력·조건 확인·제출 흐름을 설명한다(12B-3에서도 기존 확정 문구 유지)', () => {
+    expect(TOUR_STEPS[1].title).toBe('캘린더에 없는 조건도 받을 수 있어요')
+    expect(TOUR_STEPS[1].body).toBe(
+      '말하듯 적으면 시스템이 시간 조건으로 정리해요. 보내기 전에 직접 확인할 수 있어요. 예시를 채운 뒤 응답을 보내보세요.',
+    )
   })
 
   it('4단계 대상은 더 이상 제품 본문의 버튼이 아니라 확정 결과 요약 영역이다', () => {

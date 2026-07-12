@@ -29,6 +29,11 @@ export function useTourTargetRect(targetId: string): Rect | null {
     measure()
     window.addEventListener('resize', measure)
     window.addEventListener('scroll', measure, true)
+    // CSS transition(예: ParticipantPhoneFrame의 등장 scale/opacity 애니메이션)은 resize도
+    // scroll도 발생시키지 않는다 — getBoundingClientRect는 transform까지 반영해 측정 도중의
+    // 중간값을 그대로 돌려주므로, 트랜지션이 끝나는 시점에 한 번 더 재측정해야 최종 위치로
+    // 안정화된다(capture 단계라 중첩 요소의 트랜지션도 놓치지 않는다).
+    document.addEventListener('transitionend', measure, true)
 
     const observer = new ResizeObserver(measure)
     observer.observe(document.body)
@@ -38,6 +43,7 @@ export function useTourTargetRect(targetId: string): Rect | null {
     return () => {
       window.removeEventListener('resize', measure)
       window.removeEventListener('scroll', measure, true)
+      document.removeEventListener('transitionend', measure, true)
       observer.disconnect()
     }
   }, [targetId])

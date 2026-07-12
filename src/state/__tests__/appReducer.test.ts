@@ -136,6 +136,14 @@ describe('appReducer — 화면 전환·확정·자유모드·리셋', () => {
     expect(after.tour.active).toBe(false)
   })
 
+  it('UNLOCK_FREE_MODE에 keepTourActive:true를 주면 투어 상태(active/stepIndex)는 건드리지 않는다(12B-3: 모바일 진입이 투어를 완료 처리하면 안 됨)', () => {
+    const state = { ...buildInitialState(), tour: { active: true, stepIndex: 2 } }
+    const after = appReducer(state, { type: 'UNLOCK_FREE_MODE', keepTourActive: true })
+
+    expect(after.freeModeUnlocked).toBe(true)
+    expect(after.tour).toEqual({ active: true, stepIndex: 2 })
+  })
+
   it('REQUEST_EXAMPLE_FILL은 신호 카운터만 올린다(입력을 강제하지 않음 — ParticipantPhoneFrame이 감지해 draft만 채움)', () => {
     const state = buildInitialState()
     expect(state.exampleFillSignal).toBe(0)

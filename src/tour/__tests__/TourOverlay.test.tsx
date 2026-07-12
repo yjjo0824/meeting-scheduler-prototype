@@ -60,13 +60,14 @@ describe('TourOverlay — 렌더링(단계별 카드 스냅샷, 12B-2 새 카피
     }
   })
 
-  it('비트2 상태(stepIndex=1): 핵심 입력 영역을 대상으로 하고, 예시 문장 채우기 버튼이 있다', () => {
+  it('비트2 상태(stepIndex=1): 폰 프레임 전체를 대상으로 하고, 예시 문장 채우기 버튼이 있다(12B-3: 입력 영역만 좁게 잡지 않음)', () => {
     let state = buildInitialState()
     state = appReducer(state, { type: 'OPEN_PHONE_FRAME', personId: 'doyun' })
     state = appReducer(state, { type: 'SET_TOUR_STEP', stepIndex: 1 })
     const html = render(state)
     expect(html).toContain('2 / 4단계')
-    expect(html).toContain('[data-tour-id="phone-core-input"]')
+    expect(html).toContain('[data-tour-id="phone-frame"]')
+    expect(html).not.toContain('phone-core-input')
     expect(html).toContain('예시 문장 채우기')
     expect(html).toContain(doyun().response.raw!)
   })

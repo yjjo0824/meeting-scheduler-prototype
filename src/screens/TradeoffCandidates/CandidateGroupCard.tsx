@@ -50,8 +50,13 @@ export function CandidateGroupCard({
   const headline = open ? formatSlotLabel(selectedSlot) : formatSlotsRangeLabel(group.slots)
 
   return (
+    // 선택 표현은 이 컨테이너 한 겹으로만 그린다. 라디오 버튼 자체의 focus-visible outline은
+    // 없앴다(아래) — 방향키 이동 시 버튼 자체 테두리(헤더 영역)와 카드 외곽 테두리가 이중으로
+    // 겹쳐 보이는 문제가 있었다(12B-3 QA). focus-within으로 "지금 실제로 키보드 포커스가 이
+    // 카드 안에 있다"는 상태만 살짝 더 강조해, selected와 focus가 항상 함께 성립하는 roving
+    // tabindex 특성상 하나의 링만 항상 보이면서도 순수 마우스 선택과 키보드 포커스를 구분한다.
     <div
-      className={`rounded-xl border p-4 ${
+      className={`rounded-xl border p-4 transition-shadow focus-within:ring-2 focus-within:ring-slate-900 ${
         selected ? 'border-slate-900 shadow-sm ring-1 ring-slate-900' : 'border-slate-200'
       }`}
     >
@@ -64,7 +69,7 @@ export function CandidateGroupCard({
         aria-controls={contentId}
         tabIndex={radioTabIndex}
         onClick={onSelect}
-        className="flex w-full items-start gap-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+        className="flex w-full items-start gap-3 text-left outline-none"
       >
         {/* 시각적 라디오 표시 — aria-checked와 항상 같은 값을 그린다. */}
         <span

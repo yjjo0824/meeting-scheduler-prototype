@@ -65,4 +65,17 @@ describe('FreeModeControls — 역할 중심 체험 도구, 접기/펼치기(12B
     expect(html).toContain('다른 역할 체험하기')
     expect(html).not.toContain('확정 결과 보기')
   })
+
+  // "처음부터 다시 보기"는 12B-3에서 EvaluatorResetBar(앱 상단 독립 액션)로 분리됐다 — 역할
+  // 전환("다른 역할 체험하기")과 전체 리셋은 의미가 다르다는 확정된 UX 결정. 이 컴포넌트가
+  // 접힌 상태에서는 위 테스트가 이미 부재를 확인하지만(SSR은 기본 접힘만 재현 가능), 여기서는
+  // 컴포넌트가 더 이상 ResetButton을 렌더링하지 않는다는 걸 별도로 명시한다(펼친 상태의 내용은
+  // 이 프로젝트의 공통 한계상 SSR로 직접 펼쳐볼 수 없어 코드 검토로 확인 — EvaluatorResetBar.test.tsx가
+  // 독립 리셋 버튼의 존재는 별도로 검증한다).
+  it('"처음부터 다시 보기" 문구는 이 컴포넌트 어디에도 없다(EvaluatorResetBar로 분리됨)', () => {
+    let state = buildInitialState()
+    state = appReducer(state, { type: 'UNLOCK_FREE_MODE' })
+    const html = render(state)
+    expect(html).not.toContain('처음부터 다시 보기')
+  })
 })

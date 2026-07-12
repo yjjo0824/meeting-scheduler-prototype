@@ -77,18 +77,34 @@ export function ParticipantPhoneFrame() {
   // 다시 조율 배지·CTA는 "아직 안 보낸" 사람에게만 의미가 있으므로 제출 직후에는 일반 완료 요약을 보여준다.
   const [justSubmitted, setJustSubmitted] = useState(false)
 
-  useEffect(() => {
+  // 세션(참여자 전환 또는 프레임 재오픈) 경계를 렌더 단계에서 동기적으로 감지해 draft를 초기화한다
+  // (React 공식 패턴: "Adjusting state when a prop changes"). 이전에는 useEffect에서 초기화했는데,
+  // 그 경우 "프레임이 막 열린 첫 렌더"가 아직 이전 세션 값(예: 이전에 보던 사람의 editing=true) 그대로인
+  // DOM을 커밋하고, 포커스 트랩이 바로 그 커밋을 기준으로 최초 포커스를 계산해버려 잘못된 요소로
+  // 포커스가 가는 문제가 있었다(12B-3 QA). 렌더 중 setState로 즉시 재렌더시키면 커밋되는 첫 DOM부터
+  // 이미 올바른 상태라 이 문제가 근본적으로 사라진다.
+  const sessionKey = `${personId ?? ''}#${state.phoneFrame.open}`
+  const [committedSessionKey, setCommittedSessionKey] = useState<string | null>(null)
+  if (committedSessionKey !== sessionKey) {
+    setCommittedSessionKey(sessionKey)
     setDraftRaw('')
     setManualChips(null)
     setTextChips([])
     setDraftCorrections(state.calendarCorrections[personId ?? ''] ?? {})
-    setEntered(false)
     setJustSubmitted(false)
+    if (state.phoneFrame.open) {
+      setEditing(!state.hasResponded[personId ?? ''])
+    }
+  }
+
+  // entered(등장 애니메이션)만 effect로 남긴다 — "닫힘"으로 먼저 그린 뒤 다음 프레임에 "열림"으로
+  // 전환해야 CSS transition이 실제로 재생되므로, 위 렌더 단계 동기화와 달리 반드시 커밋 이후에
+  // 한 틱 늦게 실행돼야 한다.
+  useEffect(() => {
+    setEntered(false)
     if (!state.phoneFrame.open) return
-    setEditing(!state.hasResponded[personId ?? ''])
     const frame = requestAnimationFrame(() => setEntered(true))
     return () => cancelAnimationFrame(frame)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [personId, state.phoneFrame.open])
 
   useEffect(() => {
@@ -138,9 +154,14 @@ export function ParticipantPhoneFrame() {
     return panelRef.current?.querySelector<HTMLElement>('[data-phone-focus-target]') ?? closeButtonRef.current
   }
 
+  // useRestoreFocus가 먼저 실행돼야 한다: 두 훅 모두 "open이 true로 바뀐 커밋"에서 자기 effect를
+  // 등록하는데, 같은 커밋 안에서 effect는 호출 순서대로 실행된다. useFocusTrap의 effect가 먼저
+  // 실행되면 포커스를 다이얼로그 안으로 옮겨버린 "뒤"에 useRestoreFocus가 activeElement를 캡처하게
+  // 되어(다이얼로그 내부 요소를 트리거로 잘못 기억함), 닫을 때 엉뚱한 곳으로 복귀하는 문제가 있었다
+  // (12B-3 QA). 순서를 바꿔 "열리기 직전 실제 트리거"를 먼저 캡처한 뒤에 초기 포커스를 옮긴다.
+  useRestoreFocus(state.phoneFrame.open)
   useFocusTrap(panelRef, state.phoneFrame.open, getInitialFocus)
   useBodyScrollLock(state.phoneFrame.open)
-  useRestoreFocus(state.phoneFrame.open)
 
   useEffect(() => {
     if (!state.phoneFrame.open) return
@@ -256,7 +277,8 @@ export function ParticipantPhoneFrame() {
         role="dialog"
         aria-modal="true"
         aria-labelledby="phone-frame-title"
-        className={`fixed left-1/2 top-1/2 z-50 flex h-[85vh] max-h-[720px] w-[380px] max-w-[92vw] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-[2.5rem] border-8 border-slate-900 bg-white p-5 shadow-2xl transition-all duration-300 ${
+        tabIndex={-1}
+        className={`fixed left-1/2 top-1/2 z-50 flex h-[85vh] max-h-[720px] w-[380px] max-w-[92vw] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-[2.5rem] border-8 border-slate-900 bg-white p-5 shadow-2xl outline-none transition-all duration-300 ${
           entered ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
         }`}
       >
@@ -283,10 +305,10 @@ export function ParticipantPhoneFrame() {
             />
           </div>
         ) : (
-          // 투어 2단계 전용 대상 — 폰 프레임 전체(헤더 포함)가 아니라 실제 입력 흐름(자연어
-          // 입력·이해한 조건 목록·제출 CTA)만 감싼다. tabIndex=-1: 투어 종료 시 여기로 포커스를
-          // 되돌릴 수 있게(프로그램적 포커스는 포커스 가능한 요소에만 적용된다).
-          <div data-tour-id="phone-core-input" tabIndex={-1} className="flex min-h-0 flex-1 flex-col outline-none">
+          // 스크롤되는 입력 영역과 항상 보이는 하단 제출 CTA를 한 flex 컬럼으로 묶는다(레이아웃
+          // 목적만 — 투어 대상은 아니다. 투어 2단계는 폰 프레임 전체(data-tour-id="phone-frame",
+          // 패널 루트)를 대상으로 삼는다).
+          <div className="flex min-h-0 flex-1 flex-col">
             {/* 입력 콘텐츠만 스크롤되고, 신뢰 문구와 제출 CTA는 항상 하단에 보인다(콘텐츠를 가리지 않음). */}
             <div className="min-h-0 flex-1 overflow-y-auto">
               {isRescheduling && !justSubmitted && (

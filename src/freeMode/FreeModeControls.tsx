@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAppState } from '../state/AppContext'
 import { ParticipantExperienceEntry } from './ParticipantExperienceEntry'
-import { ResetButton } from './ResetButton'
 
 const PANEL_ID = 'role-experience-panel'
 
@@ -9,6 +8,8 @@ const PANEL_ID = 'role-experience-panel'
 // (역할을 바꿔 체험한다)로 말한다. 주최자 체험(화면 이동)과 참여자 체험(참여자 화면 진입)의
 // 전환으로 나뉜다. 참여자 화면 진입 CTA는 실제 제품 화면(HostDashboard)에는 없다 — 여기(체험
 // 레이어)에만 있어 "주최자가 남의 응답을 대신 연다"는 오해를 만들지 않는다.
+// "처음부터 다시 보기"는 여기 없다 — 역할 전환과 전체 리셋은 의미가 달라 EvaluatorResetBar로
+// 분리했다(12B-3 QA: 확정된 UX 결정).
 //
 // 접기/펼치기는 컴포넌트 로컬 UI 상태다(전역 상태·액션 추가 없음). 이 컴포넌트는 앱 시작 시
 // 한 번만 마운트되므로(freeModeUnlocked가 false일 때는 null만 반환) 기본값 true(접힘)가 자연스럽게
@@ -88,14 +89,13 @@ export function FreeModeControls() {
         onSelect={(personId) => dispatch({ type: 'OPEN_PHONE_FRAME', personId })}
       />
 
-      <div className="flex items-center justify-between border-t border-slate-200 pt-3">
-        <ResetButton onClick={() => dispatch({ type: 'RESET_ALL' })} />
+      <div className="flex justify-end border-t border-slate-200 pt-3">
         <button
           type="button"
           onClick={() => setCollapsed(true)}
           aria-expanded={true}
           aria-controls={PANEL_ID}
-          className="shrink-0 text-xs text-slate-400 underline"
+          className="shrink-0 text-xs text-slate-400 underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
         >
           접기
         </button>
