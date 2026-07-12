@@ -8,6 +8,7 @@ import { Confirmation } from './screens/Confirmation/Confirmation'
 import { SlideOverDim } from './shared/SlideOverDim'
 import { MobileGuardNotice } from './shared/MobileGuardNotice'
 import { useIsNarrowViewport } from './shared/useIsNarrowViewport'
+import { TOUR_STEPS } from './tour/tourSteps'
 import { TourOverlay } from './tour/TourOverlay'
 import { FreeModeControls } from './freeMode/FreeModeControls'
 import { EvaluatorResetBar } from './freeMode/EvaluatorResetBar'
@@ -23,8 +24,15 @@ import { EvaluatorResetBar } from './freeMode/EvaluatorResetBar'
 // 트레이드오프 자동 전환이 영구히 발화하지 않는 버그가 있었다.
 // export: 효과(useEffect)는 SSR 테스트로 실행할 수 없으므로, 전진 판정만 순수 함수로 분리해
 // 그 자체를 테스트한다.
+const TRADEOFF_STEP_INDEX = TOUR_STEPS.findIndex((s) => s.id === 'tradeoff')
+
 export function shouldAutoNavigateToTradeoff(state: AppState, groupCount: number): boolean {
   if (!state.tour.active) return false
+  // 이 자동 전환은 비트3(도윤 제출 → 복귀 → 재계산 → 비교) 전용이다 — 투어가 트레이드오프
+  // 단계를 지난 뒤(확정 단계 이후)에는 발화하지 않는다. 그러지 않으면 확정 후 "다시 조율하기"
+  // 확인으로 host에 돌아온 순간(확정 해제 → 전원 응답 + host + 미확정 재성립) 곧바로
+  // 트레이드오프로 끌려가, 대화상자 본문("확정이 해제되고…")과 동작이 어긋난다(12C-12.2).
+  if (state.tour.stepIndex > TRADEOFF_STEP_INDEX) return false
   if (state.phoneFrame.open) return false
   if (state.confirmedMeeting) return false
   if (state.screen !== 'host') return false

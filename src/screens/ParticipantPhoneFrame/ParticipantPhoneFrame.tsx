@@ -287,6 +287,14 @@ export function ParticipantPhoneFrame() {
           entered ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
         }`}
       >
+        {/* 재조율 알림 배너(12C-12.2) — 입력 상태의 요청 안내(헤더 eyebrow)와 같은 "주최자 이름 +
+            행동" 패턴으로, 주최자의 "다시 조율하기"가 참여자에게 알림으로 도착했음을 표현한다.
+            이름은 seed에서 파생. 기존 "다시 조율 중" 배지·수정 가능 동작은 그대로다. */}
+        {isRescheduling && !justSubmitted && (
+          <p className="mb-3 rounded-chip bg-warn-50 px-3 py-2 text-xs font-bold text-warn-600">
+            {organizerName} 님이 회의 시간을 다시 조율하고 있어요
+          </p>
+        )}
         <PhoneContextHeader person={person} meeting={RAW_SEED.meeting} organizerName={organizerName} />
 
         {isLocked ? (
