@@ -58,6 +58,7 @@ export function MobileHostDashboard({ selectedPersonId, onSelectPerson }: Props)
         <PersonDetailPanel
           person={selectedPerson}
           responded={state.hasResponded[selectedPerson.id]}
+          reported={state.confirmedMeeting !== null && (state.reportedByPersonId[selectedPerson.id] ?? false)}
           onChangeAttendance={(attendance) =>
             dispatch({ type: 'SET_ATTENDANCE', personId: selectedPerson.id, attendance })
           }
@@ -113,7 +114,12 @@ export function MobileHostDashboard({ selectedPersonId, onSelectPerson }: Props)
 
       <RecommendationCard schedule={schedule} people={state.people} hasResponded={state.hasResponded} />
 
-      <MobileParticipantList people={state.people} hasResponded={state.hasResponded} onSelectPerson={openDetail} />
+      <MobileParticipantList
+        people={state.people}
+        hasResponded={state.hasResponded}
+        onSelectPerson={openDetail}
+        reportedByPersonId={state.confirmedMeeting ? state.reportedByPersonId : {}}
+      />
 
       {/* 후보 비교가 주 행동(primary), 요일별 시간은 보조 탐색(secondary). */}
       <Button variant="secondary" onClick={() => setView('days')} className="w-full">

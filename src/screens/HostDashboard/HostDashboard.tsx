@@ -70,11 +70,13 @@ export function HostDashboard() {
           hasResponded={state.hasResponded}
           selectedPersonId={selectedPersonId}
           onSelectPerson={(personId) => setSelectedPersonId((prev) => (prev === personId ? null : personId))}
+          reportedByPersonId={state.confirmedMeeting ? state.reportedByPersonId : {}}
         />
         {selectedPerson ? (
           <PersonDetailPanel
             person={selectedPerson}
             responded={state.hasResponded[selectedPerson.id]}
+            reported={state.confirmedMeeting !== null && (state.reportedByPersonId[selectedPerson.id] ?? false)}
             onChangeAttendance={(attendance) =>
               dispatch({ type: 'SET_ATTENDANCE', personId: selectedPerson.id, attendance })
             }

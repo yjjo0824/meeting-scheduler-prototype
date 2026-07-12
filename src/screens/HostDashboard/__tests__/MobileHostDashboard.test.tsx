@@ -80,4 +80,19 @@ describe('MobileHostDashboard — 참석 어려움 신고 알림(12B QA 항목 3
     expect(html).toContain('서연 님이 확정된 시간에 참석하기 어렵다고 알려왔어요')
     expect(html).toContain('확정 결과 확인하기')
   })
+
+  it('모바일 참여자 목록의 신고자 행에 "참석 어려움 알림" 배지가 붙는다', () => {
+    const html = render({
+      confirmedMeeting: { groupKey: 'k', slot: { day: '금', hour: 13 }, excluded: [] },
+      reportedByPersonId: { seoyeon: true },
+    })
+    const rowStart = html.indexOf('서연', html.indexOf('참여자 (6)'))
+    const rowEnd = html.indexOf('</button>', rowStart)
+    expect(html.slice(rowStart, rowEnd)).toContain('참석 어려움 알림')
+  })
+
+  it('확정이 풀리면 신고 배지도 사라진다', () => {
+    const html = render({ reportedByPersonId: { seoyeon: true } })
+    expect(html).not.toContain('참석 어려움 알림')
+  })
 })

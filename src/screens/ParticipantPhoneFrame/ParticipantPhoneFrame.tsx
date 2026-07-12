@@ -14,19 +14,38 @@ import { PhoneContextHeader } from './PhoneContextHeader'
 import { SubmittedSummaryView } from './SubmittedSummaryView'
 import { TrustNotice } from './TrustNotice'
 
+// draft 칩의 출처 태그 — manual(기존 응답에서 출발한 baseline과 그 위의 사용자 수정)과
+// text(현재 자연어 입력에서 파생) 레이어를 끝까지 구분한다. text 칩을 manual로 승격하지
+// 않아야, 자연어를 다시 쓸 때 이전 파싱 결과가 누적되지 않고 최신 결과로 교체된다.
+export interface TaggedDraftChip {
+  chip: Chip
+  origin: 'manual' | 'text'
+}
+
 // 기존 응답 칩(baseline) + 새 자연어 파싱 칩(textChips) 병합 — 동일 조건(type·day·hours)이
-// 겹치면 한 번만 남긴다. 기존 배열을 새 파싱 결과로 덮어쓰지 않는 것이 핵심이다(R8 보존).
+// 겹치면 manual 쪽 한 번만 남긴다. 기존 배열을 새 파싱 결과로 덮어쓰지 않는 것이 핵심이다(R8 보존).
 // export: draft 병합 규칙을 테스트에서 직접 검증하기 위함.
-export function mergeDraftChips(baseline: Chip[], textChips: Chip[]): Chip[] {
+export function buildDraftChips(baseline: Chip[], textChips: Chip[]): TaggedDraftChip[] {
   const seen = new Set<string>()
-  const merged: Chip[] = []
-  for (const chip of [...baseline, ...textChips]) {
-    const key = `${chip.type}|${chip.day}|${chip.hours.join(',')}`
+  const merged: TaggedDraftChip[] = []
+  const tagged: TaggedDraftChip[] = [
+    ...baseline.map((chip) => ({ chip, origin: 'manual' as const })),
+    ...textChips.map((chip) => ({ chip, origin: 'text' as const })),
+  ]
+  for (const entry of tagged) {
+    const key = `${entry.chip.type}|${entry.chip.day}|${entry.chip.hours.join(',')}`
     if (seen.has(key)) continue
     seen.add(key)
-    merged.push(chip)
+    merged.push(entry)
   }
   return merged
+}
+
+// R3의 확실성 두 단계(불가↔회피)만 탭으로 전환한다 — 병합·조정가능·미분류는 성격이 달라 그대로 둔다.
+function toggleChipType(type: Chip['type']): Chip['type'] {
+  if (type === '불가') return '회피'
+  if (type === '회피') return '불가'
+  return type
 }
 
 export function ParticipantPhoneFrame() {
@@ -84,21 +103,27 @@ export function ParticipantPhoneFrame() {
   // 재료일 뿐, 응답 전 참여자 화면에 먼저 보이면 안 된다.
   const baselineChips = manualChips ?? (person && state.hasResponded[person.id] ? person.response.chips : [])
 
-  const combinedDraftChips = useMemo(() => mergeDraftChips(baselineChips, textChips), [baselineChips, textChips])
+  const taggedDraftChips = useMemo(() => buildDraftChips(baselineChips, textChips), [baselineChips, textChips])
 
   // 진행 중인 정정 draft가 기존 칩을 무효화했다면(예: 방금 비운 슬롯을 가리키던 조정가능 칩)
   // 제출 전에도 검수 목록에서 활성 상태로 남지 않도록 같은 필터링을 미리 보여준다 — 실제 커밋은
   // 제출 시점에 한 번 더 동일한 로직으로 처리된다(state/appReducer.ts). 화면에 보이는 값 = 제출되는 값.
-  const chipsToReview = useMemo(() => {
+  // applyCalendarCorrections는 칩 객체를 복제하지 않고 filter만 하므로, 참조 동일성으로 살아남은
+  // 칩의 출처 태그를 되찾을 수 있다(칩 수정·삭제를 올바른 draft 레이어로 라우팅하기 위함).
+  const displayedTaggedChips = useMemo(() => {
     if (!person) return []
+    const combined = taggedDraftChips.map((entry) => entry.chip)
     const [preview] = applyCalendarCorrections(
-      [{ ...person, response: { ...person.response, chips: combinedDraftChips } }],
+      [{ ...person, response: { ...person.response, chips: combined } }],
       { [person.id]: draftCorrections },
       RAW_SEED.grid,
     )
-    return preview.response.chips
+    const survivors = new Set(preview.response.chips)
+    return taggedDraftChips.filter((entry) => survivors.has(entry.chip))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [person, combinedDraftChips, draftCorrections])
+  }, [person, taggedDraftChips, draftCorrections])
+
+  const chipsToReview = useMemo(() => displayedTaggedChips.map((entry) => entry.chip), [displayedTaggedChips])
 
   if (!state.phoneFrame.open || !person) return null
 
@@ -122,11 +147,28 @@ export function ParticipantPhoneFrame() {
     setTextChips(parseChips({ raw: text, calendarEvents: person.calendar, grid: RAW_SEED.grid }))
   }
 
-  // 칩 목록에서 직접 수정·삭제하면 그 결과가 draft의 유일한 진실이 된다 — 화면의 모든 조건 표현과
-  // 제출 값이 이 목록을 공유한다. textChips는 비워 두고, 이후 자연어를 더 입력하면 다시 추가된다.
-  function handleChipsChange(next: Chip[]) {
-    setManualChips(next)
-    setTextChips([])
+  // 칩 수정·삭제는 그 칩이 속한 draft 레이어에만 반영한다 — text 칩을 manual로 승격하지 않는다.
+  // (승격하면 이후 자연어를 다시 쓸 때 이전 파싱 결과가 manual에 남아 새 결과와 중복 누적된다.)
+  // text 칩에 가한 수정은 자연어를 다시 쓰면 최신 파싱 결과로 함께 교체된다(문장이 text 레이어의 진실).
+  function handleToggleChip(index: number) {
+    const target = displayedTaggedChips[index]
+    if (!target) return
+    const updated = { ...target.chip, type: toggleChipType(target.chip.type) }
+    if (target.origin === 'manual') {
+      setManualChips(baselineChips.map((c) => (c === target.chip ? updated : c)))
+    } else {
+      setTextChips((prev) => prev.map((c) => (c === target.chip ? updated : c)))
+    }
+  }
+
+  function handleDeleteChip(index: number) {
+    const target = displayedTaggedChips[index]
+    if (!target) return
+    if (target.origin === 'manual') {
+      setManualChips(baselineChips.filter((c) => c !== target.chip))
+    } else {
+      setTextChips((prev) => prev.filter((c) => c !== target.chip))
+    }
   }
 
   function resetDraft() {
@@ -234,7 +276,7 @@ export function ParticipantPhoneFrame() {
                 }
               />
               <FreeTextInput value={draftRaw} onChange={handleDraftChange} />
-              <ChipReviewList chips={chipsToReview} onChangeChips={handleChipsChange} />
+              <ChipReviewList chips={chipsToReview} onToggleType={handleToggleChip} onDelete={handleDeleteChip} />
             </div>
             <div className="space-y-2 border-t border-slate-100 pt-3">
               <TrustNotice organizerName={organizerName} />

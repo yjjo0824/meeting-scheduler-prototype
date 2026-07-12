@@ -99,3 +99,28 @@ describe('Confirmation — 자유 모드에서는 언락 버튼을 다시 보여
     expect(html).not.toContain('직접 사용해보세요')
   })
 })
+
+describe('Confirmation — 응답 현황으로 돌아가는 보조 동선(12B QA 항목 2)', () => {
+  function confirmedState() {
+    let state = buildInitialState()
+    state = appReducer(state, {
+      type: 'CONFIRM_MEETING',
+      groupKey: 'k',
+      slot: { day: '금', hour: 13 },
+      excluded: [],
+    })
+    return state
+  }
+
+  it('투어가 끝난 뒤(자유 조회)에는 "응답 현황으로" 버튼이 보인다', () => {
+    const state = confirmedState()
+    const html = render({ ...state, tour: { ...state.tour, active: false } })
+    expect(html).toContain('응답 현황으로')
+  })
+
+  it('투어 진행 중에는 마지막 단계 흐름을 방해하지 않도록 숨긴다', () => {
+    // buildInitialState는 window 없는 환경에서 tour.active=true — 투어 중 확정에 도달한 상태.
+    const html = render(confirmedState())
+    expect(html).not.toContain('응답 현황으로')
+  })
+})

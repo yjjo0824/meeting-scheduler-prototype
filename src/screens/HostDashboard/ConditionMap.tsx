@@ -13,6 +13,8 @@ interface Props {
   hasResponded: Record<string, boolean>
   selectedPersonId: string | null
   onSelectPerson: (personId: string) => void
+  // 확정 후 "참석하기 어려워졌어요" 신고자 표시용 — 확정이 풀리면 호출부가 빈 객체를 넘긴다.
+  reportedByPersonId?: Record<string, boolean>
 }
 
 const SLOT_STYLE: Record<SlotState, string> = {
@@ -34,13 +36,24 @@ interface RowProps {
   hasResponded: Record<string, boolean>
   selectedPersonId: string | null
   onSelectPerson: (personId: string) => void
+  reportedByPersonId: Record<string, boolean>
 }
 
 // whitespace-nowrap: 이름 열 폭이 좁아져도 이름이 세로로 꺾이지 않는다 — 대신 표 전체가
 // 컨테이너의 overflow-x-auto로 가로 스크롤된다(페이지 전체 스크롤은 생기지 않는다).
 // export: 모바일 요일별 비교 그리드(MobileDayCompareGrid)가 같은 셀을 그대로 재사용한다 —
 // 렌더링·분류 로직을 두 번째로 베끼지 않는다.
-export function PersonNameCell({ person, responded, onSelectPerson }: { person: Person; responded: boolean; onSelectPerson: (personId: string) => void }) {
+export function PersonNameCell({
+  person,
+  responded,
+  onSelectPerson,
+  reported = false,
+}: {
+  person: Person
+  responded: boolean
+  onSelectPerson: (personId: string) => void
+  reported?: boolean
+}) {
   return (
     <td className="pr-2 align-middle">
       <button
@@ -52,6 +65,7 @@ export function PersonNameCell({ person, responded, onSelectPerson }: { person: 
           {person.name}
           <Badge tone="neutral">{attendanceLabel(person.attendance)}</Badge>
           {!responded && <Badge tone="warn">답변 전</Badge>}
+          {reported && <Badge tone="danger">참석 어려움 알림</Badge>}
         </div>
         <p className="mt-0.5 whitespace-nowrap text-xs text-ink-500">{person.job}</p>
       </button>
@@ -82,7 +96,7 @@ export function SlotCell({ person, day, hour, responded, sets }: { person: Perso
 // 월~금 40슬롯을 하나의 표로 통합해 보여준다 — 768px 이상 모든 폭에서 공통으로 쓰는 유일한
 // 조건 지도 렌더링 경로다(요일별 미니 지도로 쪼개지 않는다, 12A.8). 폭이 부족하면 부모의
 // overflow-x-auto가 표 내부만 가로 스크롤시키고, 페이지 전체는 스크롤되지 않는다.
-function FullWeekMap({ people, grid, sets, hasResponded, selectedPersonId, onSelectPerson }: RowProps & { grid: Grid; sets: ConditionSets }) {
+function FullWeekMap({ people, grid, sets, hasResponded, selectedPersonId, onSelectPerson, reportedByPersonId }: RowProps & { grid: Grid; sets: ConditionSets }) {
   return (
     <table className="w-full min-w-[760px] border-separate border-spacing-1">
       <thead>
@@ -111,7 +125,12 @@ function FullWeekMap({ people, grid, sets, hasResponded, selectedPersonId, onSel
           const selected = person.id === selectedPersonId
           return (
             <tr key={person.id} className={selected ? 'bg-brand-50' : undefined}>
-              <PersonNameCell person={person} responded={responded} onSelectPerson={onSelectPerson} />
+              <PersonNameCell
+                person={person}
+                responded={responded}
+                onSelectPerson={onSelectPerson}
+                reported={reportedByPersonId[person.id] ?? false}
+              />
               {grid.days.flatMap((day) =>
                 grid.hours.map((hour) => (
                   <SlotCell key={`${person.id}-${day}-${hour}`} person={person} day={day} hour={hour} responded={responded} sets={sets} />
@@ -125,7 +144,7 @@ function FullWeekMap({ people, grid, sets, hasResponded, selectedPersonId, onSel
   )
 }
 
-export function ConditionMap({ people, hasResponded, selectedPersonId, onSelectPerson }: Props) {
+export function ConditionMap({ people, hasResponded, selectedPersonId, onSelectPerson, reportedByPersonId = {} }: Props) {
   const grid = RAW_SEED.grid
   const effectivePeople = deriveEffectivePeople(people, hasResponded)
   const sets = buildConditionSets(effectivePeople, grid)
@@ -148,6 +167,7 @@ export function ConditionMap({ people, hasResponded, selectedPersonId, onSelectP
           hasResponded={hasResponded}
           selectedPersonId={selectedPersonId}
           onSelectPerson={onSelectPerson}
+          reportedByPersonId={reportedByPersonId}
         />
       </div>
     </div>

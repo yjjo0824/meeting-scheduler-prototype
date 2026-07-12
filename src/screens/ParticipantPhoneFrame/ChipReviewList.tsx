@@ -3,16 +3,14 @@ import { ChipItem } from './ChipItem'
 
 interface Props {
   chips: Chip[]
-  onChangeChips: (chips: Chip[]) => void
+  // 칩의 출처(기존 응답/현재 자연어)에 따라 수정이 서로 다른 draft 레이어로 가야 하므로,
+  // 목록 전체를 되돌려주는 대신 어느 칩에 어떤 조작이 일어났는지(index)만 알린다 —
+  // 라우팅은 단일 draft를 관리하는 ParticipantPhoneFrame의 책임이다.
+  onToggleType: (index: number) => void
+  onDelete: (index: number) => void
 }
 
-function toggleType(type: Chip['type']): Chip['type'] {
-  if (type === '불가') return '회피'
-  if (type === '회피') return '불가'
-  return type
-}
-
-export function ChipReviewList({ chips, onChangeChips }: Props) {
+export function ChipReviewList({ chips, onToggleType, onDelete }: Props) {
   return (
     <div className="space-y-2 py-3">
       <p className="text-sm font-medium text-slate-700">이렇게 이해했어요</p>
@@ -22,10 +20,8 @@ export function ChipReviewList({ chips, onChangeChips }: Props) {
           <ChipItem
             key={`${chip.type}-${chip.day}-${chip.hours.join('_')}-${index}`}
             chip={chip}
-            onToggleType={() =>
-              onChangeChips(chips.map((c, i) => (i === index ? { ...c, type: toggleType(c.type) } : c)))
-            }
-            onDelete={() => onChangeChips(chips.filter((_, i) => i !== index))}
+            onToggleType={() => onToggleType(index)}
+            onDelete={() => onDelete(index)}
           />
         ))}
         {chips.length === 0 && <p className="text-xs text-slate-400">아직 추가한 조건이 없어요</p>}

@@ -15,6 +15,17 @@ export function Confirmation() {
 
   return (
     <div className="mx-auto max-w-xl space-y-5 p-4 sm:p-8">
+      {/* 주최자 화면으로 돌아가는 보조 동선 — 내비게이션 톤의 텍스트 버튼이라 "다시 조율하기"와
+          위계가 경쟁하지 않는다. 투어 진행 중에는 마지막 단계(잠금 해제) 흐름을 흩뜨리지 않도록 숨긴다. */}
+      {!state.tour.active && (
+        <button
+          type="button"
+          onClick={() => dispatch({ type: 'NAVIGATE', screen: 'host' })}
+          className="text-sm font-medium text-ink-700"
+        >
+          ← 응답 현황으로
+        </button>
+      )}
       <ResultSummary meeting={RAW_SEED.meeting} slot={confirmed.slot} display={RAW_SEED.schedule_display} />
       <AttendeeList people={state.people} excludedIds={confirmed.excluded} />
       <CalendarRegisteredLabel />

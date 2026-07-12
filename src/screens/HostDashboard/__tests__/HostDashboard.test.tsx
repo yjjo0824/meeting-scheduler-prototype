@@ -158,5 +158,22 @@ describe('HostDashboard — 참석 어려움 신고 알림(12B QA 항목 3)', ()
     state = appReducer(state, { type: 'REOPEN_FOR_RESCHEDULE' })
     const html = renderWith(state)
     expect(html).not.toContain('참석하기 어렵다고 알려왔어요')
+    expect(html).not.toContain('참석 어려움 알림')
+  })
+
+  it('신고한 참여자의 조건 지도 행에 "참석 어려움 알림" 배지가 붙는다(다른 사람 행에는 없음)', () => {
+    let state = confirmedState()
+    state = appReducer(state, { type: 'REPORT_UNAVAILABLE', personId: 'seoyeon' })
+    const html = renderWith(state)
+
+    // 상단 ReportNoticeCard에도 '서연'이 등장하므로, 조건 지도(표) 구간 안에서만 행을 찾는다.
+    const mapStart = html.indexOf('모두의 시간 조건')
+    const seoyeonRowStart = html.indexOf('서연', mapStart)
+    const seoyeonRowEnd = html.indexOf('</tr>', seoyeonRowStart)
+    expect(html.slice(seoyeonRowStart, seoyeonRowEnd)).toContain('참석 어려움 알림')
+
+    const minjunRowStart = html.indexOf('민준', mapStart)
+    const minjunRowEnd = html.indexOf('</tr>', minjunRowStart)
+    expect(html.slice(minjunRowStart, minjunRowEnd)).not.toContain('참석 어려움 알림')
   })
 })

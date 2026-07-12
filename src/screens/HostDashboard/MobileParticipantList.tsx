@@ -6,6 +6,8 @@ interface Props {
   people: Person[]
   hasResponded: Record<string, boolean>
   onSelectPerson: (personId: string) => void
+  // 확정 후 "참석하기 어려워졌어요" 신고자 표시 — 확정이 풀리면 호출부가 빈 객체를 넘긴다.
+  reportedByPersonId?: Record<string, boolean>
 }
 
 // 데스크톱 조건 지도(40슬롯 표)를 축소하지 않고, 참여자 한 명당 한 줄 + 조건 건수 요약만 보여준다.
@@ -13,7 +15,7 @@ interface Props {
 // Card를 그대로 쓰지 않는 이유: Card의 기본 p-6과 여기 필요한 무패딩(줄마다 자체 여백)이
 // 유틸리티 클래스 우선순위 충돌을 일으킬 수 있어, 같은 시각 톤(rounded-card/bg-surface/shadow-card)만
 // 가져와 직접 구성한다.
-export function MobileParticipantList({ people, hasResponded, onSelectPerson }: Props) {
+export function MobileParticipantList({ people, hasResponded, onSelectPerson, reportedByPersonId = {} }: Props) {
   return (
     <div className="divide-y divide-border overflow-hidden rounded-card bg-surface shadow-card">
       <p className="p-4 text-sm font-bold text-ink-900">참여자 ({people.length})</p>
@@ -32,6 +34,7 @@ export function MobileParticipantList({ people, hasResponded, onSelectPerson }: 
                 {person.name}
                 <Badge tone="neutral">{attendanceLabel(person.attendance)}</Badge>
                 {!responded && <Badge tone="warn">답변 전</Badge>}
+                {(reportedByPersonId[person.id] ?? false) && <Badge tone="danger">참석 어려움 알림</Badge>}
               </div>
               <p className="mt-0.5 text-xs text-ink-500">
                 {person.job} · 조건 {conditionCount}건
