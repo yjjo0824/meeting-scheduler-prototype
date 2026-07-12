@@ -209,6 +209,37 @@ describe('TradeoffCandidates — 선택 카드 중첩 테두리 제거(12B-3 QA)
   })
 })
 
+describe('TradeoffCandidates — 12C-9: 데스크톱 가로 행 전환(1줄 행 + 열 정렬)', () => {
+  const state = appReducer(buildInitialState(), {
+    type: 'SUBMIT_RESPONSE',
+    personId: 'doyun',
+    chips: doyun().response.chips,
+  })
+  const html = render(state)
+  const ROW_GRID = 'md:grid-cols-[1rem_5.5rem_10.5rem_7rem_minmax(0,1fr)]'
+
+  it('세 카드의 라디오 행이 동일한 열 폭 템플릿을 공유한다 — 배지·시간·참석·설명이 같은 가로 위치에 정렬된다', () => {
+    expect(html.split(ROW_GRID).length - 1).toBe(3)
+  })
+
+  it('비선택 행의 시간 예고 텍스트는 데스크톱에서 숨겨(md:hidden) 행 1줄을 유지한다(좁은 화면은 현행 유지)', () => {
+    const previewIndex = html.indexOf('중 선택할 수 있어요')
+    const pTagStart = html.lastIndexOf('<p', previewIndex)
+    const pTagEnd = html.indexOf('>', pTagStart)
+    expect(html.slice(pTagStart, pTagEnd)).toContain('md:hidden')
+  })
+
+  it('선택된 행만 두 번째 줄(시간 칩 + 참여자에게 다시 확인하기 영역)이 열린다 — 데스크톱에서도 동일', () => {
+    const contentRegions = html.match(/id="candidate-content-[^"]+"/g) ?? []
+    expect(contentRegions.length).toBe(1)
+    // 두 번째 줄은 열 템플릿의 지배를 받지 않는 별도 줄이다(행 아래 전체 폭).
+    const contentIndex = html.indexOf('id="candidate-content-')
+    const divTagStart = html.lastIndexOf('<div', contentIndex)
+    const divTagEnd = html.indexOf('>', contentIndex)
+    expect(html.slice(divTagStart, divTagEnd)).not.toContain('md:grid-cols')
+  })
+})
+
 describe('CandidateGroupCard — 12C-8: 선택된 카드의 칩이 곧 확정 대상 시간이다', () => {
   // 수14~17 대안 그룹(도윤 제외)을 실제 엔진 결과에서 가져와, "칩으로 고른 시간이 카드 제목에
   // 즉시 반영되고 그 칩만 눌린 상태가 되는" 배선을 검증한다 — 클릭 시퀀스 자체는 SSR로 재현할

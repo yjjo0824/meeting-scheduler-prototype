@@ -72,6 +72,10 @@ export function CandidateGroupCard({
           : 'border-border bg-surface-card shadow-card'
       }`}
     >
+      {/* 12C-9: 데스크톱(md 이상)에서는 이 버튼이 가로 1줄 행이 된다 — 라디오 → 배지 →
+          시간 제목 → 참석 인원 → 포기 설명 순. 열 폭 템플릿(ROW_GRID 클래스)이 세 카드에서
+          동일하므로 같은 정보가 같은 가로 위치에 정렬되어 세로로 훑으며 비교할 수 있다.
+          좁은 화면은 현행 세로 쌓기(라디오 왼쪽 + 나머지 col-start-2 스택) 그대로다. */}
       <button
         ref={radioRef}
         type="button"
@@ -81,40 +85,45 @@ export function CandidateGroupCard({
         aria-controls={contentId}
         tabIndex={radioTabIndex}
         onClick={onSelect}
-        className="flex w-full items-start gap-3 text-left outline-none"
+        className="grid w-full grid-cols-[auto_minmax(0,1fr)] items-start gap-x-3 gap-y-1 text-left outline-none md:grid-cols-[1rem_5.5rem_10.5rem_7rem_minmax(0,1fr)] md:items-center md:gap-x-4 md:gap-y-0"
       >
         {/* 시각적 라디오 표시 — aria-checked와 항상 같은 값을 그린다. */}
         <span
           aria-hidden="true"
-          className={`mt-1 inline-block h-4 w-4 shrink-0 rounded-full border-2 ${
+          className={`mt-1 inline-block h-4 w-4 shrink-0 rounded-full border-2 md:mt-0 ${
             selected
               ? 'border-state-selected bg-state-selected shadow-[inset_0_0_0_3px_white]'
               : 'border-border bg-surface'
           }`}
         />
-        <span className="space-y-1">
-          <span className="flex items-center gap-2">
-            <Badge tone={recommended ? 'brand' : 'neutral'}>{recommended ? '추천' : '다른 안'}</Badge>
-            {tentative && <TentativeBadge />}
-          </span>
-          <span className="block text-lg font-bold text-ink-900">{headline}</span>
-          <span className="block text-sm font-medium text-ink-700">{formatAttendSummary(group)}</span>
-          <span className="block text-xs text-ink-500">{formatUnmetConditions(group, people)}</span>
+        <span className="flex items-center gap-2">
+          <Badge tone={recommended ? 'brand' : 'neutral'}>{recommended ? '추천' : '다른 안'}</Badge>
+          {tentative && <TentativeBadge />}
+        </span>
+        <span className="col-start-2 block text-lg font-bold text-ink-900 md:col-auto">{headline}</span>
+        <span className="col-start-2 block text-sm font-medium text-ink-700 md:col-auto">
+          {formatAttendSummary(group)}
+        </span>
+        <span className="col-start-2 block text-xs text-ink-500 md:col-auto">
+          {formatUnmetConditions(group, people)}
         </span>
       </button>
 
       {open ? (
         <div id={contentId} className="mt-3 space-y-3 border-t border-border pt-3">
           {/* 시간 버튼은 라디오그룹의 roving tabindex와 별개로 일반 Tab 순서를 그대로 따른다.
-              칩에서 시간을 바꾸면 부모의 selectedSlot이 바뀌어 위 headline에 즉시 반영된다. */}
+              칩에서 시간을 바꾸면 부모의 selectedSlot이 바뀌어 위 headline에 즉시 반영된다.
+              12C-9: 선택된 행만 이 두 번째 줄이 열린다 — 데스크톱에서도 동일. */}
           <SlotPicker slots={group.slots} selectedSlot={selectedSlot} onSelectSlot={onSelectSlot} />
           {showFreeModeExtras && <AskSpecificallyEntry />}
         </div>
       ) : (
         // 비선택 카드: 인터랙티브 시간 UI를 아예 렌더하지 않는다(키보드 탐색 순서에도 없음) —
-        // 시간이 2개 이상일 때만 일반 텍스트로 선택지를 예고한다(1개면 제목에 이미 있어 생략).
+        // 좁은 화면에서 시간이 2개 이상일 때만 일반 텍스트로 선택지를 예고한다(1개면 제목에 이미
+        // 있어 생략). 데스크톱(md 이상)에서는 행 1줄 유지를 우선해 생략한다(12C-9 — 시간 범위는
+        // 제목이 이미 말해준다).
         group.slots.length > 1 && (
-          <p className="ml-7 mt-3 border-t border-border pt-3 text-xs text-ink-500">
+          <p className="ml-7 mt-3 border-t border-border pt-3 text-xs text-ink-500 md:hidden">
             {group.slots.map((slot) => `${slot.hour}시`).join(' · ')} 중 선택할 수 있어요
           </p>
         )
