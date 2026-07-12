@@ -88,7 +88,7 @@ describe('Confirmation — 제외자가 있는 경우', () => {
   })
 })
 
-describe('Confirmation — 응답 현황으로 돌아가는 보조 동선(12B-4: 투어 중에도 항상 보임)', () => {
+describe('Confirmation — 내비게이션 정리(12C-7: 카드 → 다시 조율하기 → 응답 현황 보기)', () => {
   function confirmedState() {
     let state = buildInitialState()
     state = appReducer(state, {
@@ -100,25 +100,35 @@ describe('Confirmation — 응답 현황으로 돌아가는 보조 동선(12B-4:
     return state
   }
 
-  it('투어가 끝난 뒤(자유 조회)에는 "응답 현황으로" 버튼이 보인다', () => {
+  it('투어가 끝난 뒤(자유 조회)에는 "응답 현황 보기" 버튼이 보인다(화살표 없음)', () => {
     const state = confirmedState()
     const html = render({ ...state, tour: { ...state.tour, active: false } })
-    expect(html).toContain('← 응답 현황으로')
+    expect(html).toContain('응답 현황 보기')
+    expect(html).not.toContain('← 응답 현황으로')
   })
 
-  it('투어 진행 중에도 "응답 현황으로" 버튼이 보인다(12B-4: 뒤로가기 동선 자체는 숨기지 않음)', () => {
+  it('투어 진행 중에도 "응답 현황 보기" 버튼이 보인다(이동 동선 자체는 숨기지 않음)', () => {
     // buildInitialState는 window 없는 환경에서 tour.active=true — 투어 중 확정에 도달한 상태.
     const html = render(confirmedState())
-    expect(html).toContain('← 응답 현황으로')
+    expect(html).toContain('응답 현황 보기')
   })
 
-  it('뒤로가기 버튼은 confirmation-summary 투어 대상 바깥(형제)에 있다 — 투어 중에는 다른 비대상 요소처럼 inert 처리되어 단계를 깨지 않는다', () => {
+  it('배치 순서: 확정 결과 카드 → 다시 조율하기(+보조 설명) → 응답 현황 보기 순으로 세로 정렬된다', () => {
     const html = render(confirmedState())
-    const backIndex = html.indexOf('← 응답 현황으로')
     const summaryIndex = html.indexOf('data-tour-id="confirmation-summary"')
-    expect(backIndex).toBeGreaterThan(-1)
+    const rescheduleIndex = html.indexOf('다시 조율하기')
+    const captionIndex = html.indexOf('확정을 해제하고 후보를 다시 계산해요')
+    const navIndex = html.indexOf('응답 현황 보기')
     expect(summaryIndex).toBeGreaterThan(-1)
-    expect(backIndex).toBeLessThan(summaryIndex)
+    expect(summaryIndex).toBeLessThan(rescheduleIndex)
+    expect(rescheduleIndex).toBeLessThan(captionIndex)
+    expect(captionIndex).toBeLessThan(navIndex)
+  })
+
+  it('"다시 조율하기" 버튼 아래에 상태 변경(확정 해제 + 재계산) 보조 설명이 붙는다', () => {
+    const html = render(confirmedState())
+    expect(html).toContain('다시 조율하기')
+    expect(html).toContain('확정을 해제하고 후보를 다시 계산해요')
   })
 
   it('클릭 핸들러는 history.back()이 아니라 기존 NAVIGATE 액션을 쓴다(리듀서 레벨 회귀 확인)', () => {
