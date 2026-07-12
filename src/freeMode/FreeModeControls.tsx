@@ -37,7 +37,7 @@ export function FreeModeControls() {
         onClick={() => setCollapsed(false)}
         aria-expanded={false}
         aria-controls={PANEL_ID}
-        className="fixed bottom-4 right-4 z-[700] rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-600 shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+        className="fixed bottom-4 right-4 z-[700] rounded-pill border border-border bg-surface px-3 py-2 text-xs font-medium text-ink-700 shadow-card focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
       >
         다른 역할 체험하기
       </button>
@@ -48,27 +48,27 @@ export function FreeModeControls() {
     <div
       id={PANEL_ID}
       // 모바일: 좌우 여백을 둔 하단 시트(화면 너비에서 넘치지 않음). md 이상: 기존 288px 고정 패널.
-      className="fixed inset-x-4 bottom-4 z-[700] space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-lg md:inset-x-auto md:right-4 md:w-72"
+      className="fixed inset-x-4 bottom-4 z-[700] space-y-3 rounded-card border border-border bg-surface p-4 shadow-card md:inset-x-auto md:right-4 md:w-72"
     >
       <div>
-        <p className="text-sm font-semibold text-slate-900">역할을 바꿔 체험해보세요</p>
-        <p className="mt-0.5 text-xs text-slate-400">평가용 기능이며 실제 제품에는 보이지 않아요.</p>
+        <p className="text-sm font-semibold text-ink-900">역할을 바꿔 체험해보세요</p>
+        <p className="mt-0.5 text-xs text-ink-500">평가용 기능이며 실제 제품에는 보이지 않아요.</p>
       </div>
 
-      <div className="space-y-1.5 border-t border-slate-200 pt-3">
-        <p className="text-xs font-semibold text-slate-900">주최자로 체험하기</p>
+      <div className="space-y-1.5 border-t border-border pt-3">
+        <p className="text-xs font-semibold text-ink-900">주최자로 체험하기</p>
         <div className="flex flex-wrap gap-1.5 text-xs">
           <button
             type="button"
             onClick={() => dispatch({ type: 'NAVIGATE', screen: 'host' })}
-            className="rounded border border-slate-300 px-2 py-1 text-slate-600"
+            className="rounded border border-border px-2 py-1 text-ink-700"
           >
             응답 현황 보기
           </button>
           <button
             type="button"
             onClick={() => dispatch({ type: 'NAVIGATE', screen: 'tradeoff' })}
-            className="rounded border border-slate-300 px-2 py-1 text-slate-600"
+            className="rounded border border-border px-2 py-1 text-ink-700"
           >
             후보 시간 비교하기
           </button>
@@ -76,7 +76,7 @@ export function FreeModeControls() {
             <button
               type="button"
               onClick={() => dispatch({ type: 'NAVIGATE', screen: 'confirmation' })}
-              className="rounded border border-slate-300 px-2 py-1 text-slate-600"
+              className="rounded border border-border px-2 py-1 text-ink-700"
             >
               확정 결과 보기
             </button>
@@ -89,13 +89,13 @@ export function FreeModeControls() {
         onSelect={(personId) => dispatch({ type: 'OPEN_PHONE_FRAME', personId })}
       />
 
-      <div className="flex justify-end border-t border-slate-200 pt-3">
+      <div className="flex justify-end border-t border-border pt-3">
         <button
           type="button"
           onClick={() => setCollapsed(true)}
           aria-expanded={true}
           aria-controls={PANEL_ID}
-          className="shrink-0 text-xs text-slate-400 underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+          className="shrink-0 text-xs text-ink-500 underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
         >
           접기
         </button>

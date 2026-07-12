@@ -187,6 +187,11 @@ describe('TradeoffCandidates — 선택 카드 중첩 테두리 제거(12B-3 QA)
     const matches = html.match(/focus-within:ring-2 focus-within:ring-state-selected/g) ?? []
     expect(matches.length).toBe(3)
   })
+
+  it('12C-5: 선택된 카드와 선택된 시간 버튼에 state-selected-soft 배경 틴트가 적용된다(선택 1건 + 시간 1건)', () => {
+    const matches = html.match(/bg-state-selected-soft/g) ?? []
+    expect(matches.length).toBe(2)
+  })
 })
 
 describe('nextRadioIndex — 방향키 순환 이동(12B-4, DOM 없이 순수 함수로 검증)', () => {

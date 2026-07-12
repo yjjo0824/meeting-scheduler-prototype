@@ -88,7 +88,7 @@ export function TourStepCard({
     titleRef.current?.focus()
   }, [title])
 
-  // 카드 자체 크기를 측정해 우측하단→우측상단→좌측하단 순으로 대상과 겹치지 않는 위치를 고른다.
+  // 카드 자체 크기를 측정해 좌측 하단(대상을 가리면 좌측 상단 반전) 위치를 계산한다.
   // 스크롤·리사이즈·카드 내용 변화(예시 채우기 등으로 높이가 바뀜) 시 다시 계산한다.
   useIsomorphicLayoutEffect(() => {
     const card = cardRef.current
@@ -121,18 +121,18 @@ export function TourStepCard({
       role="region"
       aria-labelledby={titleId}
       aria-describedby={bodyId}
-      className="fixed z-[900] w-80 max-w-[calc(100vw-4rem)] rounded-2xl bg-white p-4 shadow-xl"
+      className="fixed z-[900] w-80 max-w-[calc(100vw-4rem)] rounded-card bg-surface p-4 shadow-elevated"
       style={position ? { top: position.top, left: position.left } : { top: MARGIN, left: MARGIN }}
     >
       <div className="flex items-center justify-between">
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-ink-500">
           {stepNumber} / {totalSteps}단계
         </p>
         {/* 건너뛰기 — 누르면 오버레이가 제거되고 체험 기능이 바로 풀린다(Esc와 동일). */}
         <button
           type="button"
           onClick={onSkip}
-          className="px-1 py-1 text-xs text-slate-400 underline hover:text-slate-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+          className="px-1 py-1 text-xs text-ink-500 underline hover:text-ink-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
         >
           투어 건너뛰기
         </button>
@@ -141,31 +141,31 @@ export function TourStepCard({
         id={titleId}
         ref={titleRef}
         tabIndex={-1}
-        className="mt-1 text-sm font-semibold text-slate-900 outline-none"
+        className="mt-1 text-sm font-semibold text-ink-900 outline-none"
       >
         {title}
       </h3>
-      <p id={bodyId} className="mt-1 text-sm text-slate-600">
+      <p id={bodyId} className="mt-1 text-sm text-ink-700">
         {body}
       </p>
       {exampleText && onFillExample && (
-        <div className="mt-3 space-y-2 border-t border-slate-100 pt-3">
-          <p className="text-xs text-slate-400">예시: "{exampleText}"</p>
+        <div className="mt-3 space-y-2 border-t border-border pt-3">
+          <p className="text-xs text-ink-500">예시: "{exampleText}"</p>
           <button
             type="button"
             onClick={onFillExample}
-            className="rounded border border-slate-300 px-2 py-1 text-xs text-slate-600"
+            className="rounded border border-border px-2 py-1 text-xs text-ink-700"
           >
             예시 문장 채우기
           </button>
         </div>
       )}
       {ctaLabel && onCta && (
-        <div className="mt-3 border-t border-slate-100 pt-3">
+        <div className="mt-3 border-t border-border pt-3">
           <button
             type="button"
             onClick={onCta}
-            className="w-full rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white"
+            className="w-full rounded-button bg-action-primary px-3 py-2 text-sm font-medium text-white"
           >
             {ctaLabel}
           </button>

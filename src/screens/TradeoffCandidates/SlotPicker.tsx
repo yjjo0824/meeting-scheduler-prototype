@@ -28,8 +28,8 @@ export function SlotPicker({ slots, selectedSlot, onSelectSlot }: Props) {
           onClick={() => onSelectSlot(slot)}
           className={`h-control-sm rounded-pill border px-3.5 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 ${
             slotEquals(slot, selectedSlot)
-              ? 'border-state-selected bg-state-selected font-semibold text-white'
-              : 'border-border text-ink-700 hover:bg-surface-muted'
+              ? 'border-state-selected bg-state-selected-soft font-semibold text-brand-600'
+              : 'border-border bg-surface text-ink-700 hover:bg-surface-muted'
           }`}
         >
           {slot.day}요일 {slot.hour}시

@@ -59,8 +59,10 @@ export function CandidateGroupCard({
     // 카드 언어(rounded-card·bg-surface-card·shadow-card·p-card-pad)와 선택 색(state-selected)은
     // 전부 공통 토큰 — HostDashboard 카드와 같은 체계다.
     <div
-      className={`rounded-card border bg-surface-card p-card-pad transition-shadow focus-within:ring-2 focus-within:ring-state-selected ${
-        selected ? 'border-state-selected shadow-card ring-1 ring-state-selected' : 'border-border shadow-card'
+      className={`rounded-card border p-card-pad transition-shadow focus-within:ring-2 focus-within:ring-state-selected ${
+        selected
+          ? 'border-state-selected bg-state-selected-soft shadow-card ring-1 ring-state-selected'
+          : 'border-border bg-surface-card shadow-card'
       }`}
     >
       <button
