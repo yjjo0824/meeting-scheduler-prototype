@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { RAW_SEED } from '../../data/loadSeed'
 import { computeSchedule } from '../../engine/computeSchedule'
-import { formatAttendCount, formatConsiderations, formatPositiveLine } from '../candidateCopy'
+import { formatAttendMetric, formatConsiderations, formatPositiveLine, formatPreferenceMetric } from '../candidateCopy'
 import { formatSlotLabel, formatSlotWithDate, formatSlotsRangeLabel } from '../dateDisplay'
 
 const result = computeSchedule(RAW_SEED)
@@ -23,17 +23,23 @@ describe('candidateCopy — 플랫 정보 줄(긍정 정보, 12C-12)', () => {
   })
 })
 
-describe('candidateCopy — 참석 집계(분모 고정, 사람 단위 — SPEC §4.3 1층 원칙)', () => {
-  it('분모는 항상 전체 초대 인원이다: 참석 6/6 · 5/6 · 4/6', () => {
-    expect(formatAttendCount(group1)).toBe('참석 6/6')
-    expect(formatAttendCount(group2)).toBe('참석 5/6')
-    expect(formatAttendCount(group3)).toBe('참석 4/6')
+describe('candidateCopy — 비교 지표(분모 고정, 사람 단위 — SPEC §4.3 1층 원칙)', () => {
+  it('참석 인원 지표: 분모는 항상 전체 초대 인원이다', () => {
+    expect(formatAttendMetric(group1)).toBe('6 / 6명')
+    expect(formatAttendMetric(group2)).toBe('5 / 6명')
+    expect(formatAttendMetric(group3)).toBe('4 / 6명')
+  })
+
+  it('원하는 시간 지표: 제외자가 없으면 전체 분모, 제외자가 있으면 참석자 기준으로 말한다', () => {
+    expect(formatPreferenceMetric(group1)).toBe('5 / 6명 충족')
+    expect(formatPreferenceMetric(group2)).toBe('참석하는 5명 모두 충족')
+    expect(formatPreferenceMetric(group3)).toBe('참석하는 4명 모두 충족')
   })
 })
 
 describe('candidateCopy — 고려할 점(주체 명시, 사용자 언어 — SPEC §4.3 2층 원칙, 12C-12)', () => {
-  it('추천안(서연 선호 미반영): "서연 님이 피하고 싶은 시간 1건과 겹쳐요."', () => {
-    expect(formatConsiderations(group1, people)).toEqual(['서연 님이 피하고 싶은 시간 1건과 겹쳐요.'])
+  it('추천안(서연 선호 미반영): "서연 님이 가급적 피하고 싶은 시간이에요."(1건이면 건수 생략)', () => {
+    expect(formatConsiderations(group1, people)).toEqual(['서연 님이 가급적 피하고 싶은 시간이에요.'])
   })
 
   it('도윤 제외 대안: 참석 구분(선택)과 함께 제외 사실을 말한다', () => {
@@ -46,12 +52,12 @@ describe('candidateCopy — 고려할 점(주체 명시, 사용자 언어 — SP
 
   it('cost 숫자는 어떤 문구에도 노출되지 않는다', () => {
     // group3의 cost(6)는 분모 "6"과 문자가 겹치므로, cost가 고유한 group1(2)·group2(3)로 검증한다.
-    expect(`${formatPositiveLine(group1)} ${formatConsiderations(group1, people).join(' ')}`).not.toContain(
-      String(group1.cost),
-    )
-    expect(`${formatPositiveLine(group2)} ${formatConsiderations(group2, people).join(' ')}`).not.toContain(
-      String(group2.cost),
-    )
+    expect(
+      `${formatPositiveLine(group1)} ${formatPreferenceMetric(group1)} ${formatConsiderations(group1, people).join(' ')}`,
+    ).not.toContain(String(group1.cost))
+    expect(
+      `${formatPositiveLine(group2)} ${formatConsiderations(group2, people).join(' ')}`,
+    ).not.toContain(String(group2.cost))
   })
 })
 

@@ -15,9 +15,18 @@ export function formatPositiveLine(group: CandidateGroup): string {
   return `참석하는 ${group.attendingCount}명이 함께할 수 있어요`
 }
 
-// 참석 집계(비교용, 사람 단위 — SPEC §4.3의 분모 고정 원칙: 분모는 항상 전체 초대 인원).
-export function formatAttendCount(group: CandidateGroup): string {
-  return `참석 ${group.attendingCount}/${group.totalInvited}`
+// 비교 지표 1: 참석 인원 값(사람 단위 — SPEC §4.3의 분모 고정 원칙: 분모는 항상 전체 초대 인원).
+export function formatAttendMetric(group: CandidateGroup): string {
+  return `${group.attendingCount} / ${group.totalInvited}명`
+}
+
+// 비교 지표 2: 원하는 시간 충족 값 — 제외자가 없으면 전체 분모로, 제외자가 있으면 "참석하는
+// n명" 기준으로 말한다(분모가 흔들리는 혼동 방지). 사람 단위 집계(칩 건수 아님).
+export function formatPreferenceMetric(group: CandidateGroup): string {
+  const unmetPeople = new Set(group.prefUnmet).size
+  if (group.excluded.length === 0) return `${group.totalInvited - unmetPeople} / ${group.totalInvited}명 충족`
+  if (unmetPeople === 0) return `참석하는 ${group.attendingCount}명 모두 충족`
+  return `참석하는 ${group.attendingCount}명 중 ${group.attendingCount - unmetPeople}명 충족`
 }
 
 function avoidChipCountForSlot(person: Person, slot: Slot): number {
@@ -37,7 +46,11 @@ export function formatConsiderations(group: CandidateGroup, people: Person[]): s
   for (const id of group.prefUnmet) {
     const person = people.find((p) => p.id === id)
     const count = person ? Math.max(1, avoidChipCountForSlot(person, group.defaultSlot)) : 1
-    items.push(`${personName(id, people)} 님이 피하고 싶은 시간 ${count}건과 겹쳐요.`)
+    items.push(
+      count > 1
+        ? `${personName(id, people)} 님이 가급적 피하고 싶은 시간 ${count}건과 겹쳐요.`
+        : `${personName(id, people)} 님이 가급적 피하고 싶은 시간이에요.`,
+    )
   }
 
   if (group.excluded.length > 0) {

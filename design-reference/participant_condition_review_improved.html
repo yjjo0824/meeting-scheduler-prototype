@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>이렇게 이해했어요 — 조건 검수 UI</title>
+  <style>
+    :root {
+      --blue: #3182f6;
+      --blue-dark: #1b64da;
+      --navy: #191f28;
+      --gray-900: #333d4b;
+      --gray-800: #4e5968;
+      --gray-700: #6b7684;
+      --gray-600: #8b95a1;
+      --gray-500: #adb5bd;
+      --gray-400: #d1d6db;
+      --gray-300: #e5e8eb;
+      --gray-200: #f2f4f6;
+      --gray-100: #f7f8fa;
+      --white: #ffffff;
+      --red: #f04452;
+      --red-soft: #fff0f1;
+      --orange: #e67700;
+      --orange-soft: #fff4e6;
+      --shadow: 0 12px 32px rgba(25, 31, 40, .10);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: #eef1f4;
+      color: var(--navy);
+      font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button { font: inherit; }
+
+    .phone {
+      position: relative;
+      width: min(100%, 390px);
+      min-height: 760px;
+      overflow: hidden;
+      border-radius: 34px;
+      background: var(--white);
+      box-shadow: var(--shadow);
+    }
+
+    .content {
+      padding: 40px 20px 48px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 30px;
+      line-height: 1.3;
+      letter-spacing: -.04em;
+    }
+
+    .description {
+      margin: 10px 0 26px;
+      color: var(--gray-700);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    .condition-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .condition-card {
+      padding: 18px;
+      border: 1px solid var(--gray-300);
+      border-radius: 20px;
+      background: var(--white);
+    }
+
+    .condition-card.editable {
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+
+    .condition-card.editable:focus-within {
+      border-color: #b8d5ff;
+      box-shadow: 0 0 0 3px #e8f3ff;
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .condition-meta {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .condition-state,
+    .calendar-source {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 9px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .condition-state::before,
+    .calendar-source::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+    }
+
+    .condition-state.hard { color: #c92a37; }
+    .condition-state.hard::before { background: var(--red); }
+
+    .condition-state.avoid { color: #b96900; }
+    .condition-state.avoid::before { background: #f59f00; }
+
+    .calendar-source { color: var(--gray-700); }
+    .calendar-source::before {
+      border: 2px solid var(--gray-500);
+      background: transparent;
+    }
+
+    .condition-time {
+      display: block;
+      color: var(--navy);
+      font-size: 21px;
+      line-height: 1.35;
+      letter-spacing: -.025em;
+    }
+
+    .condition-origin {
+      margin-top: 5px;
+      color: var(--gray-600);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .edit-button {
+      flex: 0 0 auto;
+      min-height: 40px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 12px;
+      background: var(--gray-200);
+      color: var(--gray-900);
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .edit-button:hover { background: var(--gray-300); }
+    .edit-button:active { transform: translateY(1px); }
+
+    .locked-note {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      flex: 0 0 auto;
+      margin-top: 4px;
+      color: var(--gray-600);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .locked-note svg { width: 14px; height: 14px; }
+
+    .helper {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 16px;
+      background: var(--gray-100);
+      color: var(--gray-700);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .helper svg {
+      flex: 0 0 auto;
+      width: 17px;
+      height: 17px;
+      margin-top: 1px;
+    }
+
+    .scrim {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      display: none;
+      background: rgba(25, 31, 40, .32);
+    }
+
+    .scrim.open { display: block; }
+
+    .sheet {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 5;
+      padding: 22px 20px 20px;
+      border-radius: 28px 28px 0 0;
+      background: var(--white);
+      transform: translateY(105%);
+      transition: transform .22s ease;
+      box-shadow: 0 -16px 36px rgba(25, 31, 40, .14);
+    }
+
+    .sheet.open { transform: translateY(0); }
+
+    .sheet-handle {
+      width: 40px;
+      height: 4px;
+      margin: -8px auto 18px;
+      border-radius: 999px;
+      background: var(--gray-400);
+    }
+
+    .sheet h2 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.35;
+      letter-spacing: -.03em;
+    }
+
+    .sheet p {
+      margin: 7px 0 18px;
+      color: var(--gray-700);
+      font-size: 14px;
+    }
+
+    .option-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .option {
+      position: relative;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 24px 1fr;
+      gap: 12px;
+      align-items: center;
+      padding: 16px;
+      border: 1px solid var(--gray-300);
+      border-radius: 18px;
+      background: var(--white);
+      color: var(--navy);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .option.selected {
+      border-color: var(--blue);
+      background: #f7fbff;
+      box-shadow: 0 0 0 2px #e8f3ff;
+    }
+
+    .radio {
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      border: 2px solid var(--gray-400);
+      border-radius: 50%;
+    }
+
+    .option.selected .radio { border-color: var(--blue); }
+    .option.selected .radio::after {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--blue);
+    }
+
+    .option strong {
+      display: block;
+      font-size: 16px;
+    }
+
+    .option span {
+      display: block;
+      margin-top: 3px;
+      color: var(--gray-700);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .sheet-actions {
+      display: grid;
+      grid-template-columns: 1fr 1.6fr;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .cancel-button,
+    .save-button {
+      min-height: 52px;
+      border: 0;
+      border-radius: 16px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .cancel-button {
+      background: var(--gray-200);
+      color: var(--gray-900);
+    }
+
+    .save-button {
+      background: var(--blue);
+      color: var(--white);
+    }
+
+    .save-button:hover { background: var(--blue-dark); }
+
+    @media (max-width: 430px) {
+      body { padding: 0; background: var(--white); }
+      .phone { width: 100%; min-height: 100vh; border-radius: 0; box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="phone" aria-label="참여자 조건 확인 화면">
+    <section class="content">
+      <h1>이렇게 이해했어요</h1>
+      <p class="description">조건이 다르면 ‘조건 바꾸기’를 눌러주세요.</p>
+
+      <div class="condition-list" id="conditionList">
+        <article class="condition-card editable" data-id="wed" data-type="hard">
+          <div class="card-top">
+            <div class="condition-meta">
+              <div class="condition-state hard">참석 어려움</div>
+              <strong class="condition-time">수요일 오후 2–5시</strong>
+              <div class="condition-origin">“외부 미팅”에서 이해했어요</div>
+            </div>
+            <button class="edit-button" type="button" data-edit="wed">조건 바꾸기</button>
+          </div>
+        </article>
+
+        <article class="condition-card" data-id="mon" data-type="calendar">
+          <div class="card-top">
+            <div class="condition-meta">
+              <div class="calendar-source">캘린더에서 확인</div>
+              <strong class="condition-time">월요일 오후 5시</strong>
+              <div class="condition-origin">이미 등록된 일정과 같아요</div>
+            </div>
+            <div class="locked-note" aria-label="이 조건은 변경할 수 없음">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M7.5 10V7.5a4.5 4.5 0 0 1 9 0V10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                <rect x="5" y="10" width="14" height="10" rx="3" stroke="currentColor" stroke-width="1.8"/>
+              </svg>
+              변경할 수 없어요
+            </div>
+          </div>
+        </article>
+
+        <article class="condition-card editable" data-id="fri" data-type="avoid">
+          <div class="card-top">
+            <div class="condition-meta">
+              <div class="condition-state avoid">가급적 피함</div>
+              <strong class="condition-time">금요일 오후 5시</strong>
+              <div class="condition-origin">“웬만하면”에서 이해했어요</div>
+            </div>
+            <button class="edit-button" type="button" data-edit="fri">조건 바꾸기</button>
+          </div>
+        </article>
+      </div>
+
+      <div class="helper">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M12 10.5v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          <circle cx="12" cy="7.5" r="1" fill="currentColor"/>
+        </svg>
+        <span>직접 입력한 조건만 바꿀 수 있어요. 캘린더 일정은 위의 ‘캘린더에서 가져왔어요’ 영역에서 정정해요.</span>
+      </div>
+    </section>
+
+    <div class="scrim" id="scrim"></div>
+
+    <section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+      <div class="sheet-handle"></div>
+      <h2 id="sheetTitle">이 시간을 어떻게 반영할까요?</h2>
+      <p id="sheetTime">수요일 오후 2–5시</p>
+
+      <div class="option-list" role="radiogroup" aria-label="조건 종류">
+        <button class="option" type="button" data-value="hard" role="radio" aria-checked="false">
+          <span class="radio" aria-hidden="true"></span>
+          <span><strong>참석 어려움</strong><span>이 시간에는 회의에 참석할 수 없어요.</span></span>
+        </button>
+        <button class="option" type="button" data-value="avoid" role="radio" aria-checked="false">
+          <span class="radio" aria-hidden="true"></span>
+          <span><strong>가급적 피함</strong><span>가능하면 피하고 싶지만, 필요하면 참석할 수 있어요.</span></span>
+        </button>
+      </div>
+
+      <div class="sheet-actions">
+        <button class="cancel-button" id="cancelButton" type="button">취소</button>
+        <button class="save-button" id="saveButton" type="button">변경하기</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const cards = [...document.querySelectorAll('.condition-card.editable')];
+    const editButtons = [...document.querySelectorAll('[data-edit]')];
+    const options = [...document.querySelectorAll('.option')];
+    const sheet = document.getElementById('sheet');
+    const scrim = document.getElementById('scrim');
+    const sheetTime = document.getElementById('sheetTime');
+    const cancelButton = document.getElementById('cancelButton');
+    const saveButton = document.getElementById('saveButton');
+
+    let activeCard = null;
+    let selectedType = null;
+
+    function setSelectedOption(type) {
+      selectedType = type;
+      options.forEach(option => {
+        const isSelected = option.dataset.value === type;
+        option.classList.toggle('selected', isSelected);
+        option.setAttribute('aria-checked', String(isSelected));
+      });
+    }
+
+    function openSheet(card) {
+      activeCard = card;
+      sheetTime.textContent = card.querySelector('.condition-time').textContent;
+      setSelectedOption(card.dataset.type);
+      sheet.classList.add('open');
+      scrim.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeSheet() {
+      sheet.classList.remove('open');
+      scrim.classList.remove('open');
+      document.body.style.overflow = '';
+      activeCard = null;
+      selectedType = null;
+    }
+
+    function saveCondition() {
+      if (!activeCard || !selectedType) return;
+
+      const state = activeCard.querySelector('.condition-state');
+      activeCard.dataset.type = selectedType;
+      state.className = `condition-state ${selectedType}`;
+      state.textContent = selectedType === 'hard' ? '참석 어려움' : '가급적 피함';
+      closeSheet();
+    }
+
+    editButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const card = cards.find(item => item.dataset.id === button.dataset.edit);
+        openSheet(card);
+      });
+    });
+
+    options.forEach(option => {
+      option.addEventListener('click', () => setSelectedOption(option.dataset.value));
+    });
+
+    saveButton.addEventListener('click', saveCondition);
+    cancelButton.addEventListener('click', closeSheet);
+    scrim.addEventListener('click', closeSheet);
+
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && sheet.classList.contains('open')) closeSheet();
+    });
+  </script>
+</body>
+</html>
