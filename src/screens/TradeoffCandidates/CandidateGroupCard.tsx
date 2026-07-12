@@ -2,6 +2,7 @@ import type { Person } from '../../types/domain'
 import type { CandidateGroup, Slot } from '../../types/engine'
 import { formatAttendSummary, formatUnmetConditions } from '../../presentation/candidateCopy'
 import { formatSlotLabel, formatSlotsRangeLabel } from '../../presentation/dateDisplay'
+import { Badge } from '../../shared/Badge'
 import { AskSpecificallyEntry } from './AskSpecificallyEntry'
 import { SlotPicker } from './SlotPicker'
 import { TentativeBadge } from './TentativeBadge'
@@ -55,9 +56,11 @@ export function CandidateGroupCard({
     // 겹쳐 보이는 문제가 있었다(12B-3 QA). focus-within으로 "지금 실제로 키보드 포커스가 이
     // 카드 안에 있다"는 상태만 살짝 더 강조해, selected와 focus가 항상 함께 성립하는 roving
     // tabindex 특성상 하나의 링만 항상 보이면서도 순수 마우스 선택과 키보드 포커스를 구분한다.
+    // 카드 언어(rounded-card·bg-surface-card·shadow-card·p-card-pad)와 선택 색(state-selected)은
+    // 전부 공통 토큰 — HostDashboard 카드와 같은 체계다.
     <div
-      className={`rounded-xl border p-4 transition-shadow focus-within:ring-2 focus-within:ring-slate-900 ${
-        selected ? 'border-slate-900 shadow-sm ring-1 ring-slate-900' : 'border-slate-200'
+      className={`rounded-card border bg-surface-card p-card-pad transition-shadow focus-within:ring-2 focus-within:ring-state-selected ${
+        selected ? 'border-state-selected shadow-card ring-1 ring-state-selected' : 'border-border shadow-card'
       }`}
     >
       <button
@@ -75,28 +78,24 @@ export function CandidateGroupCard({
         <span
           aria-hidden="true"
           className={`mt-1 inline-block h-4 w-4 shrink-0 rounded-full border-2 ${
-            selected ? 'border-slate-900 bg-slate-900 shadow-[inset_0_0_0_3px_white]' : 'border-slate-300 bg-white'
+            selected
+              ? 'border-state-selected bg-state-selected shadow-[inset_0_0_0_3px_white]'
+              : 'border-border bg-surface'
           }`}
         />
         <span className="space-y-1">
           <span className="flex items-center gap-2">
-            <span
-              className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${
-                recommended ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-500'
-              }`}
-            >
-              {recommended ? '추천' : '다른 안'}
-            </span>
+            <Badge tone={recommended ? 'brand' : 'neutral'}>{recommended ? '추천' : '다른 안'}</Badge>
             {tentative && <TentativeBadge />}
           </span>
-          <span className="block text-lg font-semibold text-slate-900">{headline}</span>
-          <span className="block text-sm font-medium text-slate-700">{formatAttendSummary(group)}</span>
-          <span className="block text-xs text-slate-500">{formatUnmetConditions(group, people)}</span>
+          <span className="block text-lg font-bold text-ink-900">{headline}</span>
+          <span className="block text-sm font-medium text-ink-700">{formatAttendSummary(group)}</span>
+          <span className="block text-xs text-ink-500">{formatUnmetConditions(group, people)}</span>
         </span>
       </button>
 
       {open ? (
-        <div id={contentId} className="mt-3 space-y-3 border-t border-slate-100 pt-3">
+        <div id={contentId} className="mt-3 space-y-3 border-t border-border pt-3">
           {/* 시간 버튼은 라디오그룹의 roving tabindex와 별개로 일반 Tab 순서를 그대로 따른다. */}
           <SlotPicker slots={group.slots} selectedSlot={selectedSlot} onSelectSlot={onSelectSlot} />
           {showFreeModeExtras && <AskSpecificallyEntry />}
@@ -106,7 +105,7 @@ export function CandidateGroupCard({
         <button
           type="button"
           onClick={onSelect}
-          className="ml-7 mt-3 rounded border border-slate-300 px-3 py-1.5 text-xs text-slate-600"
+          className="ml-7 mt-3 h-control-sm rounded-chip border border-border px-3 text-xs text-ink-700 hover:bg-surface-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
         >
           시간 선택하기
         </button>

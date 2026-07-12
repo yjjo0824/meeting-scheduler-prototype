@@ -1,5 +1,8 @@
 import type { CandidateGroup, Slot } from '../../types/engine'
 import { formatSlotLabel } from '../../presentation/dateDisplay'
+import { Button } from '../../shared/Button'
+import { Card } from '../../shared/Card'
+import { PageContainer } from '../../shared/PageContainer'
 import { TentativeBadge } from './TentativeBadge'
 
 interface Props {
@@ -16,31 +19,27 @@ export function OneLineRecommendation({ group, tentative, onBack, onConfirm }: P
   const otherSlotsCount = group.slots.length - 1
 
   return (
-    <div className="mx-auto max-w-xl p-4 sm:p-8">
+    <PageContainer width="narrow">
       {/* tradeoff-screen 대상 바깥(형제)에 둔다 — 투어 중에는 다른 비대상 요소처럼 inert
           처리되어, 눌러도 투어 상태를 깨지 않는다(TradeoffCandidates.tsx와 동일한 이유, 12B-4 QA). */}
       <button
         type="button"
         onClick={onBack}
-        className="mb-4 text-sm font-medium text-slate-500 hover:text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+        className="text-sm font-medium text-ink-700 hover:text-ink-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
       >
         ← 응답 현황으로
       </button>
 
-      <div className="relative space-y-3" data-tour-id="tradeoff-screen">
-        {tentative && <TentativeBadge />}
-        <p className="text-base text-slate-900">
-          모두 괜찮은 시간이 있어요. {formatSlotLabel(slot)}, 확정할까요?
-          {otherSlotsCount > 0 && <span className="text-slate-400"> (다른 시간 {otherSlotsCount}개)</span>}
-        </p>
-        <button
-          type="button"
-          onClick={() => onConfirm(slot)}
-          className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
-        >
-          {formatSlotLabel(slot)}로 확정하기
-        </button>
+      <div className="relative" data-tour-id="tradeoff-screen">
+        <Card className="space-y-3">
+          {tentative && <TentativeBadge />}
+          <p className="text-base text-ink-900">
+            모두 괜찮은 시간이 있어요. <span className="font-bold">{formatSlotLabel(slot)}</span>, 확정할까요?
+            {otherSlotsCount > 0 && <span className="text-ink-500"> (다른 시간 {otherSlotsCount}개)</span>}
+          </p>
+          <Button onClick={() => onConfirm(slot)}>{formatSlotLabel(slot)}로 확정하기</Button>
+        </Card>
       </div>
-    </div>
+    </PageContainer>
   )
 }

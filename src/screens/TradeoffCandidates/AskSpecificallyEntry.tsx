@@ -9,7 +9,7 @@ export function AskSpecificallyEntry() {
       type="button"
       disabled={sent}
       onClick={() => setSent(true)}
-      className="text-xs text-slate-400 underline disabled:text-indigo-500 disabled:no-underline"
+      className="px-1 py-1.5 text-xs text-ink-500 underline hover:text-ink-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:text-brand-600 disabled:no-underline"
     >
       {sent ? '요청을 보냈어요' : '참여자에게 다시 확인하기'}
     </button>

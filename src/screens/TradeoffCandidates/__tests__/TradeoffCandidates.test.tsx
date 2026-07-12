@@ -178,13 +178,13 @@ describe('TradeoffCandidates — 선택 카드 중첩 테두리 제거(12B-3 QA)
     }
   })
 
-  it('선택된 카드 하나에만 카드 외곽 선택 테두리(ring-1 ring-slate-900)가 나타난다', () => {
-    const matches = html.match(/ring-1 ring-slate-900/g) ?? []
+  it('선택된 카드 하나에만 카드 외곽 선택 테두리(ring-1 ring-state-selected)가 나타난다', () => {
+    const matches = html.match(/ring-1 ring-state-selected/g) ?? []
     expect(matches.length).toBe(1)
   })
 
   it('카드 컨테이너 3개 모두 focus-within 기반 단일 포커스 링 클래스를 갖는다(선택 링과 같은 자리에 합쳐짐)', () => {
-    const matches = html.match(/focus-within:ring-2 focus-within:ring-slate-900/g) ?? []
+    const matches = html.match(/focus-within:ring-2 focus-within:ring-state-selected/g) ?? []
     expect(matches.length).toBe(3)
   })
 })

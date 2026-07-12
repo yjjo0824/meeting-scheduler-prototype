@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react'
 import { useAppState } from '../../state/AppContext'
 import { formatSlotLabel } from '../../presentation/dateDisplay'
+import { Button } from '../../shared/Button'
+import { PageContainer } from '../../shared/PageContainer'
 import { CandidateGroupCard } from './CandidateGroupCard'
 import { EmptyState } from './EmptyState'
 import { OneLineRecommendation } from './OneLineRecommendation'
@@ -84,7 +86,7 @@ export function TradeoffCandidates() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl p-4 sm:p-8">
+    <PageContainer width="content">
       {/* 보조 뒤로가기 — 투어 중에도 항상 렌더되지만(단계 필수 행동을 가리지 않도록 낮은 위계),
           tradeoff-screen 대상 바깥(형제)에 둬서 투어 중에는 다른 비대상 요소와 마찬가지로
           useTourInert가 자동으로 inert 처리한다 — 클릭해도 투어 상태(tour.active/stepIndex)를
@@ -93,22 +95,22 @@ export function TradeoffCandidates() {
       <button
         type="button"
         onClick={() => dispatch({ type: 'NAVIGATE', screen: 'host' })}
-        className="mb-4 text-sm font-medium text-slate-500 hover:text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+        className="text-sm font-medium text-ink-700 hover:text-ink-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
       >
         ← 응답 현황으로
       </button>
 
-      <div className="relative space-y-6 outline-none" data-tour-id="tradeoff-screen" tabIndex={-1}>
+      <div className="relative space-y-section outline-none" data-tour-id="tradeoff-screen" tabIndex={-1}>
         <div className="space-y-1">
-          <p className="text-xs font-medium text-indigo-600">{statusLine}</p>
-          <h1 className="text-lg font-semibold text-slate-900">비교할 수 있는 후보가 {visibleCount}개 있어요</h1>
-          <p className="text-sm text-slate-500">모두 참석하는 시간과 원하는 시간을 더 지키는 안을 비교해보세요.</p>
+          <p className="text-sm font-bold text-brand-600">{statusLine}</p>
+          <h1 className="text-2xl font-bold text-ink-900">비교할 수 있는 후보가 {visibleCount}개 있어요</h1>
+          <p className="text-sm text-ink-700">모두 참석하는 시간과 원하는 시간을 더 지키는 안을 비교해보세요.</p>
         </div>
 
         {/* 카드 = 비교·선택 전용(카드 내부에 확정 CTA 없음). 확정은 아래 단일 CTA 하나로만 한다.
             roving tabindex: 선택된 카드의 라디오만 tabIndex 0이라 Tab은 그룹당 한 번만 멈춘다 —
             그 안에서는 방향키로 이동·선택한다(네이티브 radiogroup 패턴). */}
-        <div role="radiogroup" aria-label="후보 선택" className="space-y-4" onKeyDown={handleRadiogroupKeyDown}>
+        <div role="radiogroup" aria-label="후보 선택" className="space-y-card-gap" onKeyDown={handleRadiogroupKeyDown}>
           {visibleGroups.map((group, index) => (
             <CandidateGroupCard
               key={group.key}
@@ -135,9 +137,10 @@ export function TradeoffCandidates() {
         </div>
 
         {/* 화면 하단 단일 확정 CTA — 선택한 후보·시간이 바뀌면 문구가 즉시 갱신된다.
-            본문 흐름 안에 두어 콘텐츠를 가리지 않는다(고정 오버레이 아님). */}
-        <button
-          type="button"
+            본문 흐름 안에 두어 콘텐츠를 가리지 않는다(고정 오버레이 아님). 이 화면의 유일한
+            primary — HostDashboard의 primary CTA와 같은 공용 Button 규칙(h-control 등)을 쓴다. */}
+        <Button
+          className="w-full"
           onClick={() =>
             dispatch({
               type: 'CONFIRM_MEETING',
@@ -146,11 +149,10 @@ export function TradeoffCandidates() {
               excluded: selectedGroup.excluded,
             })
           }
-          className="w-full rounded-lg bg-slate-900 px-4 py-3 text-sm font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
         >
           {formatSlotLabel(selectedSlot)}로 확정하기
-        </button>
+        </Button>
       </div>
-    </div>
+    </PageContainer>
   )
 }
