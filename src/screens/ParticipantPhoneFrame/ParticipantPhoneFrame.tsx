@@ -287,8 +287,10 @@ export function ParticipantPhoneFrame() {
           entered ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
         }`}
       >
-        {/* 재조율 알림 배너(12C-12.2) — 입력 상태의 요청 안내(헤더 eyebrow)와 같은 "주최자 이름 +
-            행동" 패턴으로, 주최자의 "다시 조율하기"가 참여자에게 알림으로 도착했음을 표현한다.
+        {/* 폰 상태바 노치 — 순수 장식(12D-1 참고안의 디바이스 느낌), ink-900 토큰. */}
+        <div aria-hidden="true" className="mx-auto -mt-5 mb-3 h-5 w-24 shrink-0 rounded-b-2xl bg-ink-900" />
+        {/* 재조율 알림 배너(12C-12.2) — 헤더의 요청 안내와 같은 "주최자 이름 + 행동" 패턴으로,
+            주최자의 "다시 조율하기"가 참여자에게 알림으로 도착했음을 표현한다.
             이름은 seed에서 파생. 기존 "다시 조율 중" 배지·수정 가능 동작은 그대로다. */}
         {isRescheduling && !justSubmitted && (
           <p className="mb-3 rounded-chip bg-warn-50 px-3 py-2 text-xs font-bold text-warn-600">

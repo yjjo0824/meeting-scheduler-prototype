@@ -12,10 +12,10 @@ interface Props {
 
 export function ChipReviewList({ chips, onToggleType, onDelete }: Props) {
   return (
-    <div className="space-y-2 py-3">
-      <p className="text-sm font-bold text-ink-900">이렇게 이해했어요</p>
-      <p className="text-xs text-ink-500">다른 내용은 눌러서 고칠 수 있어요.</p>
-      <div className="flex flex-wrap gap-2">
+    <section className="space-y-1 py-4">
+      <h3 className="text-lg font-bold tracking-tight text-ink-900">이렇게 이해했어요</h3>
+      <p className="text-xs text-ink-500">다른 내용은 눌러서 고쳐주세요.</p>
+      <div className="mt-2 grid gap-2">
         {chips.map((chip, index) => (
           <ChipItem
             key={`${chip.type}-${chip.day}-${chip.hours.join('_')}-${index}`}
@@ -26,6 +26,6 @@ export function ChipReviewList({ chips, onToggleType, onDelete }: Props) {
         ))}
         {chips.length === 0 && <p className="text-xs text-ink-500">아직 추가한 조건이 없어요</p>}
       </div>
-    </div>
+    </section>
   )
 }

@@ -16,16 +16,16 @@ function render(corrections: Record<string, CalendarCorrection>) {
 
 // haneul().calendar 순서: 월11(채용 인터뷰) · 월13-14(외부 미팅) · 수13(1:1) · 금9(스탠드업) · 금14(마감 리뷰)
 function eventBlocks(html: string): string[] {
-  return html.split('rounded-chip border border-border p-3 text-sm').slice(1)
+  return html.split('rounded-chip border border-border bg-surface p-3').slice(1)
 }
 
 describe('CalendarPrefillList — 항목 1: 이미 적용된 정정의 중복 실행 방지', () => {
-  it('정정이 없는 일정은 헤더가 활성 상태이고 "탭해서 정정" 안내가 보인다', () => {
+  it('정정이 없는 일정은 헤더가 활성 상태이고 "정정하기" 안내가 보인다', () => {
     const html = render({})
     const blocks = eventBlocks(html)
     expect(blocks).toHaveLength(5)
     for (const block of blocks) {
-      expect(block).toContain('탭해서 정정')
+      expect(block).toContain('정정하기')
       expect(block).not.toContain('disabled')
       expect(block).not.toContain('정정됨')
     }
@@ -43,7 +43,7 @@ describe('CalendarPrefillList — 항목 1: 이미 적용된 정정의 중복 �
     // 같은 정정을 다시 실행할 수 있는 옵션 버튼은 더 이상 노출되지 않는다.
     expect(correctedBlock).not.toContain('>이 시간 비어 있어요<')
     expect(correctedBlock).not.toContain('>옮길 수 있어요<')
-    expect(correctedBlock).not.toContain('탭해서 정정')
+    expect(correctedBlock).not.toContain('정정하기')
   })
 
   it('다른 일정(월11)은 여전히 정정 전 상태로 남아있다(하나를 정정해도 나머지에 영향 없음)', () => {
@@ -51,7 +51,7 @@ describe('CalendarPrefillList — 항목 1: 이미 적용된 정정의 중복 �
     const blocks = eventBlocks(html)
     const untouchedBlock = blocks[0] // 채용 인터뷰(월11)
 
-    expect(untouchedBlock).toContain('탭해서 정정')
+    expect(untouchedBlock).toContain('정정하기')
     expect(untouchedBlock).not.toContain('정정됨')
     expect(untouchedBlock).not.toContain('disabled')
   })
