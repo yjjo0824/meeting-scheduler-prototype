@@ -110,9 +110,9 @@ export function TradeoffCandidates() {
             <span>{recalcBannerNames}이 캘린더에 없던 일정을 알려줘서, 추천 시간을 다시 계산했어요.</span>
           </p>
         )}
-        <div className="space-y-1">
+        <div>
           <h1 className="text-2xl font-bold text-ink-900">조건이 다른 안 {visibleCount}개를 찾았어요</h1>
-          <p className="text-sm text-ink-700">
+          <p className="mt-heading-gap text-sm text-ink-700">
             모두의 조건을 다 맞추기는 어려워요. 참석 인원과 원하는 시간 중 무엇을 지킬지 비교해 보세요.
           </p>
         </div>

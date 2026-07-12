@@ -22,15 +22,15 @@ export function SubmittedSummaryView({ person, onEdit, rescheduling = false, onR
   return (
     <div className="py-4">
       {rescheduling ? (
-        <div className="space-y-1.5">
+        <div>
           <Badge tone="warn">다시 조율 중</Badge>
-          <h3 className="text-lg font-bold tracking-tight text-ink-900">이전에 보낸 조건을 다시 확인해주세요</h3>
-          <p className="text-xs text-ink-500">바뀐 내용만 수정하면 돼요.</p>
+          <h3 className="mt-1.5 text-lg font-bold tracking-tight text-ink-900">이전에 보낸 조건을 다시 확인해주세요</h3>
+          <p className="mt-heading-gap text-xs text-ink-500">바뀐 내용만 수정하면 돼요.</p>
         </div>
       ) : (
-        <div className="space-y-1">
+        <div>
           <h3 className="text-lg font-bold tracking-tight text-ink-900">응답을 보냈어요</h3>
-          <p className="text-xs text-ink-500">회의가 확정되기 전까지 언제든 바꿀 수 있어요.</p>
+          <p className="mt-heading-gap text-xs text-ink-500">회의가 확정되기 전까지 언제든 바꿀 수 있어요.</p>
         </div>
       )}
 

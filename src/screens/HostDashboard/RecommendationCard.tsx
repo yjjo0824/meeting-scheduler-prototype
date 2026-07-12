@@ -35,7 +35,7 @@ export function RecommendationCard({ schedule, people, hasResponded, onOpenCandi
             <h3 className="mt-2 text-xl font-bold tracking-tight text-ink-900">
               {candidateCount > 0 ? `조건이 다른 후보 ${candidateCount}개를 찾았어요` : '가능한 시간이 없어요'}
             </h3>
-            <p className="mt-1 text-sm text-ink-500">
+            <p className="mt-heading-gap text-sm text-ink-500">
               {candidateCount > 0
                 ? '참석 인원과 원하는 시간을 비교해 결정해보세요.'
                 : '필수/선택 분류나 조건을 조정해보세요.'}
@@ -64,7 +64,7 @@ export function RecommendationCard({ schedule, people, hasResponded, onOpenCandi
           <h3 className="mt-1 text-xl font-bold tracking-tight text-ink-900">
             {allResponded ? '모두 괜찮은 시간이 있어요' : '현재 가장 좋은 시간이에요'}
           </h3>
-          <p className="mt-1 text-sm text-ink-500">
+          <p className="mt-heading-gap text-sm text-ink-500">
             {allResponded ? '전원의 조건을 반영했어요.' : `${pendingText}의 캘린더 일정만 반영했어요.`}
           </p>
         </div>

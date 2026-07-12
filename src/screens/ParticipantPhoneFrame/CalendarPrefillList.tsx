@@ -88,9 +88,9 @@ export function CalendarPrefillList({ person, corrections, onApplyCorrection, on
   const emptyRanges = collapseEmptyDayRanges(daysWithoutEvents, RAW_SEED.grid.days)
 
   return (
-    <section className="space-y-1 py-4">
+    <section className="py-4">
       <h3 className="text-lg font-bold tracking-tight text-ink-900">캘린더에서 가져왔어요</h3>
-      <p className="text-xs text-ink-500">다른 내용이 있으면 눌러서 알려주세요.</p>
+      <p className="mt-heading-gap text-xs text-ink-500">다른 내용이 있으면 눌러서 알려주세요.</p>
       <div className="mt-2 space-y-2">
         {person.calendar.map((event) => {
           const key = `${event.day}-${event.title}-${event.hours.join('_')}`

@@ -75,6 +75,8 @@
   --spacing-card-pad-sm: 1rem; /* 16px — 좁은 컨텍스트(폰 프레임 내부) 카드 padding */
   --spacing-card-gap: 1rem; /* 16px — 카드 목록 사이 gap */
   --spacing-section: 1.5rem; /* 24px — 페이지 섹션 간 간격 */
+  --spacing-heading-gap: 0.125rem; /* 2px — 섹션 제목과 바로 아래 보조 설명 사이(mt-heading-gap).
+     제목+보조가 한 덩어리로 읽히게 기존 4px에서 한 단계 좁힘(12C-12.5) — 전 화면 공통. */
 
   /* ── component: 콘텐츠 최대 너비(max-w-page / max-w-content / max-w-content-narrow) */
   --container-page: 1400px; /* 대시보드형 넓은 화면 */

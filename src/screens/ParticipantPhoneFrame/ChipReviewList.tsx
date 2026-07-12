@@ -12,9 +12,9 @@ interface Props {
 
 export function ChipReviewList({ chips, onToggleType, onDelete }: Props) {
   return (
-    <section className="space-y-1 py-4">
+    <section className="py-4">
       <h3 className="text-lg font-bold tracking-tight text-ink-900">이렇게 이해했어요</h3>
-      <p className="text-xs text-ink-500">다른 내용은 눌러서 고쳐주세요.</p>
+      <p className="mt-heading-gap text-xs text-ink-500">다른 내용은 눌러서 고쳐주세요.</p>
       <div className="mt-2 grid gap-2">
         {chips.map((chip, index) => (
           <ChipItem

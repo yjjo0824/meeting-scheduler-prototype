@@ -48,7 +48,7 @@ export function PersonDetailPanel({ person, responded, onChangeAttendance, repor
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="text-xl font-bold tracking-tight text-ink-900">{person.name} 님의 시간 조건</h3>
-          <p className="text-sm text-ink-500">
+          <p className="mt-heading-gap text-sm text-ink-500">
             {person.job} · {attendanceLabel(person.attendance)} 참석{!responded && ' · 답변 전'}
           </p>
         </div>
