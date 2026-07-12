@@ -13,6 +13,8 @@ import type { CalendarCorrection } from '../../state/appState.types'
 import type { Chip } from '../../types/domain'
 import { CalendarPrefillList } from './CalendarPrefillList'
 import { ChipReviewList } from './ChipReviewList'
+import { chipTimeLabel } from './ChipItem'
+import { ConditionTypeSheet } from './ConditionTypeSheet'
 import { FreeTextInput } from './FreeTextInput'
 import { LockedResponseView } from './LockedResponseView'
 import { PhoneContextHeader } from './PhoneContextHeader'
@@ -46,13 +48,6 @@ export function buildDraftChips(baseline: Chip[], textChips: Chip[]): TaggedDraf
   return merged
 }
 
-// R3의 확실성 두 단계(불가↔회피)만 탭으로 전환한다 — 병합·조정가능·미분류는 성격이 달라 그대로 둔다.
-function toggleChipType(type: Chip['type']): Chip['type'] {
-  if (type === '불가') return '회피'
-  if (type === '회피') return '불가'
-  return type
-}
-
 export function ParticipantPhoneFrame() {
   const { state, dispatch } = useAppState()
   const personId = state.phoneFrame.viewingPersonId
@@ -78,6 +73,9 @@ export function ParticipantPhoneFrame() {
   // 이 화면에서 방금 제출했는지(체험 맥락에서 완료 상태를 같은 화면에 보여주기 위한 로컬 표식) —
   // 다시 조율 배지·CTA는 "아직 안 보낸" 사람에게만 의미가 있으므로 제출 직후에는 일반 완료 요약을 보여준다.
   const [justSubmitted, setJustSubmitted] = useState(false)
+  // 조건 변경 바텀시트가 열려 있는 칩의 index(displayedTaggedChips 기준). null = 닫힘.
+  // 시트가 열린 동안에는 목록 조작이 스크림에 막히므로 index가 어긋날 일이 없다.
+  const [changeTargetIndex, setChangeTargetIndex] = useState<number | null>(null)
 
   // 세션(참여자 전환 또는 프레임 재오픈) 경계를 렌더 단계에서 동기적으로 감지해 draft를 초기화한다
   // (React 공식 패턴: "Adjusting state when a prop changes"). 이전에는 useEffect에서 초기화했는데,
@@ -94,6 +92,7 @@ export function ParticipantPhoneFrame() {
     setTextChips([])
     setDraftCorrections(state.calendarCorrections[personId ?? ''] ?? {})
     setJustSubmitted(false)
+    setChangeTargetIndex(null)
     if (state.phoneFrame.open) {
       setEditing(!state.hasResponded[personId ?? ''])
     }
@@ -172,11 +171,14 @@ export function ParticipantPhoneFrame() {
   useEffect(() => {
     if (!state.phoneFrame.open) return
     function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') dispatch({ type: 'CLOSE_PHONE_FRAME' })
+      if (e.key !== 'Escape') return
+      // 조건 변경 바텀시트가 열려 있으면 Esc는 시트만 닫는다 — 폰 프레임은 유지.
+      if (changeTargetIndex !== null) setChangeTargetIndex(null)
+      else dispatch({ type: 'CLOSE_PHONE_FRAME' })
     }
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [state.phoneFrame.open, dispatch])
+  }, [state.phoneFrame.open, changeTargetIndex, dispatch])
 
   if (!state.phoneFrame.open || !person) return null
 
@@ -203,10 +205,11 @@ export function ParticipantPhoneFrame() {
   // 칩 수정·삭제는 그 칩이 속한 draft 레이어에만 반영한다 — text 칩을 manual로 승격하지 않는다.
   // (승격하면 이후 자연어를 다시 쓸 때 이전 파싱 결과가 manual에 남아 새 결과와 중복 누적된다.)
   // text 칩에 가한 수정은 자연어를 다시 쓰면 최신 파싱 결과로 함께 교체된다(문장이 text 레이어의 진실).
-  function handleToggleChip(index: number) {
+  // 조건 변경은 type만 바꾼다 — 시간(day/hours)·cue·출처(source)는 그대로 유지된다(전개 후 type만 교체).
+  function handleSetChipType(index: number, type: '불가' | '회피') {
     const target = displayedTaggedChips[index]
-    if (!target) return
-    const updated = { ...target.chip, type: toggleChipType(target.chip.type) }
+    if (!target || target.chip.type === type) return
+    const updated = { ...target.chip, type }
     if (target.origin === 'manual') {
       setManualChips(baselineChips.map((c) => (c === target.chip ? updated : c)))
     } else {
@@ -263,6 +266,12 @@ export function ParticipantPhoneFrame() {
   }
 
   const submitLabel = isRescheduling && !justSubmitted ? '수정한 응답 보내기' : '이대로 응답하기'
+
+  // 바텀시트 대상 칩 — 불가·회피(수정 가능)일 때만 유효하다. 병합·조정가능·미분류에는 애초에
+  // "조건 바꾸기" 버튼이 렌더되지 않으므로 이 가드는 방어선이다.
+  const changeTarget = changeTargetIndex !== null ? (displayedTaggedChips[changeTargetIndex] ?? null) : null
+  const changeTargetType = changeTarget?.chip.type
+  const sheetOpen = changeTargetType === '불가' || changeTargetType === '회피'
 
   // 배경과 패널은 반드시 최상위 형제여야 한다 — 감싸는 wrapper에 position+z-index를 주면 새
   // 스태킹 컨텍스트가 생겨, TourOverlay가 패널에 주입하는 z-index:900이 그 안에 갇혀 버린다
@@ -353,7 +362,11 @@ export function ParticipantPhoneFrame() {
                 }
               />
               <FreeTextInput value={draftRaw} onChange={handleDraftChange} />
-              <ChipReviewList chips={chipsToReview} onToggleType={handleToggleChip} onDelete={handleDeleteChip} />
+              <ChipReviewList
+                chips={chipsToReview}
+                onRequestChange={setChangeTargetIndex}
+                onDelete={handleDeleteChip}
+              />
             </div>
             <div className="space-y-2 border-t border-border pt-3">
               <TrustNotice organizerName={organizerName} />
@@ -364,6 +377,16 @@ export function ParticipantPhoneFrame() {
           </div>
         )}
 
+        {/* 조건 변경 바텀시트 — 폰 프레임(패널) 내부에 뜬다. 선택 즉시 적용 + 닫힘. */}
+        <ConditionTypeSheet
+          open={sheetOpen}
+          timeLabel={changeTarget ? chipTimeLabel(changeTarget.chip) : ''}
+          currentType={changeTargetType === '회피' ? '회피' : '불가'}
+          onSelect={(type) => {
+            if (changeTargetIndex !== null) handleSetChipType(changeTargetIndex, type)
+          }}
+          onClose={() => setChangeTargetIndex(null)}
+        />
       </div>
     </>
   )

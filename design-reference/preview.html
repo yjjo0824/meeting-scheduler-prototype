@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>하늘 님의 시간 조건 — 요일별 구분안</title>
+  <style>
+    :root {
+      --navy: #191f28;
+      --gray-900: #333d4b;
+      --gray-800: #4e5968;
+      --gray-700: #6b7684;
+      --gray-600: #8b95a1;
+      --gray-500: #adb5bd;
+      --gray-400: #d1d6db;
+      --gray-300: #e5e8eb;
+      --gray-200: #f2f4f6;
+      --gray-100: #f7f8fa;
+      --white: #ffffff;
+      --blue: #3182f6;
+      --blue-dark: #1b64da;
+      --blue-soft: #e8f3ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #eef1f4;
+      color: var(--navy);
+      font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button { font: inherit; }
+
+    .preview {
+      width: min(548px, 100%);
+      min-height: 100vh;
+      margin: 0 auto;
+      padding: 28px 22px 44px;
+      background: var(--white);
+    }
+
+    .profile-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .profile-title {
+      margin: 0;
+      font-size: 38px;
+      line-height: 1.22;
+      letter-spacing: -0.045em;
+      font-weight: 800;
+    }
+
+    .profile-meta {
+      margin: 8px 0 0;
+      color: var(--gray-600);
+      font-size: 27px;
+      line-height: 1.35;
+      letter-spacing: -0.025em;
+    }
+
+    .complete-badge,
+    .attendance-value {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 52px;
+      padding: 0 21px;
+      border-radius: 999px;
+      background: var(--gray-100);
+      color: var(--gray-800);
+      font-size: 22px;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+
+    .condition-stack {
+      display: grid;
+      gap: 18px;
+      margin-top: 38px;
+    }
+
+    .source-card {
+      overflow: hidden;
+      border-radius: 32px;
+      background: var(--gray-100);
+    }
+
+    .source-head {
+      padding: 25px 24px 15px;
+    }
+
+    .source-label {
+      display: block;
+      color: var(--gray-600);
+      font-size: 22px;
+      font-weight: 750;
+      letter-spacing: -0.02em;
+    }
+
+    .source-description {
+      margin: 6px 0 0;
+      color: var(--gray-700);
+      font-size: 16px;
+      letter-spacing: -0.015em;
+    }
+
+    .day-list {
+      margin: 0 18px 18px;
+      overflow: hidden;
+      border-radius: 22px;
+      background: var(--white);
+    }
+
+    .day-row {
+      display: grid;
+      grid-template-columns: 92px minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+      padding: 19px 18px;
+    }
+
+    .day-row + .day-row {
+      border-top: 1px solid var(--gray-300);
+    }
+
+    .day-name {
+      padding-top: 1px;
+      color: var(--gray-700);
+      font-size: 17px;
+      font-weight: 750;
+      letter-spacing: -0.02em;
+    }
+
+    .time-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .time-item {
+      color: var(--navy);
+      font-size: 19px;
+      font-weight: 750;
+      letter-spacing: -0.025em;
+    }
+
+    .answer-card .day-row {
+      align-items: center;
+    }
+
+    .answer-content {
+      min-width: 0;
+    }
+
+    .answer-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .movable-badge {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 0 11px;
+      border-radius: 999px;
+      background: var(--blue-soft);
+      color: var(--blue-dark);
+      font-size: 14px;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+
+    .divider {
+      height: 1px;
+      margin: 32px 0 0;
+      background: var(--gray-300);
+    }
+
+    .attendance-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      min-height: 130px;
+      border-bottom: 1px solid var(--gray-300);
+    }
+
+    .attendance-label {
+      color: var(--gray-800);
+      font-size: 25px;
+      font-weight: 600;
+      letter-spacing: -0.025em;
+    }
+
+    .attendance-value {
+      min-height: 68px;
+      padding: 0 27px;
+      color: var(--navy);
+      font-size: 25px;
+      font-weight: 800;
+    }
+
+    .privacy-copy {
+      margin: 25px 0 0;
+      color: var(--gray-600);
+      font-size: 20px;
+      line-height: 1.5;
+      letter-spacing: -0.02em;
+    }
+
+    @media (max-width: 560px) {
+      .preview { padding: 24px 20px 40px; }
+      .profile-title { font-size: clamp(29px, 7.2vw, 38px); }
+      .profile-meta { font-size: clamp(20px, 5.2vw, 27px); }
+      .complete-badge {
+        min-height: 46px;
+        padding: 0 17px;
+        font-size: 18px;
+      }
+      .source-card { border-radius: 26px; }
+      .source-head { padding: 22px 20px 13px; }
+      .source-label { font-size: 19px; }
+      .source-description { font-size: 14px; }
+      .day-list {
+        margin: 0 14px 14px;
+        border-radius: 18px;
+      }
+      .day-row {
+        grid-template-columns: 78px minmax(0, 1fr);
+        gap: 10px;
+        padding: 17px 15px;
+      }
+      .day-name { font-size: 15px; }
+      .time-item { font-size: 17px; }
+      .movable-badge { font-size: 12px; }
+      .attendance-label,
+      .attendance-value { font-size: 21px; }
+      .privacy-copy { font-size: 17px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="preview">
+    <header class="profile-header">
+      <div>
+        <h1 class="profile-title">하늘 님의 시간 조건</h1>
+        <p class="profile-meta">개발 리드 · 필수 참석</p>
+      </div>
+      <span class="complete-badge">답변 완료</span>
+    </header>
+
+    <section class="condition-stack" aria-label="하늘 님의 시간 조건">
+      <article class="source-card">
+        <div class="source-head">
+          <span class="source-label">캘린더에서 확인</span>
+          <p class="source-description">아래 시간에는 참석이 어려워요</p>
+        </div>
+
+        <div class="day-list">
+          <div class="day-row">
+            <div class="day-name">월요일</div>
+            <div class="time-list">
+              <div class="time-item">11-12시</div>
+              <div class="time-item">1-2시</div>
+              <div class="time-item">2-3시</div>
+            </div>
+          </div>
+
+          <div class="day-row">
+            <div class="day-name">수요일</div>
+            <div class="time-list">
+              <div class="time-item">1-2시</div>
+            </div>
+          </div>
+
+          <div class="day-row">
+            <div class="day-name">금요일</div>
+            <div class="time-list">
+              <div class="time-item">9-10시</div>
+              <div class="time-item">2-3시</div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="source-card answer-card">
+        <div class="source-head">
+          <span class="source-label">답변으로 알려줌</span>
+          <p class="source-description">캘린더 일정 중 조정할 수 있는 시간이 있어요</p>
+        </div>
+
+        <div class="day-list">
+          <div class="day-row">
+            <div class="day-name">금요일</div>
+            <div class="answer-content">
+              <div class="answer-line">
+                <div class="time-item">2-3시</div>
+                <span class="movable-badge">옮길 수 있어요</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <div class="divider"></div>
+
+    <section class="attendance-row" aria-label="참석 구분">
+      <span class="attendance-label">참석 구분</span>
+      <span class="attendance-value">필수</span>
+    </section>
+
+    <p class="privacy-copy">
+      주최자에게는 시간 조건만 보여요. 일정 이름, 이유,<br />
+      작성한 원문은 보이지 않아요.
+    </p>
+  </main>
+</body>
+</html>
