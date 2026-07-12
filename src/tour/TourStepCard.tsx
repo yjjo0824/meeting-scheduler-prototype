@@ -38,8 +38,10 @@ function overlaps(a: Position, aSize: Size, b: Position, bSize: Size): boolean {
   return ea.left < eb.right && ea.right > eb.left && ea.top < eb.bottom && ea.bottom > eb.top
 }
 
-// 우측 하단 → 우측 상단 → 좌측 하단 순으로, 대상 rect(여유 GAP 포함)와 겹치지 않는 첫 후보를
-// 고른다. 셋 다 겹치면 마지막(좌측 하단)으로 폴백한다. 순수 함수라 실제 DOM 없이도 테스트 가능.
+// 카드는 좌측 하단 고정이다(12C-5: 좌우 번갈아 등장 제거) — 역할 체험 패널과 "다른 역할
+// 체험하기"/"처음부터 다시 보기" 진입점이 우측 하단에 있으므로 반대쪽에 둔다. 고정 위치가
+// 해당 단계의 하이라이트 대상(여유 GAP 포함)을 가리는 경우에만 좌측 상단으로 상하 반전한다
+// (좌우 이동 금지). 순수 함수라 실제 DOM 없이도 테스트 가능.
 export function chooseCardPosition(
   cardSize: Size,
   targetRect: Rect | null,
@@ -47,19 +49,15 @@ export function chooseCardPosition(
   margin: number = MARGIN,
   gap: number = GAP,
 ): Position {
-  const candidates: Position[] = [
-    { top: viewport.height - margin - cardSize.height, left: viewport.width - margin - cardSize.width }, // 우측 하단
-    { top: margin, left: viewport.width - margin - cardSize.width }, // 우측 상단
-    { top: viewport.height - margin - cardSize.height, left: margin }, // 좌측 하단
-  ]
+  const bottomLeft: Position = { top: viewport.height - margin - cardSize.height, left: margin }
+  const topLeft: Position = { top: margin, left: margin }
 
-  if (!targetRect) return candidates[0]
+  if (!targetRect) return bottomLeft
 
   const inflatedTarget: Position = { top: targetRect.top - gap, left: targetRect.left - gap }
   const inflatedSize: Size = { width: targetRect.width + gap * 2, height: targetRect.height + gap * 2 }
 
-  const free = candidates.find((c) => !overlaps(c, cardSize, inflatedTarget, inflatedSize))
-  return free ?? candidates[candidates.length - 1]
+  return overlaps(bottomLeft, cardSize, inflatedTarget, inflatedSize) ? topLeft : bottomLeft
 }
 
 // SSR(react-dom/server)에서 useLayoutEffect를 쓰면 콘솔 경고가 뜬다(서버에는 레이아웃이 없다) —
