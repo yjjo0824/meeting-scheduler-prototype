@@ -1,9 +1,12 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { RAW_SEED } from '../../data/loadSeed'
 import { slotKey } from '../../engine/slotKey'
 import { parseChips } from '../../parser/ruleBasedParser'
 import { useAppState } from '../../state/AppContext'
 import { applyCalendarCorrections } from '../../state/useSchedule'
+import { useBodyScrollLock } from '../../shared/useBodyScrollLock'
+import { useFocusTrap } from '../../shared/useFocusTrap'
+import { useRestoreFocus } from '../../shared/useRestoreFocus'
 import type { CalendarCorrection } from '../../state/appState.types'
 import type { Chip } from '../../types/domain'
 import { CalendarPrefillList } from './CalendarPrefillList'
@@ -125,6 +128,29 @@ export function ParticipantPhoneFrame() {
 
   const chipsToReview = useMemo(() => displayedTaggedChips.map((entry) => entry.chip), [displayedTaggedChips])
 
+  // dialog 접근성 배선. 최초 포커스 대상은 상태(제출 전/제출 완료/잠금)마다 다르지만, 각 상태의
+  // 실제 진입 버튼/입력에 data-phone-focus-target을 붙여두고 여기서는 쿼리만 한다 — 그래서 이
+  // 함수 자체는 어떤 분기가 렌더됐는지 몰라도 항상 옳은 대상을 찾는다(잠금 상태처럼 그 표식이
+  // 없으면 항상 존재하는 닫기 버튼으로 폴백).
+  const panelRef = useRef<HTMLDivElement>(null)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
+  function getInitialFocus(): HTMLElement | null {
+    return panelRef.current?.querySelector<HTMLElement>('[data-phone-focus-target]') ?? closeButtonRef.current
+  }
+
+  useFocusTrap(panelRef, state.phoneFrame.open, getInitialFocus)
+  useBodyScrollLock(state.phoneFrame.open)
+  useRestoreFocus(state.phoneFrame.open)
+
+  useEffect(() => {
+    if (!state.phoneFrame.open) return
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') dispatch({ type: 'CLOSE_PHONE_FRAME' })
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [state.phoneFrame.open, dispatch])
+
   if (!state.phoneFrame.open || !person) return null
 
   const organizer = RAW_SEED.people.find((p) => p.id === RAW_SEED.meeting.organizer)
@@ -216,9 +242,20 @@ export function ParticipantPhoneFrame() {
   // (TourClickBlocker의 z-800과 전혀 비교되지 않아 클릭이 전부 막히는 버그의 원인이었다).
   return (
     <>
-      <div className="fixed inset-0 z-40 bg-black/40" onClick={() => dispatch({ type: 'CLOSE_PHONE_FRAME' })} />
+      {/* 투어 중에는 배경 클릭으로 닫히지 않는다 — 가이드 흐름이 실수로 끊기지 않게 한다.
+          Esc는 투어 중에도 동작한다(위 handleKeyDown, TourOverlay의 Esc와 별개로 이 다이얼로그만 닫음). */}
       <div
+        className="fixed inset-0 z-40 bg-black/40"
+        onClick={() => {
+          if (!state.tour.active) dispatch({ type: 'CLOSE_PHONE_FRAME' })
+        }}
+      />
+      <div
+        ref={panelRef}
         data-tour-id="phone-frame"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="phone-frame-title"
         className={`fixed left-1/2 top-1/2 z-50 flex h-[85vh] max-h-[720px] w-[380px] max-w-[92vw] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-[2.5rem] border-8 border-slate-900 bg-white p-5 shadow-2xl transition-all duration-300 ${
           entered ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
         }`}
@@ -246,7 +283,10 @@ export function ParticipantPhoneFrame() {
             />
           </div>
         ) : (
-          <>
+          // 투어 2단계 전용 대상 — 폰 프레임 전체(헤더 포함)가 아니라 실제 입력 흐름(자연어
+          // 입력·이해한 조건 목록·제출 CTA)만 감싼다. tabIndex=-1: 투어 종료 시 여기로 포커스를
+          // 되돌릴 수 있게(프로그램적 포커스는 포커스 가능한 요소에만 적용된다).
+          <div data-tour-id="phone-core-input" tabIndex={-1} className="flex min-h-0 flex-1 flex-col outline-none">
             {/* 입력 콘텐츠만 스크롤되고, 신뢰 문구와 제출 CTA는 항상 하단에 보인다(콘텐츠를 가리지 않음). */}
             <div className="min-h-0 flex-1 overflow-y-auto">
               {isRescheduling && !justSubmitted && (
@@ -283,16 +323,18 @@ export function ParticipantPhoneFrame() {
               <button
                 type="button"
                 onClick={handleSubmit}
-                className="w-full rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white"
+                className="w-full rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
               >
                 {submitLabel}
               </button>
               <p className="text-xs text-slate-400">확정 전까지 언제든 수정할 수 있어요</p>
             </div>
-          </>
+          </div>
         )}
 
+        {/* 잠금 상태의 최초 포커스 대상(닫기 또는 신고 버튼 중 닫기를 택함 — 항상 존재해 안정적). */}
         <button
+          ref={closeButtonRef}
           type="button"
           onClick={() => dispatch({ type: 'CLOSE_PHONE_FRAME' })}
           className="mt-3 self-start text-xs text-slate-400"

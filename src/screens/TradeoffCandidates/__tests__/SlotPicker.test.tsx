@@ -29,3 +29,14 @@ describe('SlotPicker — 노출 개수 규칙(R2)', () => {
     expect(html).not.toContain('14시')
   })
 })
+
+describe('SlotPicker — 시간 버튼의 선택 상태(12B-2: aria-pressed)', () => {
+  it('선택된 슬롯 버튼만 aria-pressed=true, 나머지는 false다', () => {
+    const all = slots(4)
+    const html = renderToStaticMarkup(<SlotPicker slots={all} selectedSlot={all[1]} onSelectSlot={() => {}} />)
+    const pressedTrue = html.match(/aria-pressed="true"/g) ?? []
+    const pressedFalse = html.match(/aria-pressed="false"/g) ?? []
+    expect(pressedTrue.length).toBe(1)
+    expect(pressedFalse.length).toBe(3)
+  })
+})

@@ -69,12 +69,28 @@ describe('TOUR_STEPS — 3비트 진행 조건이 실제 액션 시퀀스와 정
     expect(state.tour.active).toBe(false)
   })
 
-  it('마지막 카드 문구는 IMPLEMENTATION_SPEC §3의 지정 문구와 정확히 일치한다', () => {
-    expect(TOUR_STEPS[3].body).toBe('조건을 바꿔보세요 — 후보가 실시간으로 다시 계산됩니다')
+  it('마지막 카드 문구는 12B-2 지정 문구와 정확히 일치하고, CTA가 체험 시작하기다', () => {
+    expect(TOUR_STEPS[3].title).toBe('이제 직접 바꿔볼 수 있어요')
+    expect(TOUR_STEPS[3].body).toBe('조건을 바꾸면 후보가 바로 다시 계산돼요.')
+    expect(TOUR_STEPS[3].ctaLabel).toBe('체험 시작하기')
   })
 
-  it('비트3 카드 문구는 붕괴 원인(캘린더에 없던 일정 발견)을 명시한다', () => {
-    expect(TOUR_STEPS[2].title).toContain('도윤 님의 응답이 도착했어요')
-    expect(TOUR_STEPS[2].body).toContain('캘린더에 없던 일정이 발견되어 추천 시간이 다시 계산됐어요')
+  it('비트3 카드 문구는 새 조건 때문에 추천이 달라졌음을 명시한다', () => {
+    expect(TOUR_STEPS[2].title).toBe('새 조건 때문에 추천이 달라졌어요')
+    expect(TOUR_STEPS[2].body).toContain('모두 참석하는 안과 원하는 시간을 지키는 안을 비교')
+  })
+
+  it('1~3단계에는 ctaLabel이 없다(진짜 사용자 행동으로 진행되는 기존 방식 유지, 가짜 다음 버튼 없음)', () => {
+    expect(TOUR_STEPS[0].ctaLabel).toBeUndefined()
+    expect(TOUR_STEPS[1].ctaLabel).toBeUndefined()
+    expect(TOUR_STEPS[2].ctaLabel).toBeUndefined()
+  })
+
+  it('2단계 대상은 폰 프레임 전체가 아니라 핵심 입력 영역이다', () => {
+    expect(TOUR_STEPS[1].targetId).toBe('phone-core-input')
+  })
+
+  it('4단계 대상은 더 이상 제품 본문의 버튼이 아니라 확정 결과 요약 영역이다', () => {
+    expect(TOUR_STEPS[3].targetId).toBe('confirmation-summary')
   })
 })

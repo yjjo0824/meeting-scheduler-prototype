@@ -49,23 +49,26 @@ describe('Confirmation — IMPLEMENTATION_SPEC §7 필수 표시', () => {
     expect(html).toContain('일정이 바뀌면 지금까지 모은 조건으로 다시 계산할 수 있어요')
   })
 
-  it('가이드 투어 진행 중에는 "직접 사용해보세요" 버튼이 보인다(투어 마지막 단계의 대상)', () => {
-    // buildInitialState는 데스크톱(window 없음)에서 tour.active=true — 투어 중 확정에 도달한 상태.
-    expect(html).toContain('직접 사용해보세요')
-  })
-})
-
-describe('Confirmation — 체험 잠금 해제 CTA는 제품 완료 경험의 일부가 아니다', () => {
-  it('투어가 비활성이면(모바일 시작 등) 자유 모드 해제 전이어도 "직접 사용해보세요" 버튼이 없다', () => {
-    let state = buildInitialState()
-    state = appReducer(state, {
-      type: 'CONFIRM_MEETING',
-      groupKey: 'k',
-      slot: { day: '금', hour: 13 },
-      excluded: [],
-    })
-    const html = render({ ...state, tour: { ...state.tour, active: false } })
+  it('제품 본문에는 "직접 사용해보세요" 버튼이 어떤 투어 상태에서도 남아있지 않다(12B-2: CTA가 투어 카드 안으로 이전됨)', () => {
     expect(html).not.toContain('직접 사용해보세요')
+  })
+
+  it('투어가 비활성이어도(모바일 시작 등) 제품 본문에는 여전히 그 버튼이 없다', () => {
+    const html2 = render({
+      ...appReducer(buildInitialState(), {
+        type: 'CONFIRM_MEETING',
+        groupKey: 'k',
+        slot: { day: '금', hour: 13 },
+        excluded: [],
+      }),
+      tour: { active: false, stepIndex: 3 },
+    })
+    expect(html2).not.toContain('직접 사용해보세요')
+  })
+
+  it('확정 결과 요약 영역이 투어 4단계 대상(data-tour-id)과 프로그램적 포커스가 가능한 tabIndex를 갖는다', () => {
+    expect(html).toContain('data-tour-id="confirmation-summary"')
+    expect(html).toContain('tabindex="-1"')
   })
 })
 
@@ -82,21 +85,6 @@ describe('Confirmation — 제외자가 있는 경우', () => {
 
     expect(html).toContain('이번엔 함께하지 못해요')
     expect(html).toContain('도윤')
-  })
-})
-
-describe('Confirmation — 자유 모드에서는 언락 버튼을 다시 보여주지 않는다', () => {
-  it('freeModeUnlocked가 true면 "직접 사용해보세요" 버튼이 없다', () => {
-    let state = buildInitialState()
-    state = appReducer(state, { type: 'UNLOCK_FREE_MODE' })
-    state = appReducer(state, {
-      type: 'CONFIRM_MEETING',
-      groupKey: 'k',
-      slot: { day: '금', hour: 13 },
-      excluded: [],
-    })
-    const html = render(state)
-    expect(html).not.toContain('직접 사용해보세요')
   })
 })
 

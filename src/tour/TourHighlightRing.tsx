@@ -1,45 +1,8 @@
-import { useEffect, useState } from 'react'
-import { getTourTargetElement } from './TourTargetRegistry'
+import type { Rect } from './useTourTargetRect'
 
-interface Rect {
-  top: number
-  left: number
-  width: number
-  height: number
-}
-
-// getBoundingClientRect 기반 스포트라이트 — 실제 브라우저 레이아웃에서만 정확히 확인 가능하다.
-// resize/scroll/ResizeObserver로 재측정하여 칩 추가·삭제 등 콘텐츠 높이 변화에도 따라간다.
-export function TourHighlightRing({ targetId }: { targetId: string }) {
-  const [rect, setRect] = useState<Rect | null>(null)
-
-  useEffect(() => {
-    function measure() {
-      const el = getTourTargetElement(targetId)
-      if (!el) {
-        setRect(null)
-        return
-      }
-      const r = el.getBoundingClientRect()
-      setRect({ top: r.top, left: r.left, width: r.width, height: r.height })
-    }
-
-    measure()
-    window.addEventListener('resize', measure)
-    window.addEventListener('scroll', measure, true)
-
-    const observer = new ResizeObserver(measure)
-    observer.observe(document.body)
-    const el = getTourTargetElement(targetId)
-    if (el) observer.observe(el)
-
-    return () => {
-      window.removeEventListener('resize', measure)
-      window.removeEventListener('scroll', measure, true)
-      observer.disconnect()
-    }
-  }, [targetId])
-
+// rect는 TourOverlay가 useTourTargetRect로 한 번만 측정해 내려준다 — TourStepCard의 위치
+// 충돌 회피 계산도 같은 측정치를 쓰므로, 여기서 다시 측정하지 않는다(중복 관측자 방지).
+export function TourHighlightRing({ rect }: { rect: Rect | null }) {
   if (!rect) return null
 
   return (

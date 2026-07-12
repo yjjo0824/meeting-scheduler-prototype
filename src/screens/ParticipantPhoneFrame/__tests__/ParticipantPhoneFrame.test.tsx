@@ -262,3 +262,71 @@ describe('buildDraftChips — 기존 응답 보존 + 자연어 교체 시 누적
     expect(buildDraftChips([], parsed).map((t) => t.chip)).toEqual(parsed)
   })
 })
+
+describe('ParticipantPhoneFrame — dialog 접근성 배선(12B-2)', () => {
+  it('role=dialog, aria-modal=true, aria-labelledby가 제목 id를 가리킨다', () => {
+    const opened = appReducer(buildInitialState(), { type: 'OPEN_PHONE_FRAME', personId: 'doyun' })
+    const html = renderToStaticMarkup(
+      <AppProvider initialState={opened}>
+        <ParticipantPhoneFrame />
+      </AppProvider>,
+    )
+    expect(html).toContain('role="dialog"')
+    expect(html).toContain('aria-modal="true"')
+    expect(html).toContain('aria-labelledby="phone-frame-title"')
+    expect(html).toContain('id="phone-frame-title"')
+  })
+
+  it('제출 전(편집 폼) 상태: 자연어 입력에 최초 포커스 표식이 있다', () => {
+    const opened = appReducer(buildInitialState(), { type: 'OPEN_PHONE_FRAME', personId: 'doyun' })
+    const html = renderToStaticMarkup(
+      <AppProvider initialState={opened}>
+        <ParticipantPhoneFrame />
+      </AppProvider>,
+    )
+    const textareaStart = html.indexOf('<textarea')
+    const textareaEnd = html.indexOf('>', textareaStart)
+    expect(html.slice(textareaStart, textareaEnd)).toContain('data-phone-focus-target="true"')
+  })
+
+  it('제출 완료 상태: "응답 수정하기" 버튼에 최초 포커스 표식이 있다(자연어 입력에는 없음)', () => {
+    let state = buildInitialState()
+    state = appReducer(state, { type: 'OPEN_PHONE_FRAME', personId: 'minjun' })
+    const html = renderToStaticMarkup(
+      <AppProvider initialState={state}>
+        <ParticipantPhoneFrame />
+      </AppProvider>,
+    )
+    expect(html).not.toContain('<textarea')
+    expect(html).toContain('data-phone-focus-target="true"')
+    const markerIndex = html.indexOf('data-phone-focus-target="true"')
+    const buttonEnd = html.indexOf('</button>', markerIndex)
+    expect(html.slice(markerIndex, buttonEnd)).toContain('응답 수정하기')
+  })
+
+  it('확정 후(잠금) 상태: 편집 폼에만 있는 포커스 표식이 없고, 닫기 버튼이 항상 존재한다(폴백 대상)', () => {
+    let state = buildInitialState()
+    state = appReducer(state, { type: 'OPEN_PHONE_FRAME', personId: 'seoyeon' })
+    state = appReducer(state, { type: 'CONFIRM_MEETING', groupKey: 'k', slot: { day: '금', hour: 13 }, excluded: [] })
+    const html = renderToStaticMarkup(
+      <AppProvider initialState={state}>
+        <ParticipantPhoneFrame />
+      </AppProvider>,
+    )
+    expect(html).not.toContain('data-phone-focus-target')
+    expect(html).toContain('>닫기<')
+  })
+
+  it('배경 클릭 핸들러는 투어 활성 여부를 확인한다(코드 검토 보완: 클릭 이벤트는 SSR로 재현 불가)', () => {
+    // renderToStaticMarkup은 onClick을 실행하지 않는다 — "투어 중 배경 클릭 무시"는
+    // ParticipantPhoneFrame.tsx의 onClick 핸들러(if (!state.tour.active) ...)로 코드 검토 확인.
+    // 여기서는 배경 div가 실제로 렌더되는지만 구조적으로 확인한다.
+    const opened = appReducer(buildInitialState(), { type: 'OPEN_PHONE_FRAME', personId: 'doyun' })
+    const html = renderToStaticMarkup(
+      <AppProvider initialState={opened}>
+        <ParticipantPhoneFrame />
+      </AppProvider>,
+    )
+    expect(html).toContain('bg-black/40')
+  })
+})

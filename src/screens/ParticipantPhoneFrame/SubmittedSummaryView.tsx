@@ -67,9 +67,11 @@ export function SubmittedSummaryView({ person, onEdit, rescheduling = false, onR
             이 조건 그대로 보내기
           </button>
         )}
+        {/* 다이얼로그가 이 상태로 열릴 때(제출 완료) 최초 포커스가 여기로 온다. */}
         <button
           type="button"
           onClick={onEdit}
+          data-phone-focus-target="true"
           className="rounded border border-slate-300 px-3 py-1.5 text-xs text-slate-600"
         >
           응답 수정하기

@@ -24,7 +24,7 @@ export function OneLineRecommendation({ group, tentative, onConfirm }: Props) {
       <button
         type="button"
         onClick={() => onConfirm(slot)}
-        className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white"
+        className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
       >
         {formatSlotLabel(slot)}로 확정하기
       </button>

@@ -6,12 +6,11 @@ export interface TourStep {
   targetId: string
   title: string
   body: string
-  // 기본은 오른쪽으로 통일한다(카드 배치 일관성). 대상의 실제 CTA가 화면 오른쪽에 있는
-  // 단계(confirmation의 "직접 사용해보세요" 버튼)만 예외적으로 왼쪽에 둔다 — 카드가 CTA를
-  // 가리지 않기 위한 기능적 이유이지 임의의 시각 변경이 아니다.
-  placement: 'left' | 'right'
   // 비트2에서만 채워진다 — seed에서 파생(하드코딩 아님), "예시 문장 채우기" 버튼에 쓰인다.
   exampleRaw?: string
+  // 마지막 단계에만 있다 — 카드 안의 실제 버튼(가짜 "다음" 버튼이 아니라 진짜 UNLOCK_FREE_MODE를
+  // 수행하는 CTA)에 쓰는 라벨. 이 CTA가 투어 종료와 체험 기능 잠금 해제를 함께 담당한다.
+  ctaLabel?: string
   // 현재 단계의 목표가 달성됐는지 — 실제 버튼 클릭이 만든 상태 변화를 감시한다(가짜 "다음" 버튼이 아님).
   isComplete: (state: AppState) => boolean
 }
@@ -22,34 +21,35 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: 'host',
     targetId: 'remind-button',
-    placement: 'right',
-    title: '주최자 뷰에서 시작해요',
-    body: '6명 중 5명이 응답했고, 도윤 님만 아직이에요. 잠정 추천은 확정 일정 기준으로만 계산된 상태예요. [리마인드 보내기]를 눌러보세요.',
+    title: '아직 한 명이 답하지 않았어요',
+    body: '현재 추천은 도윤 님의 캘린더 일정만 반영한 잠정 결과예요. 도윤 님에게 리마인드를 보내보세요.',
     isComplete: (state) => state.phoneFrame.open,
   },
   {
     id: 'phone',
-    targetId: 'phone-frame',
-    placement: 'right',
-    title: '도윤 님이 되어 입력해보세요',
-    body: '캘린더에 없는 일정이나 피하고 싶은 시간을 적어보세요. 시스템이 칩으로 정리해드려요. 다 됐으면 [이대로 응답하기]를 눌러주세요.',
+    // 폰 프레임 전체(헤더 포함)가 아니라 실제 입력 흐름(자연어 입력·이해한 조건 목록·제출 CTA)만
+    // 감싸는 좁은 대상 — ParticipantPhoneFrame.tsx의 전용 data-tour-id.
+    targetId: 'phone-core-input',
+    title: '캘린더에 없는 조건도 받을 수 있어요',
+    body: '말하듯 적으면 시스템이 시간 조건으로 정리해요. 보내기 전에 직접 확인할 수 있어요. 예시를 채운 뒤 응답을 보내보세요.',
     exampleRaw: doyunRaw,
     isComplete: (state) => !state.phoneFrame.open && state.hasResponded.doyun,
   },
   {
     id: 'tradeoff',
     targetId: 'tradeoff-screen',
-    placement: 'right',
-    title: '도윤 님의 응답이 도착했어요',
-    body: '캘린더에 없던 일정이 발견되어 추천 시간이 다시 계산됐어요. 후보 중 하나를 확정해보세요.',
+    title: '새 조건 때문에 추천이 달라졌어요',
+    body: '모두 참석하는 안과 원하는 시간을 지키는 안을 비교할 수 있어요. 후보와 시간을 고른 뒤 확정해보세요.',
     isComplete: (state) => state.confirmedMeeting !== null,
   },
   {
     id: 'confirmation',
-    targetId: 'unlock-free-mode-button',
-    placement: 'left',
-    title: '확정됐어요',
-    body: '조건을 바꿔보세요 — 후보가 실시간으로 다시 계산됩니다',
+    // Confirmation.tsx의 결과 요약 영역(제품 본문의 "직접 사용해보세요" 버튼에는 더 이상
+    // 의존하지 않는다 — 완료 CTA는 이 카드 안의 ctaLabel 버튼으로 옮겨졌다).
+    targetId: 'confirmation-summary',
+    title: '이제 직접 바꿔볼 수 있어요',
+    body: '조건을 바꾸면 후보가 바로 다시 계산돼요.',
+    ctaLabel: '체험 시작하기',
     isComplete: (state) => state.freeModeUnlocked,
   },
 ]

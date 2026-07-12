@@ -16,7 +16,7 @@ export function Button({ variant = 'primary', className = '', type = 'button', .
   return (
     <button
       type={type}
-      className={`transition disabled:pointer-events-none disabled:opacity-40 ${VARIANT_CLASS[variant]} ${className}`}
+      className={`transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:pointer-events-none disabled:opacity-40 ${VARIANT_CLASS[variant]} ${className}`}
       {...rest}
     />
   )

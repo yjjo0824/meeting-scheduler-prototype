@@ -38,12 +38,29 @@ function useTourAutoNavigate() {
   ])
 }
 
+// 모바일에서는 데스크톱 가이드 투어를 제공하지 않는다(buildInitialState가 좁은 화면에서 이미
+// tour.active=false로 시작한다) — 그런데 체험 도구(FreeModeControls)의 잠금 해제는 지금까지
+// UNLOCK_FREE_MODE(투어 마지막 단계) 경로로만 일어났으므로, 모바일에는 잠금을 풀 방법이 아예
+// 없었다. 데스크톱 투어 상태를 억지로 "완료 처리"하지 않고, 모바일 진입 자체를 잠금 해제 조건으로
+// 삼는 최소 분기만 추가한다 — 기존 UNLOCK_FREE_MODE를 그대로 재사용하고(새 액션 없음), 이미
+// 풀려 있으면 아무 것도 하지 않는다.
+function useMobileExperienceUnlock(isNarrow: boolean) {
+  const { state, dispatch } = useAppState()
+
+  useEffect(() => {
+    if (!isNarrow) return
+    if (state.freeModeUnlocked) return
+    dispatch({ type: 'UNLOCK_FREE_MODE' })
+  }, [isNarrow, state.freeModeUnlocked, dispatch])
+}
+
 // export: 테스트가 임의의 state(예: 투어 진행 중)를 AppProvider에 직접 주입해 좁은 화면에서
 // TourOverlay가 숨는지 확인할 수 있게 한다(App은 buildInitialState()로 고정돼 주입 지점이 없다).
 export function AppShell() {
   const { state } = useAppState()
   useTourAutoNavigate()
   const isNarrow = useIsNarrowViewport()
+  useMobileExperienceUnlock(isNarrow)
 
   return (
     <>

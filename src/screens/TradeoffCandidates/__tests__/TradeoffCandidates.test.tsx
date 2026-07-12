@@ -116,3 +116,47 @@ describe('TradeoffCandidates — 빈 상태', () => {
     expect(html).toContain('가능한 시간이 없어요')
   })
 })
+
+describe('TradeoffCandidates — 후보 radiogroup 키보드 접근성(12B-2, roving tabindex)', () => {
+  const state = appReducer(buildInitialState(), {
+    type: 'SUBMIT_RESPONSE',
+    personId: 'doyun',
+    chips: doyun().response.chips,
+  })
+  const html = render(state)
+
+  it('선택된(추천) 카드의 라디오만 tabindex="0"이고 나머지는 "-1"이다(roving tabindex)', () => {
+    const zeroTabIndex = html.match(/tabindex="0"/g) ?? []
+    const negativeTabIndex = html.match(/role="radio"[^>]*tabindex="-1"/g) ?? []
+    // 라디오 버튼 3개 중 정확히 1개만 tabindex=0(선택된 추천 카드), 나머지 2개는 -1.
+    expect(zeroTabIndex.length).toBeGreaterThanOrEqual(1)
+    expect(negativeTabIndex.length).toBe(2)
+  })
+
+  it('펼쳐진(선택된) 카드의 라디오는 aria-expanded="true"이고 접힌 카드는 "false"다', () => {
+    const expandedTrue = html.match(/aria-expanded="true"/g) ?? []
+    const expandedFalse = html.match(/aria-expanded="false"/g) ?? []
+    expect(expandedTrue.length).toBe(1)
+    expect(expandedFalse.length).toBe(2)
+  })
+
+  it('라디오 버튼에 aria-controls가 있고, 그 id를 가진 콘텐츠 영역이 실제로 존재한다(펼쳐진 카드만)', () => {
+    const match = html.match(/aria-controls="(candidate-content-[^"]+)"/)
+    expect(match).not.toBeNull()
+    const contentId = match![1]
+    expect(html).toContain(`id="${contentId}"`)
+  })
+
+  it('시간 선택 버튼에는 선택 상태를 나타내는 aria-pressed가 있다', () => {
+    // 기본 펼침 상태(추천 카드)는 슬롯이 1개뿐이라 선택된 aria-pressed="true" 버튼만 존재한다 —
+    // 여러 슬롯 중 하나만 선택되는 case(false 포함)는 SlotPicker 자체 테스트에서 다룬다.
+    expect(html).toContain('aria-pressed="true"')
+  })
+
+  it('접힌 카드의 내용(시간 목록)은 렌더되지 않아 키보드 탐색 순서에도 없다(대안 카드는 "시간 선택하기"만 노출)', () => {
+    // 추천 카드 1개만 펼쳐진 상태이므로, aria-controls로 연결된 콘텐츠 영역(id="candidate-content-...")은
+    // 정확히 1개만 존재해야 한다 — 접힌 대안 2개는 그 안의 SlotPicker가 DOM에 없다.
+    const contentRegions = html.match(/id="candidate-content-[^"]+"/g) ?? []
+    expect(contentRegions.length).toBe(1)
+  })
+})

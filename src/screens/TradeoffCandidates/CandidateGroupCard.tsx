@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import type { Person } from '../../types/domain'
 import type { CandidateGroup, Slot } from '../../types/engine'
 import { formatAttendSummary, formatUnmetConditions } from '../../presentation/candidateCopy'
@@ -15,6 +14,10 @@ interface Props {
   selected: boolean
   selectedSlot: Slot
   showFreeModeExtras: boolean
+  // roving tabindex(라디오그룹 표준 패턴): 선택된 카드만 0, 나머지는 -1 — Tab은 그룹 전체에서
+  // 선택된 항목 하나만 진입점으로 삼는다. 방향키 이동은 부모(TradeoffCandidates)가 처리한다.
+  radioTabIndex: number
+  radioRef: (el: HTMLButtonElement | null) => void
   onSelect: () => void
   onSelectSlot: (slot: Slot) => void
 }
@@ -32,11 +35,15 @@ export function CandidateGroupCard({
   selected,
   selectedSlot,
   showFreeModeExtras,
+  radioTabIndex,
+  radioRef,
   onSelect,
   onSelectSlot,
 }: Props) {
-  const [expanded, setExpanded] = useState(recommended)
-  const open = recommended || expanded
+  // 펼침은 선택에서 파생한다(별도 로컬 상태 없음) — 클릭이든 방향키든 "선택됨"은 항상 "펼쳐짐"과
+  // 같은 뜻이라, 방향키로 옮겨도 부모가 selected만 갱신하면 펼침이 자동으로 따라온다.
+  const open = recommended || selected
+  const contentId = `candidate-content-${group.key}`
 
   // 대표 시간: 펼친 카드는 지금 선택된 슬롯, 접힌 카드는 그룹 전체 범위("수요일 오후 2–5시")로
   // 접어 보여준다 — 접힌 상태에서도 어떤 시간대의 안인지 비교할 수 있어야 한다.
@@ -49,14 +56,15 @@ export function CandidateGroupCard({
       }`}
     >
       <button
+        ref={radioRef}
         type="button"
         role="radio"
         aria-checked={selected}
-        onClick={() => {
-          onSelect()
-          setExpanded(true)
-        }}
-        className="flex w-full items-start gap-3 text-left"
+        aria-expanded={open}
+        aria-controls={contentId}
+        tabIndex={radioTabIndex}
+        onClick={onSelect}
+        className="flex w-full items-start gap-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
       >
         {/* 시각적 라디오 표시 — aria-checked와 항상 같은 값을 그린다. */}
         <span
@@ -83,17 +91,16 @@ export function CandidateGroupCard({
       </button>
 
       {open ? (
-        <div className="mt-3 space-y-3 border-t border-slate-100 pt-3">
+        <div id={contentId} className="mt-3 space-y-3 border-t border-slate-100 pt-3">
+          {/* 시간 버튼은 라디오그룹의 roving tabindex와 별개로 일반 Tab 순서를 그대로 따른다. */}
           <SlotPicker slots={group.slots} selectedSlot={selectedSlot} onSelectSlot={onSelectSlot} />
           {showFreeModeExtras && <AskSpecificallyEntry />}
         </div>
       ) : (
+        // 접힌 카드의 내용(시간 목록 등)은 아예 렌더되지 않으므로 키보드 탐색 순서에도 없다.
         <button
           type="button"
-          onClick={() => {
-            onSelect()
-            setExpanded(true)
-          }}
+          onClick={onSelect}
           className="ml-7 mt-3 rounded border border-slate-300 px-3 py-1.5 text-xs text-slate-600"
         >
           시간 선택하기

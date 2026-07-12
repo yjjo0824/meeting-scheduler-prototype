@@ -23,8 +23,9 @@ export function SlotPicker({ slots, selectedSlot, onSelectSlot }: Props) {
         <button
           key={`${slot.day}-${slot.hour}`}
           type="button"
+          aria-pressed={slotEquals(slot, selectedSlot)}
           onClick={() => onSelectSlot(slot)}
-          className={`rounded-full border px-3 py-1 text-xs ${
+          className={`rounded-full border px-3 py-1 text-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900 ${
             slotEquals(slot, selectedSlot)
               ? 'border-slate-900 bg-slate-900 text-white'
               : 'border-slate-300 text-slate-600'
