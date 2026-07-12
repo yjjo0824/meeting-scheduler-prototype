@@ -27,10 +27,24 @@ describe('TradeoffCandidates — 응답 후 후보군 3개(seed.expected.candida
   })
   const html = render(state)
 
-  it('헤더: 응답 반영 상태·후보 수·비교 안내가 보인다(12C-12 카피)', () => {
-    expect(html).toContain('도윤 님의 응답을 반영했어요')
+  it('헤더: 후보 수·비교 안내가 보인다(12C-12 카피)', () => {
     expect(html).toContain('조건이 다른 안 3개를 찾았어요')
     expect(html).toContain('참석 인원과 반영하지 못한 조건을 비교해보세요.')
+  })
+
+  it('재계산 배너(12C-12): 미응답자였던 도윤의 응답 제출 직후에는 헤더 위에 안내 배너가 보인다', () => {
+    const bannerIndex = html.indexOf('도윤 님이 캘린더에 없던 일정을 알려줘서, 추천 시간을 다시 계산했어요.')
+    const headerIndex = html.indexOf('조건이 다른 안 3개를 찾았어요')
+    expect(bannerIndex).toBeGreaterThan(-1)
+    expect(bannerIndex).toBeLessThan(headerIndex)
+  })
+
+  it('재계산 배너: 자유 모드(칩 수정·필수/선택 변경 재계산이 일어나는 유일한 컨텍스트)에서는 표시하지 않는다', () => {
+    const freeMode = appReducer(state, { type: 'UNLOCK_FREE_MODE' })
+    const freeModeHtml = render(freeMode)
+    expect(freeModeHtml).not.toContain('캘린더에 없던 일정을 알려줘서')
+    // 헤더 자체는 그대로 남는다.
+    expect(freeModeHtml).toContain('조건이 다른 안 3개를 찾았어요')
   })
 
   it('추천안(선택 상태): 날짜 포함 제목 · 긍정 정보 줄 · 고려할 점(주체 명시)이 순서대로 보인다', () => {

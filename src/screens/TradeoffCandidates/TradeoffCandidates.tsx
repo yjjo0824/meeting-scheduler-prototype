@@ -57,16 +57,16 @@ export function TradeoffCandidates() {
   const selectedGroup = visibleGroups.find((g) => g.key === selectedGroupKey) ?? topGroup
   const selectedSlot = state.selectedSlotByGroup[selectedGroup.key] ?? selectedGroup.defaultSlot
 
-  // 상태 문구: 데모 시작 시점에 미응답이었다가 응답한 사람(seed에서 파생 — 도윤)이 있으면 그 사람의
-  // 응답이 방금 반영됐음을 말해준다. 아니면 취합 현황으로 일반화한다(하드코딩 금지).
+  // 재계산 배너(12C-12): 미응답자였던 사람(seed에서 파생 — 도윤)의 응답이 제출되어 재계산된
+  // 직후에만 보여준다. 이름은 해당 응답자에서 파생(하드코딩 금지). 자유 모드(freeModeUnlocked)
+  // 에서는 표시하지 않는다 — 칩 수정·필수/선택 변경 재계산은 전부 자유 모드에서만 일어나므로,
+  // 이 게이트 하나가 "그런 재계산에는 표시하지 않음" 규칙을 상태 추가 없이 보장한다(투어가
+  // 끝나면 과거 이벤트가 된 배너도 자연히 내려간다 — "직후에만"과 정합).
   const newlyResponded = state.people.filter(
     (p) => p.responded_at_demo_start === false && state.hasResponded[p.id],
   )
-  const respondedCount = state.people.filter((p) => state.hasResponded[p.id]).length
-  const statusLine =
-    newlyResponded.length > 0 && !anyPending
-      ? `${newlyResponded.map((p) => `${p.name} 님`).join(', ')}의 응답을 반영했어요`
-      : `${state.people.length}명 중 ${respondedCount}명의 응답을 반영했어요`
+  const showRecalcBanner = newlyResponded.length > 0 && !anyPending && !state.freeModeUnlocked
+  const recalcBannerNames = newlyResponded.map((p) => `${p.name} 님`).join(', ')
 
   // 방향키(위/아래 또는 좌/우 — 어느 축이든 동일하게 다음/이전으로 다룬다) 이동: 네이티브
   // radiogroup처럼 이동이 곧 선택 변경이다. 그룹 안 시간 선택 시 그 후보가 자동 선택되는 기존
@@ -101,8 +101,12 @@ export function TradeoffCandidates() {
       </button>
 
       <div className="relative space-y-section outline-none" data-tour-id="tradeoff-screen" tabIndex={-1}>
+        {showRecalcBanner && (
+          <p className="rounded-chip bg-brand-50 px-3 py-2.5 text-sm font-medium text-brand-600">
+            {recalcBannerNames}이 캘린더에 없던 일정을 알려줘서, 추천 시간을 다시 계산했어요.
+          </p>
+        )}
         <div className="space-y-1">
-          <p className="text-sm font-bold text-brand-600">{statusLine}</p>
           <h1 className="text-2xl font-bold text-ink-900">조건이 다른 안 {visibleCount}개를 찾았어요</h1>
           <p className="text-sm text-ink-700">참석 인원과 반영하지 못한 조건을 비교해보세요.</p>
         </div>
