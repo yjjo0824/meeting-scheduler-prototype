@@ -76,13 +76,17 @@ export function PersonNameCell({
 // R7: 응답 전 사람은 캘린더만 알려진 상태(응답 칩은 아직 미반영)로 지도를 그린다.
 // R4: 지도 셀은 시간·성격만 나타내고 일정 제목·사유는 어디에도 담지 않는다.
 // aspect-square로 너비=높이를 강제해 모든 시간 셀의 크기가 동일하게 유지된다.
+// 셀 사이 간격은 border-spacing이 아니라 td 자체의 p-0.5로 만든다 — 분리 보더 모델에서
+// border-spacing의 틈에는 행 배경(tr)이 칠해지지 않아, 선택된 행의 배경이 셀마다 끊긴
+// 줄무늬로 보이는 문제가 있었다(12C-6). 셀이 서로 맞닿고 간격이 셀 내부 여백이 되면
+// 행 배경이 이름 영역부터 마지막 슬롯까지 끊김 없이 이어진다.
 export function SlotCell({ person, day, hour, responded, sets }: { person: Person; day: Day; hour: number; responded: boolean; sets: ConditionSets }) {
   const key = slotKey(day, hour)
   const state = classifySlot(person.id, key, sets)
   const isUnknown = !responded && state === 'available'
   const label = isUnknown ? '답변 전 · 현재 참석 가능으로 계산' : SLOT_LABEL[state]
   return (
-    <td className="align-middle">
+    <td className="p-0.5 align-middle">
       <span
         className={`block aspect-square min-w-[12px] rounded border ${SLOT_STYLE[state]} ${
           isUnknown ? 'border-dashed' : ''
@@ -98,7 +102,9 @@ export function SlotCell({ person, day, hour, responded, sets }: { person: Perso
 // overflow-x-auto가 표 내부만 가로 스크롤시키고, 페이지 전체는 스크롤되지 않는다.
 function FullWeekMap({ people, grid, sets, hasResponded, selectedPersonId, onSelectPerson, reportedByPersonId }: RowProps & { grid: Grid; sets: ConditionSets }) {
   return (
-    <table className="w-full min-w-[760px] border-separate border-spacing-1">
+    // border-spacing-0: 셀 간격은 SlotCell의 p-0.5가 담당한다 — 선택된 행 배경(tr)이 틈 없이
+    // 이어지게 하기 위함(위 SlotCell 주석 참조).
+    <table className="w-full min-w-[760px] border-separate border-spacing-0">
       <thead>
         <tr>
           <th className="w-32" />
@@ -124,7 +130,9 @@ function FullWeekMap({ people, grid, sets, hasResponded, selectedPersonId, onSel
           const responded = hasResponded[person.id]
           const selected = person.id === selectedPersonId
           return (
-            <tr key={person.id} className={selected ? 'bg-brand-50' : undefined}>
+            // 선택 배경은 tr(행 컨테이너) 한 번만 칠한다 — 셀 개별 배경 없이, 이름·직무 영역부터
+            // 마지막 슬롯까지 연속된 한 장의 배경으로 보인다. 슬롯 상태 색은 그 위의 span이 그린다.
+            <tr key={person.id} className={selected ? 'bg-state-selected-soft' : undefined}>
               <PersonNameCell
                 person={person}
                 responded={responded}

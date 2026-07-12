@@ -86,9 +86,15 @@ describe('ConditionMap — 조건 지도(R4/R7 준수)', () => {
     for (const match of cellMatches) expect(match).toContain('min-w-[12px]')
   })
 
-  it('선택된 참여자의 행에 강조 배경이 적용된다', () => {
+  it('선택된 참여자의 행에 강조 배경이 tr(행 컨테이너) 레벨에 한 번만 적용된다(12C-6: 셀 단위 줄무늬 금지)', () => {
     const html = render('haneul')
-    expect(html).toContain('bg-brand-50')
+    // 배경은 tr에 한 번 — 셀마다 칠하지 않는다.
+    const rowMatches = html.match(/<tr class="bg-state-selected-soft"/g) ?? []
+    expect(rowMatches.length).toBe(1)
+    // 셀 사이 간격은 border-spacing이 아니라 셀 내부 여백(p-0.5)이 만든다 — spacing 틈에는
+    // 행 배경이 칠해지지 않아 줄무늬가 생기던 원인을 구조적으로 확인한다.
+    expect(html).toContain('border-spacing-0')
+    expect(html).not.toContain('border-spacing-1')
   })
 
   it('도윤의 응답 칩(회피/불가)에서 나온 사유·원문은 어디에도 없다(R4)', () => {

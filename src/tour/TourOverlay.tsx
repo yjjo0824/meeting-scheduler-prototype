@@ -51,9 +51,11 @@ export function TourOverlay() {
 
   if (!state.tour.active || !step) return null
 
-  // 폰 프레임이 떠 있는 동안에는 프레임 자체의 딤 한 겹만 남긴다 — 투어 딤이 그 위에 겹치면
-  // 배경이 이중으로 어두워진다(12C-5 QA). 링(흰 외곽선)은 유지된다.
-  const dim = TOUR_DIM_ENABLED && !state.phoneFrame.open
+  // 단계별 딤·링 설정(tourSteps.ts) — IMPLEMENTATION_SPEC §3: 필요한 곳에만 최소로 쓴다.
+  // 폰 프레임이 떠 있는 동안에는 어떤 설정이든 투어 딤을 얹지 않는다(프레임 자체 딤 한 겹만 —
+  // 12C-5 QA의 이중 딤 방지를 설정과 무관한 안전망으로 유지).
+  const dim = TOUR_DIM_ENABLED && step.dim && !state.phoneFrame.open
+  const ring = step.ring
 
   return (
     <>
@@ -62,7 +64,7 @@ export function TourOverlay() {
           pointer-events를 받지 않으므로(시각 전용) 이 z-index 승격도 순수하게 "딤 위에 밝게 보이기"
           위한 것이다 — 클릭은 어디서든 항상 가능하다(IMPLEMENTATION_SPEC §3). */}
       <style>{`[data-tour-id="${step.targetId}"] { z-index: 900 !important; }`}</style>
-      <TourHighlightRing rect={rect} dim={dim} />
+      {(dim || ring) && <TourHighlightRing rect={rect} dim={dim} ring={ring} />}
       <TourStepCard
         title={step.title}
         body={step.body}

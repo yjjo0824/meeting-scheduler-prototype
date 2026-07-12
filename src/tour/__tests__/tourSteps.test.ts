@@ -100,4 +100,13 @@ describe('TOUR_STEPS — 3비트 진행 조건이 실제 액션 시퀀스와 정
   it('4단계 대상은 더 이상 제품 본문의 버튼이 아니라 확정 결과 요약 영역이다', () => {
     expect(TOUR_STEPS[3].targetId).toBe('confirmation-summary')
   })
+
+  it('12C-6: 딤·링은 1단계(대시보드)에만 켜져 있고 2~4단계는 꺼져 있다(플래그로 되살릴 수 있는 설정 구조)', () => {
+    expect(TOUR_STEPS[0].dim).toBe(true)
+    expect(TOUR_STEPS[0].ring).toBe(true)
+    for (const step of TOUR_STEPS.slice(1)) {
+      expect(step.dim).toBe(false)
+      expect(step.ring).toBe(false)
+    }
+  })
 })

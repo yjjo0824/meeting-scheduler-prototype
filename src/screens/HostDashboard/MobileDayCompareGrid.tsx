@@ -18,7 +18,8 @@ interface Props {
 export function MobileDayCompareGrid({ day, hours, people, hasResponded, sets, onSelectPerson }: Props) {
   return (
     <div className="overflow-x-auto rounded-card bg-surface p-3 shadow-card">
-      <table className="w-full border-separate border-spacing-1">
+      {/* border-spacing-0: 셀 간격은 공유하는 SlotCell의 p-0.5가 담당한다(ConditionMap과 동일 규칙). */}
+      <table className="w-full border-separate border-spacing-0">
         <thead>
           <tr>
             <th className="w-24" />
