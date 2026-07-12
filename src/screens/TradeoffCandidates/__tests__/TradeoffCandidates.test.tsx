@@ -1,8 +1,10 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { RAW_SEED } from '../../../data/loadSeed'
+import { computeSchedule } from '../../../engine/computeSchedule'
 import { AppProvider } from '../../../state/AppContext'
 import { appReducer, buildInitialState } from '../../../state/appReducer'
+import { CandidateGroupCard } from '../CandidateGroupCard'
 import { TradeoffCandidates, nextRadioIndex } from '../TradeoffCandidates'
 
 function render(initialState: ReturnType<typeof buildInitialState>): string {
@@ -38,18 +40,26 @@ describe('TradeoffCandidates — 응답 후 후보군 3개(seed.expected.candida
     expect(html).toContain('서연 님이 피하고 싶은 시간이에요.')
   })
 
-  it('대안 1(접힌 상태): 수요일 오후 2–5시 · 5 / 6명 참석 · 도윤 제외와 나머지 조건 충족이 보인다', () => {
+  it('대안 1(비선택 상태): 수요일 오후 2–5시 · 5 / 6명 참석 · 도윤 제외와 나머지 조건 충족이 보인다', () => {
     expect(html).toContain('다른 안')
     expect(html).toContain('수요일 오후 2–5시')
     expect(html).toContain('5 / 6명 참석')
     expect(html).toContain('도윤 님은 참석하지 않아요. 나머지 5명의 원하는 시간은 모두 지켜요.')
-    expect(html).toContain('시간 선택하기')
+    // 시간이 2개 이상인 비선택 카드는 일반 텍스트로 선택지를 예고한다(12C-8: 점진적 노출).
+    expect(html).toContain('14시 · 15시 · 16시 · 17시 중 선택할 수 있어요')
   })
 
-  it('대안 2(접힌 상태): 월요일 오후 5시 · 4 / 6명 참석 · 도윤·수아 제외가 드러난다', () => {
+  it('대안 2(비선택 상태): 월요일 오후 5시 · 4 / 6명 참석 · 도윤·수아 제외가 드러난다 — 시간 1개라 예고 텍스트 없음', () => {
     expect(html).toContain('월요일 오후 5시')
     expect(html).toContain('4 / 6명 참석')
     expect(html).toContain('도윤 님과 수아 님은 참석하지 않아요.')
+    // 월17 단일 슬롯 그룹: 시간이 제목에 이미 있으므로 "…중 선택할 수 있어요" 텍스트를 생략한다 —
+    // 예고 텍스트는 다중 슬롯 그룹(수14~17) 한 곳에만 나타난다.
+    const previews = html.match(/중 선택할 수 있어요/g) ?? []
+    expect(previews.length).toBe(1)
+    // 월요일 카드 블록(마지막 카드) 안에는 예고 텍스트가 없다.
+    const monCardStart = html.indexOf('월요일 오후 5시')
+    expect(html.slice(monCardStart)).not.toContain('중 선택할 수 있어요')
   })
 
   it('확정 CTA는 화면 하단에 하나뿐이고, 최초 선택(추천·기본 시간)을 문구에 담는다', () => {
@@ -58,7 +68,7 @@ describe('TradeoffCandidates — 응답 후 후보군 3개(seed.expected.candida
     expect(html).toContain('금요일 오후 1시로 확정하기')
     // CTA는 후보 카드(radiogroup) 바깥, 그 뒤(하단)에 있다 — 카드 내부에는 확정 CTA가 없다.
     const radiogroupStart = html.indexOf('role="radiogroup"')
-    const radiogroupEnd = html.lastIndexOf('시간 선택하기')
+    const radiogroupEnd = html.lastIndexOf('중 선택할 수 있어요')
     const ctaIndex = html.indexOf('로 확정하기')
     expect(radiogroupStart).toBeGreaterThan(-1)
     expect(ctaIndex).toBeGreaterThan(radiogroupEnd)
@@ -153,11 +163,16 @@ describe('TradeoffCandidates — 후보 radiogroup 키보드 접근성(12B-2, ro
     expect(html).toContain('aria-pressed="true"')
   })
 
-  it('접힌 카드의 내용(시간 목록)은 렌더되지 않아 키보드 탐색 순서에도 없다(대안 카드는 "시간 선택하기"만 노출)', () => {
-    // 추천 카드 1개만 펼쳐진 상태이므로, aria-controls로 연결된 콘텐츠 영역(id="candidate-content-...")은
-    // 정확히 1개만 존재해야 한다 — 접힌 대안 2개는 그 안의 SlotPicker가 DOM에 없다.
+  it('비선택 카드의 시간 선택 UI(버튼)는 렌더되지 않아 키보드 탐색 순서에도 없다', () => {
+    // 선택된(추천) 카드 1개만 칩을 펼친 상태이므로, aria-controls로 연결된 콘텐츠 영역
+    // (id="candidate-content-...")은 정확히 1개만 존재해야 한다.
     const contentRegions = html.match(/id="candidate-content-[^"]+"/g) ?? []
     expect(contentRegions.length).toBe(1)
+    // 시간 버튼(aria-pressed)은 선택된 카드의 것 하나뿐 — 비선택 카드에는 시간 버튼이 없다.
+    const pressedButtons = html.match(/aria-pressed/g) ?? []
+    expect(pressedButtons.length).toBe(1)
+    // 12C-8 이전의 "시간 선택하기" 접힘 버튼도 더 이상 없다(텍스트 예고로 대체).
+    expect(html).not.toContain('시간 선택하기')
   })
 })
 
@@ -191,6 +206,56 @@ describe('TradeoffCandidates — 선택 카드 중첩 테두리 제거(12B-3 QA)
   it('12C-5: 선택된 카드와 선택된 시간 버튼에 state-selected-soft 배경 틴트가 적용된다(선택 1건 + 시간 1건)', () => {
     const matches = html.match(/bg-state-selected-soft/g) ?? []
     expect(matches.length).toBe(2)
+  })
+})
+
+describe('CandidateGroupCard — 12C-8: 선택된 카드의 칩이 곧 확정 대상 시간이다', () => {
+  // 수14~17 대안 그룹(도윤 제외)을 실제 엔진 결과에서 가져와, "칩으로 고른 시간이 카드 제목에
+  // 즉시 반영되고 그 칩만 눌린 상태가 되는" 배선을 검증한다 — 클릭 시퀀스 자체는 SSR로 재현할
+  // 수 없으므로(프로젝트 공통 한계), 클릭의 결과 상태(selectedSlot prop 변화)를 직접 주입한다.
+  // 실제 클릭 → SELECT_SLOT 디스패치 → selectedSlotByGroup 갱신은 appReducer 테스트가,
+  // 확정 CTA가 같은 selectedSlot을 쓰는 것은 위 CTA 테스트가 커버한다.
+  function altGroup() {
+    const schedule = computeSchedule(RAW_SEED, RAW_SEED.people)
+    const group = schedule.groups.find((g) => g.slots.length > 1)!
+    expect(group.defaultSlot).toEqual({ day: '수', hour: 14 }) // 기본 선택 = 그룹 내 최이른 슬롯(엔진 규칙)
+    return group
+  }
+
+  function renderCard(selectedSlot: { day: '수'; hour: number }) {
+    return renderToStaticMarkup(
+      <CandidateGroupCard
+        group={altGroup()}
+        people={RAW_SEED.people}
+        recommended={false}
+        tentative={false}
+        selected={true}
+        selectedSlot={selectedSlot}
+        showFreeModeExtras={false}
+        radioTabIndex={0}
+        radioRef={() => {}}
+        onSelect={() => {}}
+        onSelectSlot={() => {}}
+      />,
+    )
+  }
+
+  it('칩에서 다른 시간(수15)을 고른 상태면 카드 제목이 그 시간으로 바뀌고 그 칩만 눌린 상태다', () => {
+    const html = renderCard({ day: '수', hour: 15 })
+    expect(html).toContain('수요일 오후 3시')
+    const pressed = html.match(/aria-pressed="true"/g) ?? []
+    expect(pressed.length).toBe(1)
+    const pressedIndex = html.indexOf('aria-pressed="true"')
+    const buttonEnd = html.indexOf('</button>', pressedIndex)
+    expect(html.slice(pressedIndex, buttonEnd)).toContain('수요일 15시')
+  })
+
+  it('기본 선택(수14) 상태면 제목·눌린 칩이 모두 기본 슬롯을 가리킨다', () => {
+    const html = renderCard({ day: '수', hour: 14 })
+    expect(html).toContain('수요일 오후 2시')
+    const pressedIndex = html.indexOf('aria-pressed="true"')
+    const buttonEnd = html.indexOf('</button>', pressedIndex)
+    expect(html.slice(pressedIndex, buttonEnd)).toContain('수요일 14시')
   })
 })
 
