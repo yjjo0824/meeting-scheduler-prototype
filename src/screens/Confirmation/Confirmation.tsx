@@ -14,12 +14,12 @@ export function Confirmation() {
   if (!confirmed) return null
 
   return (
-    <div className="mx-auto max-w-xl space-y-5 p-8">
+    <div className="mx-auto max-w-xl space-y-5 p-4 sm:p-8">
       <ResultSummary meeting={RAW_SEED.meeting} slot={confirmed.slot} />
       <AttendeeList people={state.people} excludedIds={confirmed.excluded} />
       <CalendarRegisteredLabel />
       <ProcedureTransparencyNote />
-      <div className="flex items-center justify-between pt-2">
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
         <RescheduleEntryPoint onClick={() => dispatch({ type: 'REOPEN_FOR_RESCHEDULE' })} />
         {!state.freeModeUnlocked && (
           <FreeModeUnlockButton onClick={() => dispatch({ type: 'UNLOCK_FREE_MODE' })} />

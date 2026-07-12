@@ -14,7 +14,7 @@ export function OneLineRecommendation({ group, tentative, onConfirm }: Props) {
   const otherSlotsCount = group.slots.length - 1
 
   return (
-    <div className="relative mx-auto max-w-xl space-y-3 p-8" data-tour-id="tradeoff-screen">
+    <div className="relative mx-auto max-w-xl space-y-3 p-4 sm:p-8" data-tour-id="tradeoff-screen">
       {tentative && <TentativeBadge />}
       <p className="text-base text-slate-900">
         모두 괜찮은 시간이 있어요. {slot.day}요일 {slot.hour}시, 확정할까요?

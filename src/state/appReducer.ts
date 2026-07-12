@@ -1,4 +1,5 @@
 import { RAW_SEED } from '../data/loadSeed'
+import { getViewportWidth, isNarrowViewport } from '../shared/useIsNarrowViewport'
 import { applyCalendarCorrections } from './useSchedule'
 import type { AppState } from './appState.types'
 import type { Action } from './actions'
@@ -10,13 +11,19 @@ export function buildInitialState(): AppState {
     hasResponded[person.id] = person.responded_at_demo_start !== false
   }
 
+  // 투어의 기준 경험은 데스크톱이다(IMPLEMENTATION_SPEC §1) — 앱이 처음 뜨는 시점에 이미 좁은
+  // 화면이면 가이드 투어를 시작하지 않고 자유 조회 상태로 둔다. tour.active의 "의미"는 그대로
+  // 두고 초기값 계산만 뷰포트를 참고한다(새 액션·새 상태 필드 없음). SSR/테스트 환경(window 없음)은
+  // 항상 데스크톱 폭으로 간주되어 기존 동작(tour.active: true)이 그대로 유지된다.
+  const startsNarrow = isNarrowViewport(getViewportWidth())
+
   return {
     people,
     hasResponded,
     calendarCorrections: {},
     phoneFrame: { open: false, viewingPersonId: null },
     screen: 'host',
-    tour: { active: true, stepIndex: 0 },
+    tour: { active: !startsNarrow, stepIndex: 0 },
     selectedSlotByGroup: {},
     confirmedMeeting: null,
     freeModeUnlocked: false,

@@ -54,7 +54,7 @@ export function CandidateGroupCard({
       {open && (
         <div className="mt-3 space-y-3 border-t border-slate-100 pt-3">
           <SlotPicker slots={group.slots} selectedSlot={selectedSlot} onSelectSlot={onSelectSlot} />
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <ConfirmButton onClick={() => onConfirm(selectedSlot)} />
             {showFreeModeExtras && <AskSpecificallyEntry />}
           </div>

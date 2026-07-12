@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { RAW_SEED } from '../../data/loadSeed'
 import { useAppState } from '../../state/AppContext'
+import { useIsNarrowViewport } from '../../shared/useIsNarrowViewport'
 import { Card } from '../../shared/Card'
 import { ConditionMap } from './ConditionMap'
 import { MeetingHeader } from './MeetingHeader'
+import { MobileHostDashboard } from './MobileHostDashboard'
 import { PersonDetailPanel } from './PersonDetailPanel'
 import { RecommendationCard } from './RecommendationCard'
 import { RemindActionCard } from './RemindActionCard'
@@ -11,6 +13,15 @@ import { RemindActionCard } from './RemindActionCard'
 export function HostDashboard() {
   const { state, dispatch, schedule } = useAppState()
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null)
+  // selectedPersonId는 데스크톱/모바일 두 렌더 분기가 같은 컴포넌트 인스턴스의 상태를 공유한다 —
+  // 리사이즈로 분기가 바뀌어도(useIsNarrowViewport만 갱신) 이 useState 자체는 유지되므로
+  // 선택이 초기화되지 않는다.
+  const isNarrow = useIsNarrowViewport()
+
+  if (isNarrow) {
+    return <MobileHostDashboard selectedPersonId={selectedPersonId} onSelectPerson={setSelectedPersonId} />
+  }
+
   const pendingPerson = state.people.find((p) => !state.hasResponded[p.id]) ?? null
   const respondedCount = state.people.filter((p) => state.hasResponded[p.id]).length
   const selectedPerson = state.people.find((p) => p.id === selectedPersonId) ?? null

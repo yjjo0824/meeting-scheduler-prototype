@@ -38,7 +38,9 @@ interface RowProps {
 
 // whitespace-nowrap: 이름 열 폭이 좁아져도 이름이 세로로 꺾이지 않는다 — 대신 표 전체가
 // 컨테이너의 overflow-x-auto로 가로 스크롤된다(페이지 전체 스크롤은 생기지 않는다).
-function PersonNameCell({ person, responded, onSelectPerson }: { person: Person; responded: boolean; onSelectPerson: (personId: string) => void }) {
+// export: 모바일 요일별 비교 그리드(MobileDayCompareGrid)가 같은 셀을 그대로 재사용한다 —
+// 렌더링·분류 로직을 두 번째로 베끼지 않는다.
+export function PersonNameCell({ person, responded, onSelectPerson }: { person: Person; responded: boolean; onSelectPerson: (personId: string) => void }) {
   return (
     <td className="pr-2 align-middle">
       <button
@@ -60,7 +62,7 @@ function PersonNameCell({ person, responded, onSelectPerson }: { person: Person;
 // R7: 응답 전 사람은 캘린더만 알려진 상태(응답 칩은 아직 미반영)로 지도를 그린다.
 // R4: 지도 셀은 시간·성격만 나타내고 일정 제목·사유는 어디에도 담지 않는다.
 // aspect-square로 너비=높이를 강제해 모든 시간 셀의 크기가 동일하게 유지된다.
-function SlotCell({ person, day, hour, responded, sets }: { person: Person; day: Day; hour: number; responded: boolean; sets: ConditionSets }) {
+export function SlotCell({ person, day, hour, responded, sets }: { person: Person; day: Day; hour: number; responded: boolean; sets: ConditionSets }) {
   const key = slotKey(day, hour)
   const state = classifySlot(person.id, key, sets)
   const isUnknown = !responded && state === 'available'

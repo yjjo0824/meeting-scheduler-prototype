@@ -47,6 +47,42 @@ describe('buildInitialState — hasResponded 초기화 규칙', () => {
   })
 })
 
+describe('buildInitialState — 투어의 기준 경험은 데스크톱이다(12B-1)', () => {
+  // 이 프로젝트의 Vitest 환경(vite.config.ts environment: 'node')에는 window가 원래 없다 —
+  // 좁은 뷰포트로 부팅되는 상황을 재현하려면 전역 window를 직접 흉내내야 한다. 다른 테스트를
+  // 오염시키지 않도록 매 테스트가 끝나면 반드시 지운다.
+  function withStubbedWindow<T>(innerWidth: number, run: () => T): T {
+    const original = (globalThis as { window?: unknown }).window
+    ;(globalThis as { window?: unknown }).window = { innerWidth }
+    try {
+      return run()
+    } finally {
+      if (original === undefined) delete (globalThis as { window?: unknown }).window
+      else (globalThis as { window?: unknown }).window = original
+    }
+  }
+
+  it('좁은 화면(375px)에서 부팅하면 tour.active는 false로 시작한다(자유 조회 상태)', () => {
+    const state = withStubbedWindow(375, () => buildInitialState())
+    expect(state.tour).toEqual({ active: false, stepIndex: 0 })
+  })
+
+  it('768px 이상에서 부팅하면(또는 window가 없으면) tour.active는 여전히 true다(기존 데스크톱 동작 불변)', () => {
+    const wide = withStubbedWindow(1280, () => buildInitialState())
+    expect(wide.tour).toEqual({ active: true, stepIndex: 0 })
+
+    const noWindow = buildInitialState()
+    expect(noWindow.tour).toEqual({ active: true, stepIndex: 0 })
+  })
+
+  it('좁은 화면 초기 상태에서도 hasResponded·people 등 나머지 필드는 정상 규칙대로 채워진다', () => {
+    const state = withStubbedWindow(375, () => buildInitialState())
+    expect(state.hasResponded.doyun).toBe(false)
+    expect(state.people).toEqual(RAW_SEED.people)
+    expect(state.freeModeUnlocked).toBe(false)
+  })
+})
+
 describe('appReducer — SUBMIT_RESPONSE가 파생 후보를 실시간으로 바꾼다', () => {
   it('도윤 응답 전: 잠정 완벽 슬롯 = 수14~17 (deriveEffectivePeople을 거친 computeSchedule 기준)', () => {
     const state = buildInitialState()

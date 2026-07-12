@@ -29,7 +29,7 @@ export function TradeoffCandidates() {
   const alternatives = rest.slice(0, 2)
 
   return (
-    <div className="relative mx-auto max-w-2xl space-y-6 p-8" data-tour-id="tradeoff-screen">
+    <div className="relative mx-auto max-w-2xl space-y-6 p-4 sm:p-8" data-tour-id="tradeoff-screen">
       <div>
         <h1 className="text-lg font-semibold text-slate-900">모두가 완벽히 만족하는 시간은 없어요</h1>
         <p className="text-sm text-slate-500">포기하는 항목이 다른 후보를 계산했어요</p>
