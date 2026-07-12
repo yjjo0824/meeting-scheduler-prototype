@@ -15,7 +15,7 @@ export function ChipReviewList({ chips, onRequestChange, onDelete }: Props) {
   return (
     <section className="py-4">
       <h3 className="text-lg font-bold tracking-tight text-ink-900">이렇게 이해했어요</h3>
-      <p className="mt-heading-gap text-xs text-ink-500">다른 내용은 눌러서 고쳐주세요.</p>
+      <p className="mt-heading-gap text-xs text-ink-500">조건이 다르면 ‘조건 바꾸기’를 눌러주세요.</p>
       {/* 빈 상태(12C-12.7): 보조 문구(설명)와 구분되도록 캘린더 빈 상태와 동일한 회색 박스로
           현재 상태를 보여준다 — 칩이 1개 이상이면 박스 대신 기존 칩 목록만 노출된다. */}
       {chips.length > 0 ? (

@@ -98,7 +98,7 @@ export function ChipItem({ chip, onDelete, onRequestChange }: Props) {
             type="button"
             onClick={onRequestChange}
             aria-label={`${chipTimeLabel(chip)} 조건 바꾸기, 현재 ${CHIP_TYPE_LABEL[chip.type]}`}
-            className="min-h-11 rounded-chip px-2.5 text-xs font-bold text-brand-600 hover:bg-brand-50 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand-600"
+            className="h-control-sm rounded-chip bg-action-secondary px-3 text-xs font-bold text-ink-900 hover:bg-border focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand-600"
           >
             조건 바꾸기
           </button>
@@ -106,7 +106,7 @@ export function ChipItem({ chip, onDelete, onRequestChange }: Props) {
         <button
           type="button"
           onClick={onDelete}
-          className="min-h-11 px-1.5 text-sm text-ink-500 hover:text-ink-700"
+          className="h-control-sm px-1.5 text-sm text-ink-500 hover:text-ink-700"
           aria-label="삭제"
         >
           ×
