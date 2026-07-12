@@ -32,7 +32,9 @@ export function FreeModeControls() {
 
   // 우측 하단 스택: "처음부터 다시 보기"(EvaluatorResetBar, bottom-4)가 항상 맨 아래 고정
   // 기준점이고, 이 컴포넌트(접힌 pill·펼친 패널 모두)는 그 위(bottom-16)에 얹힌다(12C-7) —
-  // 체험하기가 나타나거나 패널을 펼쳐도 다시 보기의 위치는 변하지 않는다.
+  // 체험하기가 나타나거나 패널을 펼쳐도 다시 보기의 위치는 변하지 않는다. bottom-16은 투어
+  // 중에는 가이드 카드(TourStepCard)가 쓰던 자리다 — 투어가 끝나 카드가 사라지면 이 pill이
+  // 같은 자리에 나타나 공간이 이어진다(12C-10).
   if (collapsed) {
     return (
       <button

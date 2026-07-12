@@ -14,9 +14,11 @@ interface Props {
   onSkip: () => void
 }
 
-// 투어 단계 카드 — 어떤 뷰포트 크기에서도 좌측 하단 고정이다(12C-6: 상하 반전을 포함한 모든
-// 자동 이동 로직 제거). 카드가 하이라이트 대상을 가리는 경우에도 움직이지 않는다 — 대신
-// 헤더의 접기 토글로 본문을 접어 시야를 확보한다. 단계가 바뀌면 다시 펼쳐진 상태로 시작한다.
+// 투어 단계 카드 — 우측 하단 스택("처음부터 다시 보기" pill 바로 위, bottom-16 right-4)에
+// 고정이다(12C-10). 투어가 끝나면 이 카드가 사라진 같은 자리에 "다른 역할 체험하기" pill이
+// 나타나 공간이 자연스럽게 이어진다. 자동 이동 로직은 없다(12C-6) — 카드가 하이라이트 대상을
+// 가리는 경우에도 움직이지 않고, 헤더의 접기 토글로 본문을 접어 시야를 확보한다. 단계가
+// 바뀌면 다시 펼쳐진 상태로 시작한다.
 export function TourStepCard({
   title,
   body,
@@ -53,7 +55,7 @@ export function TourStepCard({
       role="region"
       aria-labelledby={titleId}
       aria-describedby={collapsed ? undefined : bodyId}
-      className="fixed bottom-8 left-8 z-[900] w-80 max-w-[calc(100vw-4rem)] rounded-card bg-surface p-4 shadow-elevated"
+      className="fixed bottom-16 right-4 z-[900] w-80 max-w-[calc(100vw-4rem)] rounded-card bg-surface p-4 shadow-elevated"
     >
       {/* 헤더 — 단계 표시·제목·접기 토글·건너뛰기. 접힌 상태에서도 이 줄은 항상 남는다. */}
       <div className="flex items-center justify-between gap-2">

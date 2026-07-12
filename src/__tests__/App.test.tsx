@@ -148,6 +148,55 @@ describe('App — 12B-3: 데스크톱↔모바일 전환 후에도 투어 dim이
   })
 })
 
+describe('App — 12C-10: 우측 하단 스택(다시 보기 → 그 위 가이드/체험하기 자리 승계)', () => {
+  function withStubbedWindow<T>(innerWidth: number, run: () => T): T {
+    const original = (globalThis as { window?: unknown }).window
+    ;(globalThis as { window?: unknown }).window = { innerWidth }
+    try {
+      return run()
+    } finally {
+      if (original === undefined) delete (globalThis as { window?: unknown }).window
+      else (globalThis as { window?: unknown }).window = original
+    }
+  }
+
+  function renderShell(state: ReturnType<typeof buildInitialState>) {
+    return withStubbedWindow(1280, () =>
+      renderToStaticMarkup(
+        <AppProvider initialState={state}>
+          <AppShell />
+        </AppProvider>,
+      ),
+    )
+  }
+
+  it('투어 중: 다시 보기(bottom-4) 위(bottom-16 right-4)에 가이드 카드가 있고 체험하기는 없다', () => {
+    const html = renderShell({ ...buildInitialState(), tour: { active: true, stepIndex: 0 } })
+    expect(html).toContain('처음부터 다시 보기')
+    // 가이드 카드가 bottom-16 right-4 자리를 차지한다.
+    const cardIndex = html.indexOf('data-tour-card="true"')
+    const cardTagStart = html.lastIndexOf('<div', cardIndex)
+    const cardTagEnd = html.indexOf('>', cardIndex)
+    const cardTag = html.slice(cardTagStart, cardTagEnd)
+    expect(cardTag).toContain('bottom-16')
+    expect(cardTag).toContain('right-4')
+    expect(html).not.toContain('다른 역할 체험하기')
+  })
+
+  it('투어 종료(체험 시작하기/건너뛰기 = UNLOCK_FREE_MODE) 후: 가이드가 사라진 같은 자리(bottom-16 right-4)에 체험하기 pill이 나타난다', () => {
+    const state = appReducer(buildInitialState(), { type: 'UNLOCK_FREE_MODE' })
+    const html = renderShell(state)
+    expect(html).not.toContain('data-tour-card')
+    const pillIndex = html.indexOf('다른 역할 체험하기')
+    const pillTagStart = html.lastIndexOf('<button', pillIndex)
+    const pillTag = html.slice(pillTagStart, pillIndex)
+    expect(pillTag).toContain('bottom-16')
+    expect(pillTag).toContain('right-4')
+    // 다시 보기는 그대로 맨 아래(bottom-4)에 남는다.
+    expect(html).toContain('처음부터 다시 보기')
+  })
+})
+
 describe('shouldAutoNavigateToTradeoff — 12C-5: 투어 자동 전환 판정(진행 버그 근본 원인 회귀 가드)', () => {
   function readyState() {
     // 도윤 제출 + 폰 프레임 닫힘 = 전원 응답, host 화면, 미확정 — 자동 전환이 발화해야 하는 상태.

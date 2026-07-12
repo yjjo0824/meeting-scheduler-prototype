@@ -18,11 +18,12 @@ function render(extra: Partial<Parameters<typeof TourStepCard>[0]> = {}): string
 // 접힘/펼침 토글과 "단계 전환 시 재펼침"은 클릭·재렌더가 필요해 SSR 단일 렌더로 재현할 수 없다
 // (프로젝트 공통 한계 — 코드 검토로 확인: setCollapsed 토글, lastTitle 렌더 단계 동기화).
 // 여기서는 고정 위치·헤더 구성·기본 펼침 상태의 구조만 검증한다.
-describe('TourStepCard — 좌측 하단 완전 고정 + 접기(12C-6)', () => {
-  it('카드는 좌측 하단 고정 클래스(bottom-8 left-8)를 쓰고, 자동 이동을 위한 style 좌표가 없다', () => {
+describe('TourStepCard — 우측 하단 스택 고정 + 접기(12C-10)', () => {
+  it('카드는 우측 하단 스택 클래스(bottom-16 right-4 — 다시 보기 pill 위, 체험하기 pill과 같은 자리)를 쓰고, 자동 이동을 위한 style 좌표가 없다', () => {
     const html = render()
-    expect(html).toContain('bottom-8')
-    expect(html).toContain('left-8')
+    expect(html).toContain('bottom-16')
+    expect(html).toContain('right-4')
+    expect(html).not.toContain('left-8')
     // 이전 구현은 계산된 top/left를 인라인 style로 주입했다 — 이동 로직 제거의 구조적 증거.
     expect(html).not.toContain('style=')
   })
