@@ -19,7 +19,9 @@ export function OneLineRecommendation({ group, tentative, onBack, onConfirm }: P
   const otherSlotsCount = group.slots.length - 1
 
   return (
-    <PageContainer width="narrow">
+    // 바깥 컨테이너는 프레임 3·4 공통(content), 내부는 기존 폭(narrow) 유지 — Confirmation과 동일 규칙.
+    <PageContainer width="content">
+      <div className="mx-auto w-full max-w-content-narrow space-y-section">
       {/* tradeoff-screen 대상 바깥(형제)에 둔다 — 투어 중에는 다른 비대상 요소처럼 inert
           처리되어, 눌러도 투어 상태를 깨지 않는다(TradeoffCandidates.tsx와 동일한 이유, 12B-4 QA). */}
       <button
@@ -39,6 +41,7 @@ export function OneLineRecommendation({ group, tentative, onBack, onConfirm }: P
           </p>
           <Button onClick={() => onConfirm(slot)}>{formatSlotLabel(slot)}로 확정하기</Button>
         </Card>
+      </div>
       </div>
     </PageContainer>
   )

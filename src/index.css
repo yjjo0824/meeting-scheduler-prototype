@@ -44,7 +44,7 @@
   --color-action-primary: var(--color-brand-500); /* 주요 CTA 배경 */
   --color-action-primary-strong: var(--color-brand-600); /* 주요 CTA hover/pressed */
   --color-action-secondary: var(--color-surface-muted); /* 보조 버튼 배경 */
-  --color-surface-page: var(--color-surface); /* 페이지 배경 */
+  --color-surface-page: #f6f7f9; /* 페이지 배경(기본 캔버스) — 카드·패널 바깥 영역 공통 */
   --color-surface-card: var(--color-surface); /* 카드 배경 */
   --color-border-default: var(--color-border);
   --color-text-primary: var(--color-ink-900);
@@ -80,7 +80,7 @@
 
   /* ── component: 콘텐츠 최대 너비(max-w-page / max-w-content / max-w-content-narrow) */
   --container-page: 1400px; /* 대시보드형 넓은 화면 */
-  --container-content: 42rem; /* 후보 비교 등 읽기 중심 화면 */
+  --container-content: 880px; /* 읽기 중심 화면(트레이드오프·확정) 공통 콘텐츠 영역 */
   --container-content-narrow: 36rem; /* 확정 결과 등 단일 컬럼 화면 */
 }
 

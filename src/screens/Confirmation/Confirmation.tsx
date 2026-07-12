@@ -18,7 +18,10 @@ export function Confirmation() {
   const attendeeCount = state.people.length - confirmed.excluded.length
 
   return (
-    <PageContainer width="narrow">
+    // 바깥 콘텐츠 영역은 프레임 3(TradeoffCandidates)과 동일한 컨테이너(content) — 화면 전환 시
+    // 경계가 흔들리지 않는다. 카드·리스트는 기존 폭(content-narrow)을 안쪽 래퍼로 유지한다.
+    <PageContainer width="content">
+      <div className="mx-auto w-full max-w-content-narrow space-y-section">
       {/* 투어 4단계 대상 — 체험 시작 CTA는 더 이상 이 제품 본문에 없다(TourStepCard 안의
           [체험 시작하기]로 이전됨). tabIndex=-1: 투어 종료 시 여기로 포커스를 되돌릴 수 있게.
           12D-3 구조(참고안): 성공 헤더 → "확정 시간" 카드(시간·참석자) → 안내 3항목 리스트. */}
@@ -49,6 +52,7 @@ export function Confirmation() {
       <Button className="w-full" onClick={() => dispatch({ type: 'NAVIGATE', screen: 'host' })}>
         확인
       </Button>
+      </div>
     </PageContainer>
   )
 }
