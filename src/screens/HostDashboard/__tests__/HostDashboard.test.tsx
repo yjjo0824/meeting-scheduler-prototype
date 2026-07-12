@@ -131,7 +131,7 @@ describe('HostDashboard — 12C-12: 확정 상태의 확정 결과 카드(재조
   it('확정되면 잠정 추천 카드 대신 확정 결과 카드(강조 시간·캘린더 등록 라벨·다시 조율하기 링크)가 보인다', () => {
     const html = renderWith(confirmedState())
     expect(html).toContain('확정 완료')
-    expect(html).toContain('7월 17일(금) 오후 1:00–2:00')
+    expect(html).toContain('금요일 오후 1:00–2:00')
     expect(html).toContain('참석자 캘린더에 등록됐어요')
     expect(html).toContain('다시 조율하기')
     // 12C-12.1: 보조 설명은 카드가 아니라 확인 대화상자 본문으로 옮겨졌고, 대화상자는 기본 닫힘.

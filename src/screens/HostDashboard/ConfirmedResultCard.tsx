@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { formatDisplayDate } from '../../presentation/dateDisplay'
-import type { ScheduleDisplay } from '../../types/domain'
+import { formatSlotTimeRange } from '../../presentation/dateDisplay'
 import type { Slot } from '../../types/engine'
 import { Badge } from '../../shared/Badge'
 import { Card } from '../../shared/Card'
@@ -8,7 +7,6 @@ import { RescheduleConfirmDialog } from './RescheduleConfirmDialog'
 
 interface Props {
   slot: Slot
-  display: ScheduleDisplay
   onReschedule: () => void
 }
 
@@ -17,14 +15,14 @@ interface Props {
 // 진입한다(R8 — 확정 상태에서 트레이드오프로 가는 다른 제품 경로를 두지 않는다).
 // 다시 조율하기는 낮은 위계 텍스트 링크(12C-12.1)이고, 실제 확정 해제는 확인 대화상자를
 // 거쳐야만 실행된다.
-export function ConfirmedResultCard({ slot, display, onReschedule }: Props) {
+export function ConfirmedResultCard({ slot, onReschedule }: Props) {
   const [confirmOpen, setConfirmOpen] = useState(false)
 
   return (
     <Card className="border border-brand-100">
       <Badge tone="success">확정 완료</Badge>
       <p className="mt-2 text-3xl font-extrabold tracking-tight text-ink-900">
-        {formatDisplayDate(slot.day, slot.hour, display)}
+        {formatSlotTimeRange(slot)}
       </p>
       <p className="mt-3 inline-block rounded-chip bg-surface-muted px-3 py-2 text-xs text-ink-700">
         참석자 캘린더에 등록됐어요

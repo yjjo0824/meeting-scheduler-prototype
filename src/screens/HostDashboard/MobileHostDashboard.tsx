@@ -130,7 +130,6 @@ export function MobileHostDashboard({
       {state.confirmedMeeting ? (
         <ConfirmedResultCard
           slot={state.confirmedMeeting.slot}
-          display={RAW_SEED.schedule_display}
           onReschedule={() => dispatch({ type: 'REOPEN_FOR_RESCHEDULE' })}
         />
       ) : (

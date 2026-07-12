@@ -1,5 +1,5 @@
 import { RAW_SEED } from '../../data/loadSeed'
-import { formatDisplayDate } from '../../presentation/dateDisplay'
+import { formatSlotTimeRange } from '../../presentation/dateDisplay'
 import { useAppState } from '../../state/AppContext'
 import { Button } from '../../shared/Button'
 import { Card } from '../../shared/Card'
@@ -29,7 +29,7 @@ export function Confirmation() {
           <div>
             <span className="text-xs font-bold text-ink-500">확정 시간</span>
             <p className="mt-1 text-2xl font-extrabold tracking-tight text-ink-900">
-              {formatDisplayDate(confirmed.slot.day, confirmed.slot.hour, RAW_SEED.schedule_display)}
+              {formatSlotTimeRange(confirmed.slot)}
             </p>
           </div>
           <AttendeeList people={state.people} excludedIds={confirmed.excluded} />

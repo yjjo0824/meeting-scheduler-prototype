@@ -26,7 +26,7 @@ describe('Confirmation — IMPLEMENTATION_SPEC §7 필수 표시', () => {
   it('확정 결과 요약: 날짜·시간·회의명이 표시된다(schedule_display에서 파생)', () => {
     expect(html).toContain('회의 시간이 확정됐어요')
     expect(html).toContain(RAW_SEED.meeting.title)
-    expect(html).toContain('7월 17일(금) 오후 1:00–2:00')
+    expect(html).toContain('금요일 오후 1:00–2:00')
   })
 
   it('참석자 명단이 표시된다(제외자 없음)', () => {

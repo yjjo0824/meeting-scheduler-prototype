@@ -37,11 +37,18 @@ export function formatSlotLabel(slot: Slot): string {
   return `${slot.day}요일 ${formatHourLabel(slot.hour)}`
 }
 
-// "7월 17일 금요일 오후 1시" — 후보 카드 제목(12C-12). 날짜는 schedule_display에서 파생한다
-// (표시 전용 — 엔진은 날짜를 모른다, 하드코딩 금지).
+// "7월 17일 금요일 오후 1시" — 날짜 포함 표기(12C-12.3부터 표시 레이어에서 미사용 — 삭제하지
+// 않고 보존한다. 날짜는 schedule_display에서 파생, 표시 전용 — 엔진은 날짜를 모른다).
 export function formatSlotWithDate(slot: Slot, display: ScheduleDisplay): string {
   const date = dateForDay(slot.day, display)
   return `${date.getMonth() + 1}월 ${date.getDate()}일 ${formatSlotLabel(slot)}`
+}
+
+// "금요일 오후 1:00–2:00" — 확정 표기(12C-12.3): 잠정 추천·후보 카드와 같은 요일 체계에
+// 시작–종료 시각을 붙인다(날짜 없음).
+export function formatSlotTimeRange(slot: Slot): string {
+  const endHour = slot.hour + 1
+  return `${slot.day}요일 ${periodOf(slot.hour)} ${to12Hour(slot.hour)}:00–${to12Hour(endHour)}:00`
 }
 
 // 후보군의 대표 시간 라벨: 같은 요일의 연속 슬롯이면 "수요일 오후 2–5시"처럼 범위로 접고,
