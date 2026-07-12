@@ -89,6 +89,19 @@ export function TradeoffCandidates() {
   return (
     // pb-28: 하단 고정 플로팅 확정 CTA가 마지막 카드의 "고려할 점"을 가리지 않도록 여백을 확보한다.
     <PageContainer width="content" className="pb-28">
+      {/* 보조 뒤로가기(12C-12.1 복원) — 투어 중에도 렌더되고 클릭도 막지 않는다(12C-5: 잠금 없는
+          투어). NAVIGATE는 투어 상태를 건드리지 않으며, 투어 중 host로 가면 자동 전환 조건
+          (shouldAutoNavigateToTradeoff)이 즉시 이 화면으로 되돌린다 — 버그가 아니라 "투어 진행은
+          상태 조건으로만 전진"하는 설계다(IMPLEMENTATION_SPEC §3). 투어 종료 후에는 정상 이동한다.
+          history.back()이 아니라 기존 NAVIGATE 액션을 그대로 재사용한다. */}
+      <button
+        type="button"
+        onClick={() => dispatch({ type: 'NAVIGATE', screen: 'host' })}
+        className="text-sm font-medium text-ink-700 hover:text-ink-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+      >
+        ← 응답 현황으로
+      </button>
+
       <div className="relative space-y-section outline-none" data-tour-id="tradeoff-screen" tabIndex={-1}>
         {showRecalcBanner && (
           <p className="rounded-chip bg-brand-50 px-3 py-2.5 text-sm font-medium text-brand-600">
@@ -100,22 +113,15 @@ export function TradeoffCandidates() {
           <p className="text-sm text-ink-700">참석 인원과 반영하지 못한 조건을 비교해보세요.</p>
         </div>
 
-        {/* 헤더 아래 보조 액션(낮은 위계, 12C-12) — 확정 대신 택할 수 있는 두 갈래.
-            "조건을 바꿔 다시 계산하기"는 응답 현황으로 이동(기존 NAVIGATE 재사용 — 필수/선택
-            변경은 참여자 상세의 기존 기능, history.back() 미사용). 투어 중에도 클릭을 막지
-            않으며, NAVIGATE는 투어 상태를 건드리지 않는다(12C-5 — 투어 중 host로 가면 자동
-            전환 조건이 다시 이 화면으로 데려온다). "누군가에게 다시 물어보기"는 카드 안에 있던
-            진입점의 화면 레벨 승격이라 노출 조건(자유 모드)도 그대로 가져온다. */}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-          <button
-            type="button"
-            onClick={() => dispatch({ type: 'NAVIGATE', screen: 'host' })}
-            className="px-1 py-1.5 text-xs text-ink-500 underline hover:text-ink-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-          >
-            조건을 바꿔 다시 계산하기
-          </button>
-          {state.freeModeUnlocked && <AskSpecificallyEntry />}
-        </div>
+        {/* 헤더 아래 보조 액션(낮은 위계, 12C-12) — "누군가에게 다시 물어보기"는 카드 안에 있던
+            진입점의 화면 레벨 승격이라 노출 조건(자유 모드)도 그대로다. "조건을 바꿔 다시
+            계산하기"는 12C-12.1에서 제거 — 상단의 "← 응답 현황으로" 뒤로가기가 같은 이동을
+            담당한다. */}
+        {state.freeModeUnlocked && (
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <AskSpecificallyEntry />
+          </div>
+        )}
 
         {/* 카드 = 비교·선택 전용(카드 내부에 확정 CTA 없음). 확정은 아래 단일 CTA 하나로만 한다.
             roving tabindex: 선택된 카드의 라디오만 tabIndex 0이라 Tab은 그룹당 한 번만 멈춘다 —
