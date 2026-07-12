@@ -7,7 +7,7 @@ interface Props {
 // 의도적으로 공유하지 않는 별도 문구다.
 export function ProcedureTransparencyNote({ excludedCount }: Props) {
   return (
-    <p className="text-sm text-slate-600">
+    <p className="text-sm text-ink-700">
       {excludedCount === 0
         ? '전원 참석 가능한 시간 기준으로 정해졌어요'
         : '필수 참석자 모두가 가능한 시간 기준으로 정해졌어요'}
