@@ -2,11 +2,12 @@ import { useState } from 'react'
 import { RAW_SEED } from '../../data/loadSeed'
 import { useAppState } from '../../state/AppContext'
 import { useIsNarrowViewport } from '../../shared/useIsNarrowViewport'
+import type { Day } from '../../types/domain'
 import { Card } from '../../shared/Card'
 import { PageContainer } from '../../shared/PageContainer'
 import { ConditionMap } from './ConditionMap'
 import { MeetingHeader } from './MeetingHeader'
-import { MobileHostDashboard } from './MobileHostDashboard'
+import { MobileHostDashboard, type MobileView } from './MobileHostDashboard'
 import { PersonDetailPanel } from './PersonDetailPanel'
 import { RecommendationCard } from './RecommendationCard'
 import { RemindActionCard } from './RemindActionCard'
@@ -15,13 +16,25 @@ import { ReportNoticeCard } from './ReportNoticeCard'
 export function HostDashboard() {
   const { state, dispatch, schedule } = useAppState()
   const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null)
-  // selectedPersonId는 데스크톱/모바일 두 렌더 분기가 같은 컴포넌트 인스턴스의 상태를 공유한다 —
-  // 리사이즈로 분기가 바뀌어도(useIsNarrowViewport만 갱신) 이 useState 자체는 유지되므로
-  // 선택이 초기화되지 않는다.
+  // selectedPersonId·모바일 뷰 상태(view/selectedDay)는 데스크톱/모바일 두 렌더 분기가 같은
+  // 컴포넌트 인스턴스의 상태를 공유한다 — 리사이즈로 분기가 바뀌어도(useIsNarrowViewport만
+  // 갱신, MobileHostDashboard는 언마운트) 이 useState들 자체는 유지되므로, days를 보다가
+  // 데스크톱을 거쳐 돌아와도 보던 화면이 그대로다(12C-7 — 새 전역 액션·localStorage 없음).
+  const [mobileView, setMobileView] = useState<MobileView>('list')
+  const [mobileDay, setMobileDay] = useState<Day>(RAW_SEED.grid.days[0])
   const isNarrow = useIsNarrowViewport()
 
   if (isNarrow) {
-    return <MobileHostDashboard selectedPersonId={selectedPersonId} onSelectPerson={setSelectedPersonId} />
+    return (
+      <MobileHostDashboard
+        selectedPersonId={selectedPersonId}
+        onSelectPerson={setSelectedPersonId}
+        view={mobileView}
+        onChangeView={setMobileView}
+        selectedDay={mobileDay}
+        onSelectDay={setMobileDay}
+      />
+    )
   }
 
   const pendingPerson = state.people.find((p) => !state.hasResponded[p.id]) ?? null

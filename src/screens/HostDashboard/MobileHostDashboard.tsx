@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { RAW_SEED } from '../../data/loadSeed'
 import { buildConditionSets } from '../../engine/conditionSets'
 import { useAppState } from '../../state/AppContext'
@@ -15,26 +14,40 @@ import { RecommendationCard } from './RecommendationCard'
 import { RemindActionCard } from './RemindActionCard'
 import { ReportNoticeCard } from './ReportNoticeCard'
 
-type MobileView = 'list' | 'detail' | 'days'
+export type MobileView = 'list' | 'detail' | 'days'
 
 interface Props {
   selectedPersonId: string | null
   onSelectPerson: (personId: string | null) => void
+  view: MobileView
+  onChangeView: (view: MobileView) => void
+  selectedDay: Day
+  onSelectDay: (day: Day) => void
 }
 
 // 좁은 뷰포트에서 HostDashboard가 조기 반환하는 실제 제품 화면(모바일 주최자 뷰) — 데스크톱
 // 40슬롯 통합 지도를 축소하지 않고, list(참여자 목록) / detail(참여자 상세, PersonDetailPanel
 // 재사용) / days(요일 탭 + 하루치 6명×8슬롯) 세 로컬 뷰만 전환한다. 전역 screen은 여전히
-// 'host' 그대로이고, 새 전역 액션은 쓰지 않는다(view 전환은 이 컴포넌트만의 로컬 상태).
+// 'host' 그대로이고, 새 전역 액션은 쓰지 않는다.
+//
+// view/selectedDay 상태는 여기가 아니라 부모(HostDashboard — 브레이크포인트가 바뀌어도
+// 언마운트되지 않는 레벨)가 소유한다(12C-7): 이 컴포넌트는 뷰포트가 데스크톱 폭으로 넓어지면
+// 언마운트되므로, 로컬 상태로 두면 days를 보다가 데스크톱을 거쳐 돌아왔을 때 list로 초기화되는
+// 버그가 있었다. selectedPersonId를 부모가 소유하는 것과 같은 이유·같은 패턴이다.
 //
 // 다른 참여자의 응답 화면(ParticipantPhoneFrame)을 여는 CTA는 여기 어디에도 없다 — 리마인드는
 // "미응답 중인 그 한 사람"에게만, 기존 데스크톱과 동일한 OPEN_PHONE_FRAME 재사용이다. 자유 모드
 // 참여자 체험 진입점(ParticipantExperienceEntry)은 이 컴포넌트 밖(App.tsx 레벨의
 // FreeModeControls)에만 있다.
-export function MobileHostDashboard({ selectedPersonId, onSelectPerson }: Props) {
+export function MobileHostDashboard({
+  selectedPersonId,
+  onSelectPerson,
+  view,
+  onChangeView,
+  selectedDay,
+  onSelectDay,
+}: Props) {
   const { state, dispatch, schedule } = useAppState()
-  const [view, setView] = useState<MobileView>('list')
-  const [selectedDay, setSelectedDay] = useState<Day>(RAW_SEED.grid.days[0])
 
   const pendingPerson = state.people.find((p) => !state.hasResponded[p.id]) ?? null
   const respondedCount = state.people.filter((p) => state.hasResponded[p.id]).length
@@ -42,11 +55,11 @@ export function MobileHostDashboard({ selectedPersonId, onSelectPerson }: Props)
 
   function openDetail(personId: string) {
     onSelectPerson(personId)
-    setView('detail')
+    onChangeView('detail')
   }
 
   function backToList() {
-    setView('list')
+    onChangeView('list')
   }
 
   if (view === 'detail' && selectedPerson) {
@@ -76,7 +89,7 @@ export function MobileHostDashboard({ selectedPersonId, onSelectPerson }: Props)
           ← 목록으로
         </button>
         <h2 className="text-lg font-bold text-ink-900">요일별 시간 보기</h2>
-        <MobileDayTabs days={RAW_SEED.grid.days} selectedDay={selectedDay} onSelectDay={setSelectedDay} />
+        <MobileDayTabs days={RAW_SEED.grid.days} selectedDay={selectedDay} onSelectDay={onSelectDay} />
         <MobileDayCompareGrid
           day={selectedDay}
           hours={RAW_SEED.grid.hours}
@@ -122,7 +135,7 @@ export function MobileHostDashboard({ selectedPersonId, onSelectPerson }: Props)
       />
 
       {/* 후보 비교가 주 행동(primary), 요일별 시간은 보조 탐색(secondary). */}
-      <Button variant="secondary" onClick={() => setView('days')} className="w-full">
+      <Button variant="secondary" onClick={() => onChangeView('days')} className="w-full">
         요일별 시간 보기
       </Button>
 
