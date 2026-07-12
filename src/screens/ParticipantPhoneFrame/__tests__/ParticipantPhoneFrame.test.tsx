@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { RAW_SEED } from '../../../data/loadSeed'
@@ -364,5 +366,53 @@ describe('ParticipantPhoneFrame — dialog 접근성 배선(12B-2)', () => {
     const markerIndex = html.indexOf('data-phone-focus-target="true"')
     const buttonEnd = html.indexOf('</button>', markerIndex)
     expect(html.slice(markerIndex, buttonEnd)).toContain('응답 수정하기')
+  })
+})
+
+// useFocusTrap/useRestoreFocus의 실제 focus() 호출·rAF 타이밍·트리거 DOM 존재 여부 판정은 이
+// 프로젝트의 SSR 전용 테스트 환경(jsdom 없음, environment: 'node')으로 재현할 수 없다 —
+// useRestoreFocus.ts의 구현(트리거를 열기 직전 activeElement로 캡처 → active가 false로 바뀌면
+// rAF 한 번 뒤 그 트리거로 focus, 사라졌으면 body로 폴백)과 배선(useRestoreFocus를
+// useFocusTrap보다 먼저 호출)은 코드 검토로 확인했다. 아래는 그 전제가 되는 상태 전이가
+// 최종적으로 올바른 화면을 만드는지만 구조적으로 재확인한다.
+describe('ParticipantPhoneFrame — 12B-4 QA: 최초 포커스·복귀 타이밍 수정', () => {
+  it('OPEN_PHONE_FRAME으로 다른 사람으로 바로 전환해도(닫지 않고) 최종 렌더는 그 사람 기준 상태를 보여준다', () => {
+    // useFocusTrap/useRestoreFocus에 personId+open 조합의 sessionKey를 함께 넘기도록 고친 것은
+    // "open이 계속 true인 채로 보는 사람만 바뀌는" 경로에서도 초기 포커스·복귀 트리거가 새
+    // 세션 기준으로 재계산되게 하기 위함이다(12B-4 QA) — 이 재계산 자체(실제 focus() 호출
+    // 타이밍)는 이 프로젝트의 SSR 전용 테스트 환경(jsdom 없음, environment: 'node')으로는
+    // 재현할 수 없어 코드 검토로 확인했다. 여기서는 그 전제가 되는 상태 전이(도윤 →
+    // 이미 응답한 민준으로, open을 안 끄고 personId만 바뀜)가 최종적으로 올바른 화면
+    // (제출 완료 요약)을 만드는지만 구조적으로 재확인한다.
+    let state = buildInitialState()
+    state = appReducer(state, { type: 'OPEN_PHONE_FRAME', personId: 'doyun' })
+    state = appReducer(state, { type: 'OPEN_PHONE_FRAME', personId: 'minjun' })
+    const html = renderToStaticMarkup(
+      <AppProvider initialState={state}>
+        <ParticipantPhoneFrame />
+      </AppProvider>,
+    )
+    expect(html).toContain('응답을 보냈어요')
+    expect(html).toContain('data-phone-focus-target="true"')
+    const markerIndex = html.indexOf('data-phone-focus-target="true"')
+    const buttonEnd = html.indexOf('</button>', markerIndex)
+    expect(html.slice(markerIndex, buttonEnd)).toContain('응답 수정하기')
+  })
+
+  it('useRestoreFocus가 useFocusTrap보다 먼저 호출된다(소스 순서 회귀 가드 — 실제 focus 타이밍은 SSR로 재현 불가)', () => {
+    // 두 훅의 effect는 같은 커밋 안에서 "호출된 순서대로" 실행된다 — useFocusTrap이 먼저 포커스를
+    // 다이얼로그 안으로 옮겨버리면, 그 뒤에 도는 useRestoreFocus가 activeElement를 캡처할 때
+    // 이미 오염된 값(다이얼로그 내부 요소)을 트리거로 잘못 기억한다(12B-3/12B-4 QA의 근본 원인 중
+    // 하나). 실제 focus() 타이밍은 jsdom 없는 이 프로젝트의 테스트 환경으로 재현할 수 없으므로,
+    // 대신 소스 코드상 호출 순서를 정적으로 고정해 향후 리팩터가 이 순서를 실수로 뒤집는 것을 막는다.
+    const source = readFileSync(
+      fileURLToPath(new URL('../ParticipantPhoneFrame.tsx', import.meta.url)),
+      'utf-8',
+    )
+    const restoreIndex = source.indexOf('useRestoreFocus(state.phoneFrame.open')
+    const trapIndex = source.indexOf('useFocusTrap(panelRef')
+    expect(restoreIndex).toBeGreaterThan(-1)
+    expect(trapIndex).toBeGreaterThan(-1)
+    expect(restoreIndex).toBeLessThan(trapIndex)
   })
 })

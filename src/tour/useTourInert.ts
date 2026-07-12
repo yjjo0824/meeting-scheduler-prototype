@@ -45,28 +45,41 @@ export function useTourInert(active: boolean, keepSelectors: string[]): void {
     const root = document.getElementById('root')
     if (!root) return
 
-    const keepEls = keepSelectors
-      .map((sel) => document.querySelector<HTMLElement>(sel))
-      .filter((el): el is HTMLElement => el !== null)
-    if (keepEls.length === 0) return
+    let changed: HTMLElement[] = []
+    // 실제 DOM 반영(blur+inert)을 한 프레임 미룬다: 투어 자동 전진(isComplete → SET_TOUR_STEP)은
+    // "다음 커밋"에서야 keepSelectors를 갱신하는 별도 dispatch라서, 이 effect가 도는 그 사이의
+    // 한 커밋 동안은 keepSelectors가 낡은 대상(예: 방금 전 단계의 대상)을 가리킬 수 있다. 그
+    // 낡은 기준으로 즉시 blur+inert를 적용하면, 다른 오버레이(예: ParticipantPhoneFrame의
+    // useFocusTrap)가 같은 커밋에서 방금 옮겨놓은 포커스를 도로 빼앗아버리는 경쟁 상태가
+    // 있었다(12B-3 QA: dialog 최초 포커스가 안 걸리는 것처럼 보이던 원인). 한 프레임 미루면,
+    // 그 사이 도착하는 최신 상태의 재실행이 cleanup으로 이 예약을 먼저 취소해 낡은 기준의
+    // blur가 아예 실행되지 않는다.
+    const frame = requestAnimationFrame(() => {
+      const keepEls = keepSelectors
+        .map((sel) => document.querySelector<HTMLElement>(sel))
+        .filter((el): el is HTMLElement => el !== null)
+      if (keepEls.length === 0) return
 
-    const safe = new Set<HTMLElement>()
-    const terminal = new Set<HTMLElement>(keepEls)
-    for (const el of keepEls) {
-      for (const ancestor of getAncestorChain(el, root)) safe.add(ancestor)
-    }
+      const safe = new Set<HTMLElement>()
+      const terminal = new Set<HTMLElement>(keepEls)
+      for (const el of keepEls) {
+        for (const ancestor of getAncestorChain(el, root)) safe.add(ancestor)
+      }
 
-    // 곧 inert가 될 영역 안에 포커스가 남아있으면 aria-hidden 경고가 발생한다 — inert를 적용하기
-    // 전에 안전한 곳으로 먼저 비켜준다(포커스를 어디로 보낼지는 각 화면의 자체 포커스 관리가
-    // 뒤이어 결정하므로, 여기서는 blur로 충돌 없이 자리만 비켜준다).
-    const activeEl = document.activeElement
-    if (activeEl instanceof HTMLElement && root.contains(activeEl) && !safe.has(activeEl)) {
-      const insideKeep = keepEls.some((el) => el.contains(activeEl))
-      if (!insideKeep) activeEl.blur()
-    }
+      // 곧 inert가 될 영역 안에 포커스가 남아있으면 aria-hidden 경고가 발생한다 — inert를
+      // 적용하기 전에 안전한 곳으로 먼저 비켜준다(포커스를 어디로 보낼지는 각 화면의 자체 포커스
+      // 관리가 뒤이어 결정하므로, 여기서는 blur로 충돌 없이 자리만 비켜준다).
+      const activeEl = document.activeElement
+      if (activeEl instanceof HTMLElement && root.contains(activeEl) && !safe.has(activeEl)) {
+        const insideKeep = keepEls.some((el) => el.contains(activeEl))
+        if (!insideKeep) activeEl.blur()
+      }
 
-    const changed = applyInertExceptSafe(root, safe, terminal)
+      changed = applyInertExceptSafe(root, safe, terminal)
+    })
+
     return () => {
+      cancelAnimationFrame(frame)
       for (const el of changed) el.inert = false
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

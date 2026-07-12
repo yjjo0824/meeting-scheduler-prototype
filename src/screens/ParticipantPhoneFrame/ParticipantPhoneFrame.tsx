@@ -159,8 +159,11 @@ export function ParticipantPhoneFrame() {
   // 실행되면 포커스를 다이얼로그 안으로 옮겨버린 "뒤"에 useRestoreFocus가 activeElement를 캡처하게
   // 되어(다이얼로그 내부 요소를 트리거로 잘못 기억함), 닫을 때 엉뚱한 곳으로 복귀하는 문제가 있었다
   // (12B-3 QA). 순서를 바꿔 "열리기 직전 실제 트리거"를 먼저 캡처한 뒤에 초기 포커스를 옮긴다.
-  useRestoreFocus(state.phoneFrame.open)
-  useFocusTrap(panelRef, state.phoneFrame.open, getInitialFocus)
+  // sessionKey를 함께 넘긴다: open이 계속 true인 채로 역할 체험에서 다른 사람으로 바로 전환되는
+  // 경우에도(닫았다 다시 열지 않고) 최초 포커스·복귀 대상 트리거가 새 세션 기준으로 다시
+  // 계산되어야 한다(12B-4 QA).
+  useRestoreFocus(state.phoneFrame.open, sessionKey)
+  useFocusTrap(panelRef, state.phoneFrame.open, getInitialFocus, sessionKey)
   useBodyScrollLock(state.phoneFrame.open)
 
   useEffect(() => {

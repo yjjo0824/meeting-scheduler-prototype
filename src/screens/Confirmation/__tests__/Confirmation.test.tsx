@@ -88,7 +88,7 @@ describe('Confirmation — 제외자가 있는 경우', () => {
   })
 })
 
-describe('Confirmation — 응답 현황으로 돌아가는 보조 동선(12B QA 항목 2)', () => {
+describe('Confirmation — 응답 현황으로 돌아가는 보조 동선(12B-4: 투어 중에도 항상 보임)', () => {
   function confirmedState() {
     let state = buildInitialState()
     state = appReducer(state, {
@@ -103,12 +103,33 @@ describe('Confirmation — 응답 현황으로 돌아가는 보조 동선(12B QA
   it('투어가 끝난 뒤(자유 조회)에는 "응답 현황으로" 버튼이 보인다', () => {
     const state = confirmedState()
     const html = render({ ...state, tour: { ...state.tour, active: false } })
-    expect(html).toContain('응답 현황으로')
+    expect(html).toContain('← 응답 현황으로')
   })
 
-  it('투어 진행 중에는 마지막 단계 흐름을 방해하지 않도록 숨긴다', () => {
+  it('투어 진행 중에도 "응답 현황으로" 버튼이 보인다(12B-4: 뒤로가기 동선 자체는 숨기지 않음)', () => {
     // buildInitialState는 window 없는 환경에서 tour.active=true — 투어 중 확정에 도달한 상태.
     const html = render(confirmedState())
-    expect(html).not.toContain('응답 현황으로')
+    expect(html).toContain('← 응답 현황으로')
+  })
+
+  it('뒤로가기 버튼은 confirmation-summary 투어 대상 바깥(형제)에 있다 — 투어 중에는 다른 비대상 요소처럼 inert 처리되어 단계를 깨지 않는다', () => {
+    const html = render(confirmedState())
+    const backIndex = html.indexOf('← 응답 현황으로')
+    const summaryIndex = html.indexOf('data-tour-id="confirmation-summary"')
+    expect(backIndex).toBeGreaterThan(-1)
+    expect(summaryIndex).toBeGreaterThan(-1)
+    expect(backIndex).toBeLessThan(summaryIndex)
+  })
+
+  it('클릭 핸들러는 history.back()이 아니라 기존 NAVIGATE 액션을 쓴다(리듀서 레벨 회귀 확인)', () => {
+    const state = confirmedState()
+    const after = appReducer(state, { type: 'NAVIGATE', screen: 'host' })
+    expect(after.screen).toBe('host')
+  })
+
+  it('투어 활성 상태에서 NAVIGATE를 디스패치해도 tour 상태는 그대로 유지된다(단계가 비정상 종료되지 않음)', () => {
+    const state = { ...confirmedState(), tour: { active: true, stepIndex: 3 } }
+    const after = appReducer(state, { type: 'NAVIGATE', screen: 'host' })
+    expect(after.tour).toEqual({ active: true, stepIndex: 3 })
   })
 })

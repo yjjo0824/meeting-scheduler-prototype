@@ -17,14 +17,21 @@ function focusFallback() {
 // 이 훅을 쓰는 컴포넌트에서는 반드시 useFocusTrap보다 먼저 호출해야 한다: 두 훅의 effect가 같은
 // 커밋에서 등록되는데, effect는 호출 순서대로 실행되므로 트리거 캡처가 먼저 끝나야 그 다음의
 // 초기 포커스 이동(useFocusTrap)이 activeElement를 오염시키지 않는다.
-export function useRestoreFocus(active: boolean): void {
+// resetKey: active가 계속 true인 채로 세션만 바뀌는 경우(예: 프레임을 닫지 않고 다른 사람으로
+// 바로 전환)에도 "가장 최근에 실제로 이 상태를 만든 트리거"를 다시 캡처하려면, active 하나만으로는
+// 부족하다 — useFocusTrap과 동일한 세션 키를 넘긴다.
+export function useRestoreFocus(active: boolean, resetKey?: string | number): void {
   const triggerRef = useRef<HTMLElement | null>(null)
   const wasActiveRef = useRef(false)
+  const lastKeyRef = useRef<string | number | undefined>(undefined)
 
   useEffect(() => {
     if (typeof document === 'undefined') return undefined
 
-    if (active && !wasActiveRef.current) {
+    const keyChanged = resetKey !== undefined && lastKeyRef.current !== resetKey
+    lastKeyRef.current = resetKey
+
+    if (active && (!wasActiveRef.current || keyChanged)) {
       triggerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
     }
 

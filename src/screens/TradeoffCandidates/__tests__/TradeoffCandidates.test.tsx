@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { RAW_SEED } from '../../../data/loadSeed'
 import { AppProvider } from '../../../state/AppContext'
 import { appReducer, buildInitialState } from '../../../state/appReducer'
-import { TradeoffCandidates } from '../TradeoffCandidates'
+import { TradeoffCandidates, nextRadioIndex } from '../TradeoffCandidates'
 
 function render(initialState: ReturnType<typeof buildInitialState>): string {
   return renderToStaticMarkup(
@@ -186,5 +186,89 @@ describe('TradeoffCandidates — 선택 카드 중첩 테두리 제거(12B-3 QA)
   it('카드 컨테이너 3개 모두 focus-within 기반 단일 포커스 링 클래스를 갖는다(선택 링과 같은 자리에 합쳐짐)', () => {
     const matches = html.match(/focus-within:ring-2 focus-within:ring-slate-900/g) ?? []
     expect(matches.length).toBe(3)
+  })
+})
+
+describe('nextRadioIndex — 방향키 순환 이동(12B-4, DOM 없이 순수 함수로 검증)', () => {
+  it('ArrowDown/ArrowRight는 다음 인덱스로 이동한다', () => {
+    expect(nextRadioIndex(0, 'ArrowDown', 3)).toBe(1)
+    expect(nextRadioIndex(0, 'ArrowRight', 3)).toBe(1)
+    expect(nextRadioIndex(1, 'ArrowDown', 3)).toBe(2)
+  })
+
+  it('ArrowUp/ArrowLeft는 이전 인덱스로 이동한다', () => {
+    expect(nextRadioIndex(2, 'ArrowUp', 3)).toBe(1)
+    expect(nextRadioIndex(2, 'ArrowLeft', 3)).toBe(1)
+  })
+
+  it('마지막 항목에서 다음으로 이동하면 첫 항목으로 순환한다', () => {
+    expect(nextRadioIndex(2, 'ArrowDown', 3)).toBe(0)
+    expect(nextRadioIndex(2, 'ArrowRight', 3)).toBe(0)
+  })
+
+  it('첫 항목에서 이전으로 이동하면 마지막 항목으로 순환한다', () => {
+    expect(nextRadioIndex(0, 'ArrowUp', 3)).toBe(2)
+    expect(nextRadioIndex(0, 'ArrowLeft', 3)).toBe(2)
+  })
+
+  it('화살표 키가 아니면 null을 반환한다(핸들러가 아무 것도 하지 않아야 함을 의미)', () => {
+    expect(nextRadioIndex(0, 'Enter', 3)).toBeNull()
+    expect(nextRadioIndex(0, ' ', 3)).toBeNull()
+    expect(nextRadioIndex(0, 'Tab', 3)).toBeNull()
+  })
+
+  it('길이 0이면(카드가 없으면) 항상 null을 반환한다', () => {
+    expect(nextRadioIndex(0, 'ArrowDown', 0)).toBeNull()
+  })
+})
+
+describe('TradeoffCandidates — 응답 현황으로 뒤로가기(12B-4 QA)', () => {
+  it('여러 후보 화면에 "← 응답 현황으로" 버튼이 있고, radiogroup 대상(tradeoff-screen) 바깥(형제)에 있다', () => {
+    const state = appReducer(buildInitialState(), {
+      type: 'SUBMIT_RESPONSE',
+      personId: 'doyun',
+      chips: doyun().response.chips,
+    })
+    const html = render(state)
+    const backIndex = html.indexOf('← 응답 현황으로')
+    const targetIndex = html.indexOf('data-tour-id="tradeoff-screen"')
+    expect(backIndex).toBeGreaterThan(-1)
+    expect(targetIndex).toBeGreaterThan(-1)
+    expect(backIndex).toBeLessThan(targetIndex)
+  })
+
+  it('한 줄 모드(완벽 슬롯)에도 "← 응답 현황으로" 버튼이 있고, tradeoff-screen 대상 바깥에 있다', () => {
+    const html = render(buildInitialState())
+    const backIndex = html.indexOf('← 응답 현황으로')
+    const targetIndex = html.indexOf('data-tour-id="tradeoff-screen"')
+    expect(backIndex).toBeGreaterThan(-1)
+    expect(targetIndex).toBeGreaterThan(-1)
+    expect(backIndex).toBeLessThan(targetIndex)
+  })
+
+  it('클릭 핸들러는 history.back()이 아니라 기존 NAVIGATE 액션을 쓴다(리듀서 레벨 회귀 확인)', () => {
+    const state = buildInitialState()
+    const after = appReducer(state, { type: 'NAVIGATE', screen: 'host' })
+    expect(after.screen).toBe('host')
+  })
+
+  it('투어 활성 상태에서 NAVIGATE를 디스패치해도 tour 상태는 그대로 유지된다(단계가 비정상 종료되지 않음)', () => {
+    const state = { ...buildInitialState(), tour: { active: true, stepIndex: 2 } }
+    const after = appReducer(state, { type: 'NAVIGATE', screen: 'host' })
+    expect(after.tour).toEqual({ active: true, stepIndex: 2 })
+  })
+
+  it('SlotPicker의 시간 선택 버튼에는 role="radio"가 없다(radiogroup 방향키 핸들러가 이벤트 대상으로 구분할 수 있는 전제)', () => {
+    const state = appReducer(buildInitialState(), {
+      type: 'SUBMIT_RESPONSE',
+      personId: 'doyun',
+      chips: doyun().response.chips,
+    })
+    const html = render(state)
+    const timeButtonTags = html.match(/<button[^>]*aria-pressed="[^"]*"[^>]*>/g) ?? []
+    expect(timeButtonTags.length).toBeGreaterThan(0)
+    for (const tag of timeButtonTags) {
+      expect(tag).not.toContain('role="radio"')
+    }
   })
 })
