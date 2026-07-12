@@ -104,24 +104,18 @@ export function TradeoffCandidates() {
 
       <div className="relative space-y-section outline-none" data-tour-id="tradeoff-screen" tabIndex={-1}>
         {showRecalcBanner && (
-          <p className="rounded-chip bg-brand-50 px-3 py-2.5 text-sm font-medium text-brand-600">
-            {recalcBannerNames}이 캘린더에 없던 일정을 알려줘서, 추천 시간을 다시 계산했어요.
+          // 인라인 체크 메시지 톤(12D-2, 참고안 arrival 패턴) — 카피·표시 조건은 현행 유지.
+          <p className="flex items-start gap-1.5 text-sm font-bold text-brand-600">
+            <span aria-hidden="true">✓</span>
+            <span>{recalcBannerNames}이 캘린더에 없던 일정을 알려줘서, 추천 시간을 다시 계산했어요.</span>
           </p>
         )}
         <div className="space-y-1">
           <h1 className="text-2xl font-bold text-ink-900">조건이 다른 안 {visibleCount}개를 찾았어요</h1>
-          <p className="text-sm text-ink-700">참석 인원과 반영하지 못한 조건을 비교해보세요.</p>
+          <p className="text-sm text-ink-700">
+            모두의 조건을 다 맞추기는 어려워요. 참석 인원과 원하는 시간 중 무엇을 지킬지 비교해 보세요.
+          </p>
         </div>
-
-        {/* 헤더 아래 보조 액션(낮은 위계, 12C-12) — "누군가에게 다시 물어보기"는 카드 안에 있던
-            진입점의 화면 레벨 승격이라 노출 조건(자유 모드)도 그대로다. "조건을 바꿔 다시
-            계산하기"는 12C-12.1에서 제거 — 상단의 "← 응답 현황으로" 뒤로가기가 같은 이동을
-            담당한다. */}
-        {state.freeModeUnlocked && (
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            <AskSpecificallyEntry />
-          </div>
-        )}
 
         {/* 카드 = 비교·선택 전용(카드 내부에 확정 CTA 없음). 확정은 아래 단일 CTA 하나로만 한다.
             roving tabindex: 선택된 카드의 라디오만 tabIndex 0이라 Tab은 그룹당 한 번만 멈춘다 —
@@ -150,6 +144,14 @@ export function TradeoffCandidates() {
             />
           ))}
         </div>
+
+        {/* 목록 아래 중앙 보조 도구(12D-2, 참고안 배치) — "누군가에게 다시 물어보기"는 카드 안에
+            있던 진입점의 화면 레벨 승격(12C-12)이라 노출 조건(자유 모드)·동작도 그대로다. */}
+        {state.freeModeUnlocked && (
+          <div className="flex justify-center">
+            <AskSpecificallyEntry />
+          </div>
+        )}
 
         {/* 하단 고정 플로팅 확정 CTA(12C-12) — 선택한 후보·시간이 바뀌면 라벨이 즉시 갱신된다.
             중앙 정렬 + 최대 폭 제한으로 우측 하단 pill 스택(right-4, z-700)과 데스크톱에서

@@ -92,7 +92,8 @@ export function CandidateGroupCard({
             <Badge tone={recommended ? 'brand' : 'neutral'}>{recommended ? '추천' : '다른 안'}</Badge>
             {tentative && <TentativeBadge />}
           </span>
-          <span className="block text-lg font-bold text-ink-900">{title}</span>
+          {/* 시간이 카드의 주인공이다(12D-2, 참고안 위계) — 확정 결과 카드와 같은 강조 급. */}
+          <span className="block text-2xl font-extrabold tracking-tight text-ink-900">{title}</span>
           {/* 플랫 정보 줄 — 긍정 정보와 참석 집계를 시각적 강조 없이 나란히 둔다. */}
           <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-ink-700">
             <span>{formatPositiveLine(group)}</span>
@@ -115,10 +116,11 @@ export function CandidateGroupCard({
       )}
 
       {considerations.length > 0 && (
-        // 고려할 점 — 포기 내용을 은은하게 구분해 강조한다(surface-muted 기존 토큰, 색 신설 없음).
+        // 고려할 점 — 포기 내용을 주의 톤으로 구분해 강조한다(12D-2, 참고안의 주황 계열 →
+        // 기존 warn 토큰 매핑, 색 신설 없음). 주체·건수 명시 카피는 현행 유지(R2).
         <div className="mt-3 border-t border-border pt-3">
-          <div className="rounded-chip bg-surface-muted px-3 py-2.5">
-            <p className="text-xs font-bold text-ink-700">고려할 점</p>
+          <div className="rounded-chip bg-warn-50 px-3 py-2.5">
+            <p className="text-xs font-bold text-warn-600">고려할 점</p>
             <p className="mt-0.5 text-xs text-ink-700">{considerations.join(' ')}</p>
           </div>
         </div>
