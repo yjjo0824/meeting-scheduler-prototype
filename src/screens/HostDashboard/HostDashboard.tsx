@@ -6,6 +6,7 @@ import type { Day } from '../../types/domain'
 import { Card } from '../../shared/Card'
 import { PageContainer } from '../../shared/PageContainer'
 import { ConditionMap } from './ConditionMap'
+import { ConfirmedResultCard } from './ConfirmedResultCard'
 import { MeetingHeader } from './MeetingHeader'
 import { MobileHostDashboard, type MobileView } from './MobileHostDashboard'
 import { PersonDetailPanel } from './PersonDetailPanel'
@@ -64,15 +65,23 @@ export function HostDashboard() {
             onClick={() => dispatch({ type: 'OPEN_PHONE_FRAME', personId: pendingPerson.id })}
           />
         )}
-        {/* 조건이 바뀌면(정정·칩 편집·필수/선택 변경) schedule은 매 렌더마다 다시 계산되므로
-            이 카드의 내용이 곧 재계산 피드백이다 — 별도 토스트 없이 항상 최신 상태를 보여준다.
-            onOpenCandidates: 전원 응답 후 체험 도구 없이도 실제 제품 흐름으로 후보 화면에 진입하는 경로. */}
-        <RecommendationCard
-          schedule={schedule}
-          people={state.people}
-          hasResponded={state.hasResponded}
-          onOpenCandidates={() => dispatch({ type: 'NAVIGATE', screen: 'tradeoff' })}
-        />
+        {/* 확정 상태에서는 잠정 추천 카드 대신 확정 결과 카드를 보여준다(12C-12, §4) — 재조율은
+            이 카드에서만 진입한다(R8). 미확정 상태에서는 조건이 바뀔 때마다(정정·칩 편집·필수/선택
+            변경) schedule이 매 렌더마다 다시 계산되므로 추천 카드의 내용이 곧 재계산 피드백이다. */}
+        {state.confirmedMeeting ? (
+          <ConfirmedResultCard
+            slot={state.confirmedMeeting.slot}
+            display={RAW_SEED.schedule_display}
+            onReschedule={() => dispatch({ type: 'REOPEN_FOR_RESCHEDULE' })}
+          />
+        ) : (
+          <RecommendationCard
+            schedule={schedule}
+            people={state.people}
+            hasResponded={state.hasResponded}
+            onOpenCandidates={() => dispatch({ type: 'NAVIGATE', screen: 'tradeoff' })}
+          />
+        )}
       </div>
 
       {/* 데스크톱 기본은 조건 지도 + 상세 패널 2열. 두 영역이 동시에 필요한 최소 폭(지도 760px +

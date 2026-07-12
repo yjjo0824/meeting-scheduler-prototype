@@ -112,6 +112,46 @@ describe('HostDashboard — 전원 응답 후 추천 카드가 실제 제품 흐
   })
 })
 
+describe('HostDashboard — 12C-12: 확정 상태의 확정 결과 카드(재조율 유일 진입점, R8)', () => {
+  function renderWith(state: ReturnType<typeof buildInitialState>): string {
+    return renderToStaticMarkup(
+      <AppProvider initialState={state}>
+        <HostDashboard />
+      </AppProvider>,
+    )
+  }
+
+  function confirmedState() {
+    let state = buildInitialState()
+    state = appReducer(state, { type: 'SUBMIT_RESPONSE', personId: 'doyun', chips: [] })
+    state = appReducer(state, { type: 'CONFIRM_MEETING', groupKey: 'k', slot: { day: '금', hour: 13 }, excluded: [] })
+    return state
+  }
+
+  it('확정되면 잠정 추천 카드 대신 확정 결과 카드(강조 시간·캘린더 등록 라벨·다시 조율하기)가 보인다', () => {
+    const html = renderWith(confirmedState())
+    expect(html).toContain('확정 완료')
+    expect(html).toContain('7월 17일(금) 오후 1:00–2:00')
+    expect(html).toContain('참석자 캘린더에 등록됐어요')
+    expect(html).toContain('다시 조율하기')
+    expect(html).toContain('확정을 해제하고 후보를 다시 계산해요')
+    // 잠정 추천 카드(비교/확인 CTA)는 사라진다 — 확정 상태에서 트레이드오프로 가는 제품 경로 없음.
+    expect(html).not.toContain('후보 시간 비교하기')
+    expect(html).not.toContain('이 시간 확인하기')
+    expect(html).not.toContain('모두 괜찮은 시간이 있어요')
+  })
+
+  it('다시 조율하기(REOPEN_FOR_RESCHEDULE)는 확정을 해제하고 host에 머문다 — 기존 재조율 흐름 그대로', () => {
+    const after = appReducer(confirmedState(), { type: 'REOPEN_FOR_RESCHEDULE' })
+    expect(after.confirmedMeeting).toBeNull()
+    expect(after.screen).toBe('host')
+    // 확정이 풀리면 확정 카드 대신 잠정 추천 카드가 되살아난다.
+    const html = renderWith(after)
+    expect(html).not.toContain('확정 완료')
+    expect(html).toContain('모두 괜찮은 시간이 있어요')
+  })
+})
+
 describe('HostDashboard — 참석 어려움 신고 알림(12B QA 항목 3)', () => {
   function renderWith(state: ReturnType<typeof buildInitialState>): string {
     return renderToStaticMarkup(

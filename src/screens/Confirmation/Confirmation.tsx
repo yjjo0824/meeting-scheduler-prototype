@@ -1,12 +1,12 @@
 import { RAW_SEED } from '../../data/loadSeed'
 import { useAppState } from '../../state/AppContext'
+import { Button } from '../../shared/Button'
 import { Card } from '../../shared/Card'
 import { PageContainer } from '../../shared/PageContainer'
 import { AttendeeList } from './AttendeeList'
 import { CalendarRegisteredLabel } from './CalendarRegisteredLabel'
 import { ProcedureTransparencyNote } from './ProcedureTransparencyNote'
 import { RecalcNote } from './RecalcNote'
-import { RescheduleEntryPoint } from './RescheduleEntryPoint'
 import { ResultSummary } from './ResultSummary'
 
 export function Confirmation() {
@@ -25,25 +25,13 @@ export function Confirmation() {
         <CalendarRegisteredLabel />
         <ProcedureTransparencyNote excludedCount={confirmed.excluded.length} />
       </Card>
-      {/* 다시 조율하기 = 화면 이동이 아니라 상태 변경(확정 해제 + 재계산) — 액션 버튼 모양과
-          실제 동작이 엇갈려 읽히지 않도록 보조 설명 한 줄을 붙인다(12C-7). */}
-      <div className="space-y-1">
-        <RescheduleEntryPoint onClick={() => dispatch({ type: 'REOPEN_FOR_RESCHEDULE' })} />
-        <p className="text-xs text-ink-500">확정을 해제하고 후보를 다시 계산해요</p>
-      </div>
-      {/* 주최자 화면으로 이동하는 보조 동선 — 화살표(뒤로가기 관용구)를 떼고 "보기"로 말해
-          점프형 이동임을 드러낸다. 투어 중에도 항상 렌더되고 클릭도 막지 않는다(12C-5) —
-          NAVIGATE는 투어 상태를 건드리지 않는다. history.back() 미사용. */}
-      <div>
-        <button
-          type="button"
-          onClick={() => dispatch({ type: 'NAVIGATE', screen: 'host' })}
-          className="text-sm font-medium text-ink-700 hover:text-ink-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-        >
-          응답 현황 보기
-        </button>
-      </div>
       <RecalcNote />
+      {/* 이 화면의 유일한 행동(12C-12, §7): 확인 = 응답 현황으로 복귀. "다시 조율하기"는 이제
+          HostDashboard의 확정 결과 카드에만 있다(R8 — 재조율 진입점 단일화). 투어 중에도 렌더되고
+          클릭도 막지 않는다 — NAVIGATE는 투어 상태를 건드리지 않는다(12C-5). history.back() 미사용. */}
+      <Button className="w-full" onClick={() => dispatch({ type: 'NAVIGATE', screen: 'host' })}>
+        확인
+      </Button>
     </PageContainer>
   )
 }

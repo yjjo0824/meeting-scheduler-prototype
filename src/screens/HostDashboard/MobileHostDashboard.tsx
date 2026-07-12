@@ -4,6 +4,7 @@ import { useAppState } from '../../state/AppContext'
 import { deriveEffectivePeople } from '../../state/useSchedule'
 import type { Day } from '../../types/domain'
 import { Button } from '../../shared/Button'
+import { ConfirmedResultCard } from './ConfirmedResultCard'
 import { MapLegend } from './MapLegend'
 import { MeetingHeader } from './MeetingHeader'
 import { MobileDayCompareGrid } from './MobileDayCompareGrid'
@@ -125,7 +126,16 @@ export function MobileHostDashboard({
         />
       )}
 
-      <RecommendationCard schedule={schedule} people={state.people} hasResponded={state.hasResponded} />
+      {/* 확정 상태에서는 데스크톱과 동일하게 확정 결과 카드로 교체된다(12C-12, §4). */}
+      {state.confirmedMeeting ? (
+        <ConfirmedResultCard
+          slot={state.confirmedMeeting.slot}
+          display={RAW_SEED.schedule_display}
+          onReschedule={() => dispatch({ type: 'REOPEN_FOR_RESCHEDULE' })}
+        />
+      ) : (
+        <RecommendationCard schedule={schedule} people={state.people} hasResponded={state.hasResponded} />
+      )}
 
       <MobileParticipantList
         people={state.people}
