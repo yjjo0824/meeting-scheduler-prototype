@@ -155,8 +155,8 @@ describe('ParticipantPhoneFrame — 확정 후 잠금', () => {
     const html = render(state)
 
     expect(html).toContain('회의 시간이 정해졌어요')
-    // 날짜·시간은 seed.schedule_display + 확정 슬롯에서 파생된다.
-    expect(html).toContain('7월 17일(금) 오후 1:00–2:00')
+    // 확정 표기는 요일 체계(12C-12.3) — 확정 슬롯에서 파생된다.
+    expect(html).toContain('금요일 오후 1:00–2:00')
     expect(html).toContain('이제 응답은 수정할 수 없어요.')
     expect(html).toContain('전달한 시간 조건')
     expect(html).toContain('이 시간에 참석하기 어려워졌어요')

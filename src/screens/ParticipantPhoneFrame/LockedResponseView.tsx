@@ -1,14 +1,13 @@
 import { useState } from 'react'
 import { buildConditionSummary, formatHourRange, groupConditionsByDay } from '../../presentation/conditionCopy'
-import { formatDisplayDate } from '../../presentation/dateDisplay'
+import { formatSlotTimeRange } from '../../presentation/dateDisplay'
 import { Button } from '../../shared/Button'
-import type { Person, ScheduleDisplay } from '../../types/domain'
+import type { Person } from '../../types/domain'
 import type { Slot } from '../../types/engine'
 
 interface Props {
   person: Person
   slot: Slot
-  display: ScheduleDisplay
   organizerName: string
   reported: boolean
   onReport: () => void
@@ -16,8 +15,8 @@ interface Props {
 
 // R8 잠금 상태: 확정 결과(사람이 궁금한 것)를 시스템 상태 설명보다 먼저 보여준다. 12D-1의
 // 섹션 패턴을 입력 화면과 같은 위계로 쓴다 — 확정 시간이 이 화면의 강조 정보다.
-// 날짜는 seed.schedule_display + 확정 슬롯에서 파생한다(표시 전용 — 엔진은 날짜를 모른다).
-export function LockedResponseView({ person, slot, display, organizerName, reported, onReport }: Props) {
+// 확정 표기는 요일 체계("금요일 오후 1:00–2:00", 12C-12.3)로 다른 확정 표기와 통일한다.
+export function LockedResponseView({ person, slot, organizerName, reported, onReport }: Props) {
   const [justReported, setJustReported] = useState(false)
   const groups = groupConditionsByDay(buildConditionSummary([person]))
 
@@ -25,9 +24,7 @@ export function LockedResponseView({ person, slot, display, organizerName, repor
     <div className="py-4">
       <div className="space-y-1">
         <h3 className="text-lg font-bold tracking-tight text-ink-900">회의 시간이 정해졌어요</h3>
-        <p className="text-xl font-extrabold tracking-tight text-brand-600">
-          {formatDisplayDate(slot.day, slot.hour, display)}
-        </p>
+        <p className="text-xl font-extrabold tracking-tight text-brand-600">{formatSlotTimeRange(slot)}</p>
         <p className="text-xs text-ink-500">이제 응답은 수정할 수 없어요.</p>
       </div>
 

@@ -304,7 +304,6 @@ export function ParticipantPhoneFrame() {
             <LockedResponseView
               person={person}
               slot={state.confirmedMeeting!.slot}
-              display={RAW_SEED.schedule_display}
               organizerName={organizerName}
               reported={state.reportedByPersonId[person.id] ?? false}
               onReport={() => dispatch({ type: 'REPORT_UNAVAILABLE', personId: person.id })}
