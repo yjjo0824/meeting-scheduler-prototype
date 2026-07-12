@@ -39,6 +39,33 @@ function collapseEmptyDayRanges(daysWithoutEvents: Day[], allDays: Day[]): strin
   return ranges
 }
 
+// 하늘의 금요일 14시처럼, 원본 응답에 이미 '조정가능'(옮길 수 있어요) 칩이 있는 슬롯은 새로 같은
+// 정정을 또 적용할 필요가 없다 — 이 경우 [옮길 수 있어요] 버튼만 비활성화한다. [이 시간 비어
+// 있어요]는 별도의, 아직 적용되지 않은 액션이라 계속 선택할 수 있어야 한다.
+export function isEventPreMarkedMovable(event: CalendarEvent, person: Person): boolean {
+  return (
+    event.hours.length > 0 &&
+    event.hours.every((h) =>
+      person.response.chips.some(
+        (chip) => chip.type === '조정가능' && (chip.day === event.day || chip.day === '*') && chip.hours.includes(h),
+      ),
+    )
+  )
+}
+
+// 이벤트의 모든 시간이 같은 kind로 정정돼 있을 때만 "이 이벤트는 이 kind로 정정됨"으로 본다
+// (현재 UI는 이벤트 전체를 한 번에 정정한다 — onApplyCorrection이 event.hours 전부를 순회해 호출됨).
+export function appliedCorrectionKind(
+  event: CalendarEvent,
+  corrections: Record<string, CalendarCorrection>,
+): CalendarCorrectionKind | undefined {
+  if (event.hours.length === 0) return undefined
+  const first = corrections[slotKey(event.day, event.hours[0])]?.kind
+  if (!first) return undefined
+  const allSameKind = event.hours.every((h) => corrections[slotKey(event.day, h)]?.kind === first)
+  return allSameKind ? first : undefined
+}
+
 export function CalendarPrefillList({ person, corrections, onApplyCorrection, onUndoCorrection }: Props) {
   const [openEventKey, setOpenEventKey] = useState<string | null>(null)
 
@@ -46,16 +73,13 @@ export function CalendarPrefillList({ person, corrections, onApplyCorrection, on
   const daysWithoutEvents = RAW_SEED.grid.days.filter((d) => !daysWithEvents.has(d))
   const emptyRanges = collapseEmptyDayRanges(daysWithoutEvents, RAW_SEED.grid.days)
 
-  function isEventCorrected(event: CalendarEvent): boolean {
-    return event.hours.length > 0 && event.hours.every((h) => corrections[slotKey(event.day, h)])
-  }
-
   return (
     <div className="space-y-2 py-3">
       {person.calendar.map((event) => {
         const key = `${event.day}-${event.title}-${event.hours.join('_')}`
-        const corrected = isEventCorrected(event)
-        const correctionKind = corrected ? corrections[slotKey(event.day, event.hours[0])]?.kind : undefined
+        const appliedKind = appliedCorrectionKind(event, corrections)
+        const corrected = appliedKind !== undefined
+        const movableDisabled = isEventPreMarkedMovable(event, person)
 
         return (
           <div key={key} className="rounded-lg border border-slate-200 p-2.5 text-sm">
@@ -83,7 +107,7 @@ export function CalendarPrefillList({ person, corrections, onApplyCorrection, on
 
             {corrected ? (
               <div className="mt-2 flex items-center justify-between gap-2">
-                <p className="text-xs font-medium text-indigo-600">정정됨 · {CORRECTION_KIND_LABEL[correctionKind!]}</p>
+                <p className="text-xs font-medium text-indigo-600">정정됨 · {CORRECTION_KIND_LABEL[appliedKind!]}</p>
                 <button
                   type="button"
                   className="shrink-0 text-xs text-indigo-600 underline"
@@ -107,8 +131,15 @@ export function CalendarPrefillList({ person, corrections, onApplyCorrection, on
                   </button>
                   <button
                     type="button"
-                    className="rounded border border-slate-300 px-2 py-1 text-xs"
+                    disabled={movableDisabled}
+                    aria-disabled={movableDisabled}
+                    title={movableDisabled ? '이미 옮길 수 있는 일정으로 알려져 있어요' : undefined}
+                    className={`rounded border px-2 py-1 text-xs ${
+                      movableDisabled ? 'cursor-not-allowed border-slate-200 text-slate-300' : 'border-slate-300'
+                    }`}
                     onClick={() => {
+                      // disabled 속성 외에도 핸들러 자체에서 한 번 더 막는다(방어적 이중 체크).
+                      if (movableDisabled) return
                       event.hours.forEach((h) => onApplyCorrection(event.day, h, 'movable'))
                       setOpenEventKey(null)
                     }}
@@ -118,7 +149,7 @@ export function CalendarPrefillList({ person, corrections, onApplyCorrection, on
                 </div>
               )
             )}
-            {corrected && correctionKind === 'empty' && (
+            {corrected && appliedKind === 'empty' && (
               <p className="mt-1 text-xs text-indigo-500">사내 캘린더에서 열기</p>
             )}
           </div>
