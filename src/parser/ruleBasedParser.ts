@@ -23,6 +23,8 @@ function extractDay(clause: string): Day | null {
 
 // 시간 표현 어휘 — 특정 문장을 겨냥한 것이 아니라, 이 도메인(근무시간 격자 + 점심 제외)에서
 // 반복되는 일반적인 한국어 시간 표현을 규칙화한 것이다.
+// 시간대 의미 정의: "오전" = 정오 이전 슬롯, "오후" = 정오 이후 슬롯 — 12시는 점심으로 격자에서
+// 제외되므로 현재 격자에서 오후는 13시부터 시작한다. 숫자가 명시된 표현이 항상 우선한다.
 function extractHours(clause: string, grid: Grid): number[] {
   if (/점심\s*(바로\s*)?(직후|다음|이후)/.test(clause)) {
     return grid.hours.includes(13) ? [13] : []
@@ -33,15 +35,26 @@ function extractHours(clause: string, grid: Grid): number[] {
     const n = Number(explicit[1])
     const hasAm = /오전/.test(clause)
     const hasPm = /오후/.test(clause)
-    if (hasAm && grid.hours.includes(n)) return [n]
-    if (hasPm && grid.hours.includes(n + 12)) return [n + 12]
-    if (!hasAm && !hasPm) {
-      if (n < 12 && grid.hours.includes(n + 12)) return [n + 12]
-      if (grid.hours.includes(n)) return [n]
+    let resolved: number | null = null
+    if (hasAm && grid.hours.includes(n)) resolved = n
+    else if (hasPm && grid.hours.includes(n + 12)) resolved = n + 12
+    else if (!hasAm && !hasPm) {
+      if (n < 12 && grid.hours.includes(n + 12)) resolved = n + 12
+      else if (grid.hours.includes(n)) resolved = n
+    }
+    if (resolved !== null) {
+      // "2시 이후/2시부터" = 그 시각부터 남은 슬롯 전체. 구체적 시각 표현이 일반 시간대 표현보다 우선한다.
+      if (/이후|부터/.test(clause)) {
+        const from = resolved
+        return grid.hours.filter((h) => h >= from)
+      }
+      return [resolved]
     }
   }
 
   if (/오후\s*내내|하루\s*종일\s*오후/.test(clause)) {
+    // "오후 내내"는 시드 정본(도윤 원문 → response.chips 정확 재현: 수 14~17)이 14시 시작으로
+    // 저작한 관용 표현이라 그 해석을 유지한다 — 숫자 없는 일반 "오후"(아래)와는 구분된다.
     return grid.hours.filter((h) => h >= 14)
   }
   if (/종일|하루\s*종일/.test(clause)) {
@@ -51,7 +64,7 @@ function extractHours(clause: string, grid: Grid): number[] {
     return grid.hours.filter((h) => h < 12)
   }
   if (/오후/.test(clause)) {
-    return grid.hours.filter((h) => h >= 14)
+    return grid.hours.filter((h) => h > 12)
   }
   if (/저녁|늦은\s*시간/.test(clause)) {
     const last = grid.hours[grid.hours.length - 1]

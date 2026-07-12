@@ -52,10 +52,29 @@ describe('TradeoffCandidates — 응답 후 후보군 3개(seed.expected.candida
     expect(html).toContain('도윤 님과 수아 님은 참석하지 않아요.')
   })
 
-  it('추천 후보군은 기본으로 펼쳐져 선택 시간이 포함된 확정 CTA가 보인다(대안은 접혀 있어 펼쳐야 보임)', () => {
+  it('확정 CTA는 화면 하단에 하나뿐이고, 최초 선택(추천·기본 시간)을 문구에 담는다', () => {
     const matches = html.match(/로 확정하기/g) ?? []
     expect(matches.length).toBe(1)
     expect(html).toContain('금요일 오후 1시로 확정하기')
+    // CTA는 후보 카드(radiogroup) 바깥, 그 뒤(하단)에 있다 — 카드 내부에는 확정 CTA가 없다.
+    const radiogroupStart = html.indexOf('role="radiogroup"')
+    const radiogroupEnd = html.lastIndexOf('시간 선택하기')
+    const ctaIndex = html.indexOf('로 확정하기')
+    expect(radiogroupStart).toBeGreaterThan(-1)
+    expect(ctaIndex).toBeGreaterThan(radiogroupEnd)
+  })
+
+  it('후보 카드는 radio 선택 구조이고 추천 후보가 최초 선택 상태다(aria-checked)', () => {
+    const radios = html.match(/role="radio"/g) ?? []
+    expect(radios.length).toBe(3)
+    const checked = html.match(/aria-checked="true"/g) ?? []
+    expect(checked.length).toBe(1)
+    // 첫 radio(추천 카드)가 선택 상태다 — aria-checked="true"가 '추천' 라벨보다 앞서 나타난다.
+    const checkedIndex = html.indexOf('aria-checked="true"')
+    const recommendedLabelIndex = html.indexOf('>추천<')
+    const alternativeLabelIndex = html.indexOf('>다른 안<')
+    expect(checkedIndex).toBeLessThan(recommendedLabelIndex)
+    expect(recommendedLabelIndex).toBeLessThan(alternativeLabelIndex)
   })
 
   it('내부 용어(트레이드오프·포기·미반영)는 사용자 화면에 노출되지 않는다', () => {

@@ -111,3 +111,52 @@ describe('HostDashboard — 전원 응답 후 추천 카드가 실제 제품 흐
     expect(html).not.toContain('후보 시간 비교하기')
   })
 })
+
+describe('HostDashboard — 참석 어려움 신고 알림(12B QA 항목 3)', () => {
+  function renderWith(state: ReturnType<typeof buildInitialState>): string {
+    return renderToStaticMarkup(
+      <AppProvider initialState={state}>
+        <HostDashboard />
+      </AppProvider>,
+    )
+  }
+
+  function confirmedState() {
+    let state = buildInitialState()
+    state = appReducer(state, { type: 'SUBMIT_RESPONSE', personId: 'doyun', chips: [] })
+    state = appReducer(state, { type: 'CONFIRM_MEETING', groupKey: 'k', slot: { day: '금', hour: 13 }, excluded: [] })
+    return state
+  }
+
+  it('확정 후 서연이 신고하면 이름이 파생된 알림과 확정 결과 진입 CTA가 보인다', () => {
+    let state = confirmedState()
+    state = appReducer(state, { type: 'REPORT_UNAVAILABLE', personId: 'seoyeon' })
+    const html = renderWith(state)
+
+    expect(html).toContain('서연 님이 확정된 시간에 참석하기 어렵다고 알려왔어요')
+    expect(html).toContain('다시 조율할지는 주최자가 결정할 수 있어요.')
+    expect(html).toContain('확정 결과 확인하기')
+  })
+
+  it('신고가 여러 명이면 이름이 모두 나열된다(상태에서 파생)', () => {
+    let state = confirmedState()
+    state = appReducer(state, { type: 'REPORT_UNAVAILABLE', personId: 'seoyeon' })
+    state = appReducer(state, { type: 'REPORT_UNAVAILABLE', personId: 'minjun' })
+    const html = renderWith(state)
+
+    expect(html).toContain('민준 님, 서연 님이 확정된 시간에 참석하기 어렵다고 알려왔어요')
+  })
+
+  it('신고가 없으면 알림이 보이지 않는다', () => {
+    const html = renderWith(confirmedState())
+    expect(html).not.toContain('참석하기 어렵다고 알려왔어요')
+  })
+
+  it('다시 조율하기로 확정이 풀리면 알림 대신 재조율 흐름이 이어받는다(알림 비노출)', () => {
+    let state = confirmedState()
+    state = appReducer(state, { type: 'REPORT_UNAVAILABLE', personId: 'seoyeon' })
+    state = appReducer(state, { type: 'REOPEN_FOR_RESCHEDULE' })
+    const html = renderWith(state)
+    expect(html).not.toContain('참석하기 어렵다고 알려왔어요')
+  })
+})

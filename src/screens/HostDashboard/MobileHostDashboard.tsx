@@ -13,6 +13,7 @@ import { MobileParticipantList } from './MobileParticipantList'
 import { PersonDetailPanel } from './PersonDetailPanel'
 import { RecommendationCard } from './RecommendationCard'
 import { RemindActionCard } from './RemindActionCard'
+import { ReportNoticeCard } from './ReportNoticeCard'
 
 type MobileView = 'list' | 'detail' | 'days'
 
@@ -88,9 +89,18 @@ export function MobileHostDashboard({ selectedPersonId, onSelectPerson }: Props)
     )
   }
 
+  const reporters = state.confirmedMeeting
+    ? state.people.filter((p) => state.reportedByPersonId[p.id])
+    : []
+
   return (
     <div className="mx-auto max-w-[520px] space-y-4 p-4">
       <MeetingHeader meeting={RAW_SEED.meeting} respondedCount={respondedCount} />
+
+      <ReportNoticeCard
+        reporters={reporters}
+        onOpenConfirmation={() => dispatch({ type: 'NAVIGATE', screen: 'confirmation' })}
+      />
 
       {pendingPerson && (
         <RemindActionCard

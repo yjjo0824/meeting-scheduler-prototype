@@ -9,6 +9,7 @@ import { MobileHostDashboard } from './MobileHostDashboard'
 import { PersonDetailPanel } from './PersonDetailPanel'
 import { RecommendationCard } from './RecommendationCard'
 import { RemindActionCard } from './RemindActionCard'
+import { ReportNoticeCard } from './ReportNoticeCard'
 
 export function HostDashboard() {
   const { state, dispatch, schedule } = useAppState()
@@ -25,10 +26,18 @@ export function HostDashboard() {
   const pendingPerson = state.people.find((p) => !state.hasResponded[p.id]) ?? null
   const respondedCount = state.people.filter((p) => state.hasResponded[p.id]).length
   const selectedPerson = state.people.find((p) => p.id === selectedPersonId) ?? null
+  // 확정된 회의에 대한 참석 어려움 신고 — 이름은 상태에서 파생(하드코딩 금지), 확정이 풀리면
+  // (다시 조율 진행) 알림 대신 재조율 흐름이 이어받으므로 확정 중에만 보여준다.
+  const reporters = state.confirmedMeeting ? state.people.filter((p) => state.reportedByPersonId[p.id]) : []
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-6 p-8">
       <MeetingHeader meeting={RAW_SEED.meeting} respondedCount={respondedCount} />
+
+      <ReportNoticeCard
+        reporters={reporters}
+        onOpenConfirmation={() => dispatch({ type: 'NAVIGATE', screen: 'confirmation' })}
+      />
 
       {/* 미응답 상태(리마인드)와 잠정 추천을 분리된 카드로 나란히 둔다 — 요청 흐름과 추천 정보를
           한 문구에 섞지 않는다. */}

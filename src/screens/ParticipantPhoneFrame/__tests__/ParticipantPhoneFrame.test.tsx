@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest'
 import { RAW_SEED } from '../../../data/loadSeed'
 import { appReducer, buildInitialState } from '../../../state/appReducer'
 import { AppProvider } from '../../../state/AppContext'
-import { ParticipantPhoneFrame } from '../ParticipantPhoneFrame'
+import { ParticipantPhoneFrame, mergeDraftChips } from '../ParticipantPhoneFrame'
+import { parseChips } from '../../../parser/ruleBasedParser'
 
 function render(initialState: ReturnType<typeof buildInitialState>): string {
   return renderToStaticMarkup(
@@ -203,5 +204,37 @@ describe('ParticipantPhoneFrame — R4 공개 범위: 본인 화면에는 원문
     const html = render(state)
 
     expect(html).toContain('웬만하면')
+  })
+})
+
+describe('mergeDraftChips — 재조율 편집 시 기존 응답 조건 보존(R8, 12B QA 항목 4)', () => {
+  it('새 자연어에서 파싱된 칩이 기존 응답 칩을 덮어쓰지 않고 함께 남는다', () => {
+    const seoyeon = RAW_SEED.people.find((p) => p.id === 'seoyeon')!
+    const committed = seoyeon.response.chips // [회피 매일 13시]
+    const parsed = parseChips({ raw: '월요일 오전 안 돼요', calendarEvents: seoyeon.calendar, grid: RAW_SEED.grid })
+
+    const merged = mergeDraftChips(committed, parsed)
+
+    // 기존 칩(회피 매일 13시)이 보존되고, 새 칩(불가 월 오전)이 추가된다.
+    expect(merged).toHaveLength(committed.length + parsed.length)
+    expect(merged[0]).toMatchObject({ type: '회피', day: '*', hours: [13] })
+    expect(merged[merged.length - 1]).toMatchObject({ type: '불가', day: '월', hours: [9, 10, 11] })
+  })
+
+  it('동일 조건(type·day·hours)이 겹치면 한 번만 남는다', () => {
+    const doyun = RAW_SEED.people.find((p) => p.id === 'doyun')!
+    const committed = doyun.response.chips
+    const reparsed = parseChips({ raw: doyun.response.raw!, calendarEvents: doyun.calendar, grid: RAW_SEED.grid })
+
+    const merged = mergeDraftChips(committed, reparsed)
+
+    // 원문을 다시 파싱해도 커밋된 칩과 같은 조건이므로 개수가 늘지 않는다.
+    expect(merged).toHaveLength(committed.length)
+  })
+
+  it('빈 기존 응답(첫 응답자)에서는 파싱 결과만 남는다 — 기존 동작 유지', () => {
+    const doyun = RAW_SEED.people.find((p) => p.id === 'doyun')!
+    const parsed = parseChips({ raw: doyun.response.raw!, calendarEvents: doyun.calendar, grid: RAW_SEED.grid })
+    expect(mergeDraftChips([], parsed)).toEqual(parsed)
   })
 })
